@@ -5,16 +5,16 @@ m_ProjectFiles:
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 638912111940000000
-    m_Hash: 3672785957
+      ticks: 638916178550000000
+    m_Hash: 1738400377
   m_LockFileStatus:
     m_FilePath: /Users/levyyoavjacques/UnityProjects/ZooMerge/Packages/packages-lock.json
     m_PathExists: 1
     m_ContentTrackingEnabled: 1
     m_ModificationDate:
       serializedVersion: 2
-      ticks: 638912111940000000
-    m_Hash: 979064057
+      ticks: 638916178550000000
+    m_Hash: 3364059014
 m_EmbeddedPackageManifests:
   m_ManifestsStatus: {}
 m_LocalPackages:
@@ -22,6 +22,280 @@ m_LocalPackages:
 m_ProjectPath: /Users/levyyoavjacques/UnityProjects/ZooMerge/Packages
 m_EditorVersion: 6000.0.32f1 (b2e806cf271c)
 m_ResolvedPackages:
+- packageId: com.unity.addressables@2.2.2
+  testable: 0
+  isDirectDependency: 1
+  version: 2.2.2
+  source: 1
+  resolvedPath: /Users/levyyoavjacques/UnityProjects/ZooMerge/Library/PackageCache/com.unity.addressables
+  assetPath: Packages/com.unity.addressables
+  name: com.unity.addressables
+  displayName: Addressables
+  author:
+    name: 
+    email: 
+    url: 
+  category: 
+  type: assets
+  description: 'The Addressable Asset System allows the developer to ask for an asset
+    via its address. Once an asset (e.g. a prefab) is marked "addressable", it generates
+    an address which can be called from anywhere. Wherever the asset resides (local
+    or remote), the system will locate it and its dependencies, then return it.
+
+
+    Use
+    ''Window->Asset Management->Addressables'' to begin working with the system.
+
+
+    Addressables
+    use asynchronous loading to support loading from any location with any collection
+    of dependencies. Whether you have been using direct references, traditional asset
+    bundles, or Resource folders, addressables provide a simpler way to make your
+    game more dynamic. Addressables simultaneously opens up the world of asset bundles
+    while managing all the complexity.
+
+
+    For usage samples, see github.com/Unity-Technologies/Addressables-Sample'
+  errors: []
+  versions:
+    all:
+    - 0.0.8-preview
+    - 0.0.12-preview
+    - 0.0.15-preview
+    - 0.0.16-preview
+    - 0.0.18-preview
+    - 0.0.22-preview
+    - 0.0.26-preview
+    - 0.0.27-preview
+    - 0.1.2-preview
+    - 0.2.1-preview
+    - 0.2.2-preview
+    - 0.3.5-preview
+    - 0.4.6-preview
+    - 0.4.8-preview
+    - 0.5.2-preview
+    - 0.5.3-preview
+    - 0.6.6-preview
+    - 0.6.7-preview
+    - 0.6.8-preview
+    - 0.7.4-preview
+    - 0.7.5-preview
+    - 0.8.4-preview
+    - 0.8.6-preview
+    - 1.1.3-preview
+    - 1.1.4-preview
+    - 1.1.5
+    - 1.1.7
+    - 1.1.9
+    - 1.1.10
+    - 1.2.2
+    - 1.2.3
+    - 1.2.4
+    - 1.3.3
+    - 1.3.8
+    - 1.4.0
+    - 1.5.0
+    - 1.5.1
+    - 1.6.0
+    - 1.6.2
+    - 1.7.4
+    - 1.7.5
+    - 1.8.3
+    - 1.8.4
+    - 1.8.5
+    - 1.9.2
+    - 1.10.0
+    - 1.11.2
+    - 1.12.0
+    - 1.13.1
+    - 1.14.2
+    - 1.15.1
+    - 1.16.1
+    - 1.16.6
+    - 1.16.7
+    - 1.16.8
+    - 1.16.10
+    - 1.16.12
+    - 1.16.13
+    - 1.16.15
+    - 1.16.16
+    - 1.16.19
+    - 1.17.0-preview
+    - 1.17.2-preview
+    - 1.17.4-preview
+    - 1.17.5-preview
+    - 1.17.6-preview
+    - 1.17.13
+    - 1.17.15
+    - 1.17.17
+    - 1.18.2
+    - 1.18.4
+    - 1.18.9
+    - 1.18.11
+    - 1.18.13
+    - 1.18.15
+    - 1.18.16
+    - 1.18.19
+    - 1.19.4
+    - 1.19.6
+    - 1.19.9
+    - 1.19.11
+    - 1.19.13
+    - 1.19.14
+    - 1.19.15
+    - 1.19.17
+    - 1.19.18
+    - 1.19.19
+    - 1.20.0
+    - 1.20.3
+    - 1.20.5
+    - 1.21.1
+    - 1.21.2
+    - 1.21.3
+    - 1.21.8
+    - 1.21.9
+    - 1.21.10
+    - 1.21.12
+    - 1.21.14
+    - 1.21.15
+    - 1.21.17
+    - 1.21.18
+    - 1.21.19
+    - 1.21.20
+    - 1.21.21
+    - 1.22.2
+    - 1.22.3
+    - 1.23.1
+    - 1.24.0
+    - 1.25.0
+    - 1.25.1
+    - 1.27.0
+    - 2.0.3
+    - 2.0.4
+    - 2.0.6
+    - 2.0.8
+    - 2.1.0
+    - 2.2.2
+    - 2.3.0
+    - 2.3.1
+    - 2.3.7
+    - 2.3.16
+    - 2.4.1
+    - 2.4.2
+    - 2.4.3
+    - 2.4.4
+    - 2.4.5
+    - 2.4.6
+    - 2.5.0
+    - 2.6.0
+    - 2.7.0
+    - 2.7.2
+    compatible:
+    - 2.2.2
+    - 2.3.0
+    - 2.3.1
+    - 2.3.7
+    - 2.3.16
+    - 2.4.1
+    - 2.4.2
+    - 2.4.3
+    - 2.4.4
+    - 2.4.5
+    - 2.4.6
+    - 2.5.0
+    - 2.6.0
+    - 2.7.0
+    - 2.7.2
+    recommended: 2.2.2
+    deprecated: []
+  dependencies:
+  - name: com.unity.profiling.core
+    version: 1.0.2
+  - name: com.unity.modules.assetbundle
+    version: 1.0.0
+  - name: com.unity.modules.jsonserialize
+    version: 1.0.0
+  - name: com.unity.modules.imageconversion
+    version: 1.0.0
+  - name: com.unity.modules.unitywebrequest
+    version: 1.0.0
+  - name: com.unity.scriptablebuildpipeline
+    version: 2.1.4
+  - name: com.unity.modules.unitywebrequestassetbundle
+    version: 1.0.0
+  resolvedDependencies:
+  - name: com.unity.profiling.core
+    version: 1.0.2
+  - name: com.unity.modules.assetbundle
+    version: 1.0.0
+  - name: com.unity.modules.jsonserialize
+    version: 1.0.0
+  - name: com.unity.modules.imageconversion
+    version: 1.0.0
+  - name: com.unity.modules.unitywebrequest
+    version: 1.0.0
+  - name: com.unity.scriptablebuildpipeline
+    version: 2.1.4
+  - name: com.unity.modules.unitywebrequestassetbundle
+    version: 1.0.0
+  keywords:
+  - asset
+  - resources
+  - bundle
+  - bundles
+  - assetbundles
+  registry:
+    id: main
+    name: 
+    url: https://packages.unity.com
+    scopes: []
+    isDefault: 1
+    capabilities: 7
+    configSource: 0
+  hideInEditor: 1
+  entitlements:
+    licensingModel: 1
+  isAssetStorePackage: 0
+  datePublishedTicks: 638556164070000000
+  documentationUrl: https://docs.unity3d.com/Packages/com.unity.addressables@2.2/manual/index.html
+  hasRepository: 1
+  repository:
+    type: git
+    url: https://github.cds.internal.unity3d.com/unity/Addressables.git
+    revision: a5d37e7459f86f9108e521236be616077803ca7c
+    path: 
+  unityLifecycle:
+    version: 2.2.2
+    nextVersion: 
+    recommendedVersion: 
+    isDeprecated: 0
+    deprecationMessage: 
+  isDeprecated: 0
+  deprecationMessage: 
+  git:
+    hash: 
+    revision: 
+  upmReserved: '{"changelog":"- Fix KeyNotFoundException when clicking on local bundles
+    in the profiler.\n- Fix bundles incorrectly marked as released in the Profiler
+    when they are still active\n- Improved error message when trying to load a catalog
+    in an unexpected file format.\n- Fixed issue where operation that uses WaitForCompletion
+    can timeout much earlier than it should.\n- The build scripts were reworked so
+    that you can extend them or copy them outside the package without having to fork
+    the entire package.\n- A Version field was added to the Addressables object for
+    getting the package version in the Editor.\n- Fixed an issue where tearing down
+    the Addressables instance could happen before user tear down code was getting
+    called.\n- Sort collections to make serialized editor files deterministic\n-
+    Fixed issue where labels on an addressable sub-entry are incorrectly added to
+    the former parent entry.\n- Added support for calling Release() on AsyncOperationHandles
+    directly that couldn''t before.\n- Fixed sub-object loading from AssetReferences
+    for types that are not Sprites in a SpriteAtlas."}'
+  assetStore:
+    productId: 
+  fingerprint: 4f7e840f4cce8ffab522b6febb1b52af9e928bdb
+  editorCompatibility:
+    compatibilityLevel: 0
+    minimumPackageVersion: 2.2.2
+    minimumUnityVersion: 2023.1.0a1
 - packageId: com.unity.collab-proxy@2.9.1
   testable: 0
   isDirectDependency: 1
@@ -123,12 +397,14 @@ m_ResolvedPackages:
     - 2.8.1
     - 2.8.2
     - 2.9.1
+    - 2.9.2
     compatible:
     - 2.6.0
     - 2.7.1
     - 2.8.1
     - 2.8.2
     - 2.9.1
+    - 2.9.2
     recommended: 2.6.0
     deprecated: []
   dependencies: []
@@ -5762,6 +6038,260 @@ m_ResolvedPackages:
     compatibilityLevel: 0
     minimumPackageVersion: 1.1.7
     minimumUnityVersion: 2021.3.15f1
+- packageId: com.unity.profiling.core@1.0.2
+  testable: 0
+  isDirectDependency: 0
+  version: 1.0.2
+  source: 1
+  resolvedPath: /Users/levyyoavjacques/UnityProjects/ZooMerge/Library/PackageCache/com.unity.profiling.core
+  assetPath: Packages/com.unity.profiling.core
+  name: com.unity.profiling.core
+  displayName: Unity Profiling Core API
+  author:
+    name: 
+    email: 
+    url: 
+  category: 
+  type: asset
+  description: The Unity Profiling Core package provides an API for code instrumentation
+    markup, and for profiling statistic collection.
+  errors: []
+  versions:
+    all:
+    - 0.1.0-preview.1
+    - 0.2.0-preview.1
+    - 0.2.1-preview.1
+    - 1.0.0-pre.1
+    - 1.0.0
+    - 1.0.2
+    compatible:
+    - 1.0.2
+    recommended: 1.0.2
+    deprecated: []
+  dependencies: []
+  resolvedDependencies: []
+  keywords:
+  - profiler
+  - profiling
+  - api
+  registry:
+    id: main
+    name: 
+    url: https://packages.unity.com
+    scopes: []
+    isDefault: 1
+    capabilities: 7
+    configSource: 0
+  hideInEditor: 1
+  entitlements:
+    licensingModel: 1
+  isAssetStorePackage: 0
+  datePublishedTicks: 637828752310000000
+  documentationUrl: 
+  hasRepository: 1
+  repository:
+    type: git
+    url: https://github.cds.internal.unity3d.com/unity/profiler.git
+    revision: 2189ba14439d76a4083f59fae87163b4bdfd49c2
+    path: 
+  unityLifecycle:
+    version: 1.0.2
+    nextVersion: 
+    recommendedVersion: 
+    isDeprecated: 0
+    deprecationMessage: 
+  isDeprecated: 0
+  deprecationMessage: 
+  git:
+    hash: 
+    revision: 
+  upmReserved: 
+  assetStore:
+    productId: 
+  fingerprint: aac7b93912bc5df5fe06b04ff1b758493cdc2346
+  editorCompatibility:
+    compatibilityLevel: 0
+    minimumPackageVersion: 1.0.2
+    minimumUnityVersion: 2020.1.0a1
+- packageId: com.unity.scriptablebuildpipeline@2.1.4
+  testable: 0
+  isDirectDependency: 0
+  version: 2.1.4
+  source: 1
+  resolvedPath: /Users/levyyoavjacques/UnityProjects/ZooMerge/Library/PackageCache/com.unity.scriptablebuildpipeline
+  assetPath: Packages/com.unity.scriptablebuildpipeline
+  name: com.unity.scriptablebuildpipeline
+  displayName: Scriptable Build Pipeline
+  author:
+    name: 
+    email: 
+    url: 
+  category: 
+  type: assets
+  description: The Scriptable Build Pipeline moves the asset bundle build pipeline
+    to C#.  Use the pre-defined build flows, or create your own using the divided
+    up APIs.  This system improves build time, fixes incremental build, and provides
+    greater flexibility.
+  errors: []
+  versions:
+    all:
+    - 0.0.5-preview
+    - 0.0.6-preview
+    - 0.0.8-preview
+    - 0.0.9-preview
+    - 0.0.10-preview
+    - 0.0.14-preview
+    - 0.0.15-preview
+    - 0.1.0-preview
+    - 0.2.0-preview
+    - 1.0.1-preview
+    - 1.1.0-preview
+    - 1.1.1-preview
+    - 1.2.1-preview
+    - 1.3.5-preview
+    - 1.4.1-preview
+    - 1.5.0-preview
+    - 1.5.1
+    - 1.5.2
+    - 1.5.4
+    - 1.5.6
+    - 1.5.10
+    - 1.6.3-preview
+    - 1.6.4-preview
+    - 1.6.5-preview
+    - 1.7.2
+    - 1.7.3
+    - 1.8.2
+    - 1.8.4
+    - 1.8.6
+    - 1.9.0
+    - 1.10.0
+    - 1.11.1
+    - 1.11.2
+    - 1.12.0
+    - 1.13.1
+    - 1.14.0
+    - 1.14.1
+    - 1.15.1
+    - 1.15.2
+    - 1.16.1
+    - 1.17.0
+    - 1.18.0
+    - 1.19.0
+    - 1.19.1
+    - 1.19.2
+    - 1.19.3
+    - 1.19.4
+    - 1.19.5
+    - 1.19.6
+    - 1.20.1
+    - 1.20.2
+    - 1.21.0
+    - 1.21.1
+    - 1.21.2
+    - 1.21.3
+    - 1.21.5
+    - 1.21.7
+    - 1.21.8
+    - 1.21.9
+    - 1.21.20
+    - 1.21.21
+    - 1.21.22
+    - 1.21.23
+    - 1.21.24
+    - 1.21.25
+    - 1.22.1
+    - 1.22.2
+    - 1.22.4
+    - 1.22.5
+    - 1.23.0
+    - 2.0.1
+    - 2.0.2
+    - 2.1.0
+    - 2.1.2
+    - 2.1.3
+    - 2.1.4
+    - 2.1.5
+    - 2.2.4
+    - 2.2.11
+    - 2.3.0
+    - 2.3.1
+    - 2.3.2
+    - 2.3.3
+    - 2.3.4
+    - 2.3.5
+    - 2.3.6
+    - 2.3.7
+    - 2.3.8
+    - 2.4.0
+    - 2.4.1
+    compatible:
+    - 2.1.4
+    - 2.1.5
+    - 2.2.4
+    - 2.2.11
+    - 2.3.0
+    - 2.3.1
+    - 2.3.2
+    - 2.3.3
+    - 2.3.4
+    - 2.3.5
+    - 2.3.6
+    - 2.3.7
+    - 2.3.8
+    - 2.4.0
+    - 2.4.1
+    recommended: 2.1.5
+    deprecated: []
+  dependencies: []
+  resolvedDependencies: []
+  keywords:
+  - build
+  - bundle
+  - bundles
+  - assetbundles
+  - cache
+  - server
+  registry:
+    id: main
+    name: 
+    url: https://packages.unity.com
+    scopes: []
+    isDefault: 1
+    capabilities: 7
+    configSource: 0
+  hideInEditor: 1
+  entitlements:
+    licensingModel: 1
+  isAssetStorePackage: 0
+  datePublishedTicks: 638556164050000000
+  documentationUrl: https://docs.unity3d.com/Packages/com.unity.scriptablebuildpipeline@2.1/manual/index.html
+  hasRepository: 1
+  repository:
+    type: git
+    url: https://github.cds.internal.unity3d.com/unity/Addressables.git
+    revision: 8477325d1db715bebb91f6f11dc0d5aa6ebde77d
+    path: 
+  unityLifecycle:
+    version: 2.1.4
+    nextVersion: 
+    recommendedVersion: 
+    isDeprecated: 0
+    deprecationMessage: 
+  isDeprecated: 0
+  deprecationMessage: 
+  git:
+    hash: 
+    revision: 
+  upmReserved: '{"changelog":"Fixed issue where total size of all bundles changes
+    when updating the same Addressable Groups build."}'
+  assetStore:
+    productId: 
+  fingerprint: 101dcb4353ce8bea5b4404d0ca31ce5a00ca751b
+  editorCompatibility:
+    compatibilityLevel: 0
+    minimumPackageVersion: 2.1.4
+    minimumUnityVersion: 2019.4.0a1
 - packageId: com.unity.searcher@4.9.2
   testable: 0
   isDirectDependency: 0
