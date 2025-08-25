@@ -5335,3 +5335,56 @@ Memory consumption went from 162.8 MB to 158.8 MB.
 Total: 6.435709 ms (FindLiveObjects: 0.345625 ms CreateObjectMapping: 0.252417 ms MarkObjects: 4.393417 ms  DeleteObjects: 1.444000 ms)
 
 Prepare: number of updated asset objects reloaded= 0
+[usbmuxd] Attached: 68 00008120-0010656C2EF0201E
+[usbmuxd] Detached: 68 00008120-0010656C2EF0201E
+========================================================================
+Received Prepare
+Begin MonoManager ReloadAssembly
+Thread 0x326293000 may have been prematurely finalized
+- Loaded All Assemblies, in  0.628 seconds
+Refreshing native plugins compatible for Editor in 0.51 ms, found 3 plugins.
+Native extension for iOS target not found
+Native extension for Android target not found
+Native extension for OSXStandalone target not found
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.712 seconds
+Domain Reload Profiling: 1343ms
+	BeginReloadAssembly (214ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (21ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (99ms)
+	RebuildCommonClasses (27ms)
+	RebuildNativeTypeToScriptingClass (9ms)
+	initialDomainReloadingComplete (20ms)
+	LoadAllAssembliesAndSetupDomain (360ms)
+		LoadAssemblies (246ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (159ms)
+			TypeCache.Refresh (9ms)
+				TypeCache.ScanAssembly (0ms)
+			BuildScriptInfoCaches (139ms)
+			ResolveRequiredComponents (8ms)
+	FinalizeReload (712ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (559ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (45ms)
+			SetLoadedEditorAssemblies (5ms)
+			BeforeProcessingInitializeOnLoad (115ms)
+			ProcessInitializeOnLoadAttributes (348ms)
+			ProcessInitializeOnLoadMethodAttributes (45ms)
+			AfterProcessingInitializeOnLoad (1ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (8ms)
+Refreshing native plugins compatible for Editor in 0.47 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 7219 unused Assets / (4.8 MB). Loaded Objects now: 8278.
+Memory consumption went from 162.8 MB to 158.0 MB.
+Total: 7.588667 ms (FindLiveObjects: 0.441084 ms CreateObjectMapping: 0.262000 ms MarkObjects: 4.992583 ms  DeleteObjects: 1.892917 ms)
+
+Prepare: number of updated asset objects reloaded= 1
