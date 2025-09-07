@@ -35,6 +35,8 @@ public class CircleDragInput : MonoBehaviour,
     private float cachedMinX;
     private float cachedMaxX;
     private bool hasCachedBounds;
+    private Vector3 lastDropPosition;
+
 
     private void Awake()
     {
@@ -144,7 +146,10 @@ public class CircleDragInput : MonoBehaviour,
         spawnedAfterThisPress = true;
 
         if (activeBall != null && activeBall.IsDraggable())
+        {
+            lastDropPosition = activeBall.transform.position;
             activeBall.Drop();
+        }
 
         activePointerId = int.MinValue;
         activeBall = null;
@@ -156,6 +161,7 @@ public class CircleDragInput : MonoBehaviour,
             spawnDelayRoutine = StartCoroutine(SpawnAfterDelay());
         }
     }
+
 
     private System.Collections.IEnumerator SpawnAfterDelay()
     {

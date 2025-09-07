@@ -6,7 +6,7 @@ public class BallSpawner : MonoBehaviour
     [Header("Refs")]
     [SerializeField] private AddressableInstantiator instantiator;
     [SerializeField] private Transform spawnPoint;
-    [SerializeField] private BallPicker picker;   // <-- added
+    [SerializeField] private BallPicker picker;
 
     private void Start()
     {

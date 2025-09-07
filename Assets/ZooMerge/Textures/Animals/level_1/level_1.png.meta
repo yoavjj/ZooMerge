@@ -115,6 +115,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -122,10 +135,10 @@ TextureImporter:
       name: level_1_0
       rect:
         serializedVersion: 2
-        x: 6
-        y: 131
-        width: 116
-        height: 122
+        x: 0
+        y: 128
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -144,19 +157,19 @@ TextureImporter:
       name: level_1_1
       rect:
         serializedVersion: 2
-        x: 134
-        y: 131
-        width: 116
-        height: 116
+        x: 128
+        y: 128
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: faa420dfbb97a5250800000000000000
+      spriteID: 22f5f16cf29f04edb9bfe2bf95e83149
       internalID: 5934189307324680879
       vertices: []
       indices: 
@@ -166,19 +179,19 @@ TextureImporter:
       name: level_1_2
       rect:
         serializedVersion: 2
-        x: 3
-        y: 5
-        width: 122
-        height: 118
+        x: 0
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: ba6eef589d2241f30800000000000000
+      spriteID: eb967e175f7b042469ecffdec2aa0d36
       internalID: 4545296241574995627
       vertices: []
       indices: 
@@ -188,7 +201,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 0ed8b9f290bd644fe9556cd3492fc01b
     internalID: 0
     vertices: []
     indices: 
@@ -197,7 +210,10 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      level_1_0: 8139374146359902160
+      level_1_1: 5934189307324680879
+      level_1_2: 4545296241574995627
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
