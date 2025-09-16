@@ -46,6 +46,28 @@ public class BallPicker : MonoBehaviour
         return pool[pool.Count - 1].prefab;
     }
 
+    public bool TryPickRandomEntry(out BallSet.Entry entry, out string reason)
+    {
+        reason = "";
+        entry = null;
+
+        if (ballSet == null || ballSet.entries == null || ballSet.entries.Count == 0)
+        {
+            reason = "No entries in ballSet.";
+            return false;
+        }
+
+        var valid = ballSet.entries.FindAll(e => e != null && e.includeInRandom && e.prefab != null);
+        if (valid.Count == 0)
+        {
+            reason = "No valid ball entries.";
+            return false;
+        }
+
+        entry = valid[Random.Range(0, valid.Count)];
+        return true;
+    }
+
     public bool TryPickRandom(out AssetReferenceGameObject prefab, out string reason)
     {
         prefab = null;

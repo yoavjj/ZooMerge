@@ -65,8 +65,10 @@
     <Analyzer Include="/Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets/ZooMerge/Editor/ReadOnlyAttribute.cs" />
     <Compile Include="Assets/Editor/windowHierarchyPrefrences.cs" />
     <Compile Include="Assets/Editor/Hierarchy.cs" />
+    <Compile Include="Assets/ZooMerge/Editor/ReadOnlyDrawer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Library/PackageCache/com.unity.collab-proxy/Lib/Editor/Localization/commontypes.ko.txt" />
@@ -1265,6 +1267,7 @@
     <ProjectReference Include="Unity.Multiplayer.Center.Editor.csproj" />
     <ProjectReference Include="Unity.ScriptableBuildPipeline.Editor.csproj" />
     <ProjectReference Include="Unity.Mathematics.Editor.csproj" />
+    <ProjectReference Include="KrisDevelopment.FavoriteAssets.csproj" />
     <ProjectReference Include="Unity.RenderPipelines.GPUDriven.Runtime.csproj" />
     <ProjectReference Include="Unity.InternalAPIEditorBridge.001.csproj" />
     <ProjectReference Include="Unity.2D.Animation.Editor.csproj" />

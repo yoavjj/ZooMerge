@@ -65,13 +65,22 @@
     <Analyzer Include="/Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets/ZooMerge/Script/MergeCore/BallInfo.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/CircleDragInput.cs" />
+    <Compile Include="Assets/ZooMerge/Script/MergeCore/BallFactoryAddressables.cs" />
     <Compile Include="Assets/ZooMerge/Script/AddressableScript/AddressableInstantiator.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallSet.cs" />
+    <Compile Include="Assets/ZooMerge/Script/MergeCore/MergeCore.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/CircleDropController.cs" />
+    <Compile Include="Assets/ZooMerge/Script/MergeCore/IBallFactory.cs" />
+    <Compile Include="Assets/ZooMerge/Script/MergeCore/BallCollisionMerge.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/DragBounds.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallPicker.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Controls/ReleaseOnDestroy.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallSpawner.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets/KrisDevelopment/FavoriteAssets/How To Use.txt" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -1095,6 +1104,7 @@
     <ProjectReference Include="Unity.Multiplayer.Center.Editor.csproj" />
     <ProjectReference Include="Unity.ScriptableBuildPipeline.Editor.csproj" />
     <ProjectReference Include="Unity.Mathematics.Editor.csproj" />
+    <ProjectReference Include="KrisDevelopment.FavoriteAssets.csproj" />
     <ProjectReference Include="Unity.RenderPipelines.GPUDriven.Runtime.csproj" />
     <ProjectReference Include="Unity.InternalAPIEditorBridge.001.csproj" />
     <ProjectReference Include="Unity.2D.Animation.Editor.csproj" />
