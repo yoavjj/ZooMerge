@@ -16,11 +16,46 @@ public class AddressableInstantiator : MonoBehaviour
 
     private bool _isSpawning = false;
 
+    public AssetReferenceGameObject DefaultBallPrefab => _ballPrefab;
+
     // Spawn any addressable prefab (keeps this class generic)
-    public void SpawnAssetAt(AssetReferenceGameObject prefabRef, Vector3 worldPosition)
+    public void SpawnAssetAtAsync(AssetReferenceGameObject prefabRef, Vector3 worldPosition)
     {
         if (_isSpawning || prefabRef == null) return;
         StartCoroutine(SpawnRoutine(prefabRef, worldPosition));
+    }
+
+    public GameObject SpawnAssetAt(AssetReferenceGameObject prefabRef, Vector3 worldPosition, Transform parentOverride = null)
+    {
+        if (prefabRef == null) return null;
+
+        // Ensure dependencies are present (blocking)
+        var sizeHandle = Addressables.GetDownloadSizeAsync(prefabRef);
+        long size = sizeHandle.WaitForCompletion();
+        Addressables.Release(sizeHandle);
+
+        if (size > 0)
+        {
+            var dlHandle = Addressables.DownloadDependenciesAsync(prefabRef);
+            dlHandle.WaitForCompletion();
+            Addressables.Release(dlHandle);
+        }
+
+        // Instantiate and wait
+        var parentToUse = parentOverride != null ? parentOverride : _container;
+        var instHandle = prefabRef.InstantiateAsync(worldPosition, Quaternion.identity, parentToUse);
+
+        var go = instHandle.WaitForCompletion();
+
+        if (go != null)
+        {
+            // ensure correct release on destroy
+            var release = go.GetComponent<ReleaseOnDestroy>();
+            if (release == null) release = go.AddComponent<ReleaseOnDestroy>();
+            release.handle = instHandle;
+        }
+
+        return go;
     }
 
     // Convenience: uses default _ballPrefab at this object's position
@@ -82,7 +117,7 @@ public class AddressableInstantiator : MonoBehaviour
         Addressables.Release(sizeHandle);
 
         // 3) Instantiate
-        var spawnHandle = prefabRef.InstantiateAsync(position, Quaternion.identity, _container);
+        var spawnHandle = prefabRef.InstantiateAsync(position, Quaternion.identity);
         yield return spawnHandle;
 
         if (spawnHandle.Status == AsyncOperationStatus.Succeeded)
@@ -91,7 +126,7 @@ public class AddressableInstantiator : MonoBehaviour
 
             // If parented, make sure it sits at local zero (optional)
             if (_container != null)
-                go.transform.localPosition = Vector3.zero;
+                go.transform.SetParent(_container, worldPositionStays: true);
 
             // Add release helper so the instance gets released correctly when destroyed
             var release = go.AddComponent<ReleaseOnDestroy>();
