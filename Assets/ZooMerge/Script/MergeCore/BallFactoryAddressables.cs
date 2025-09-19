@@ -88,7 +88,10 @@ public class BallFactoryAddressables : MonoBehaviour, IBallFactory
             {
                 var physics = ballSet.GetPhysicsFor(entry); // <-- now by level only
                 if (physics != null)
-                    info.Setup(entry.level, entry.type, physics.finalLinearDamping, physics.finalAngularDamping);
+                    info.Setup(entry.level, entry.type,
+                               physics.finalLinearDamping, physics.finalAngularDamping,
+                               physics.gravityStart, physics.gravityEnd,
+                               physics.uniformScale);
                 else
                     Debug.LogError($"[BallFactory] No physics data found for level '{entry.level}'");
             }

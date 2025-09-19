@@ -33,10 +33,15 @@ public class BallCollisionMerge : MonoBehaviour
             : (Vector2)((self.transform.position + other.transform.position) * 0.5f);
         float z = (self.transform.position.z + other.transform.position.z) * 0.5f;
         var spawnAt = new Vector3(contact.x, contact.y, z);
-        core.TryMergeAt(self, other, spawnAt);
+        bool merged = core.TryMergeAt(self, other, spawnAt);
 
-        // FRICTION BUMP (skip if either is merging or not Dynamic)
-        TryApplyFriction(self, other);
+        if (!merged)
+        {
+            self.DropController?.ApplyFinalPhysicsImmediately();
+            other.DropController?.ApplyFinalPhysicsImmediately();
+
+            TryApplyFriction(self, other); // optional nudge
+        }
 
     }
 

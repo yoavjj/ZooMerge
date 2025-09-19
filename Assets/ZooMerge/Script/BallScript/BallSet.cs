@@ -23,6 +23,13 @@ public class BallSet : ScriptableObject
         public int id; // <-- level number (0..N)
         public float finalLinearDamping = 5f;
         public float finalAngularDamping = 5f;
+
+        [Header("Gravity")]
+        [Min(0f)] public float gravityStart = 0.3f; // starting gravity when settle begins
+        [Min(0f)] public float gravityEnd = 0.45f; // final gravity after settle
+
+        [Header("Scale")]
+        [Min(0.01f)] public float uniformScale = 1f;
     }
 
     public List<Entry> entries = new List<Entry>();

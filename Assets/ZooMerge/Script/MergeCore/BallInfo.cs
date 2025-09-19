@@ -12,6 +12,9 @@ public class BallInfo : MonoBehaviour
 
     private float finalLinearDamping;
     private float finalAngularDamping;
+    private float gravityStart, gravityEnd;
+    public float GravityStart => gravityStart;
+    public float GravityEnd => gravityEnd;
 
     public float FinalLinearDamping => finalLinearDamping;
     public float FinalAngularDamping => finalAngularDamping;
@@ -30,30 +33,26 @@ public class BallInfo : MonoBehaviour
         if (dropController == null) dropController = GetComponentInChildren<CircleDropController>(true);
     }
 
-    public void Setup(int level, BallType type, float linearDamp, float angularDamp)
+    public void Setup(int level, BallType type, float linearDamp, float angularDamp,
+                      float gravityStart, float gravityEnd, float uniformScale)
     {
         this.level = level;
         this.type = type;
         this.finalLinearDamping = linearDamp;
         this.finalAngularDamping = angularDamp;
+        this.gravityStart = gravityStart;
+        this.gravityEnd = gravityEnd;
 
-        // ✅ Push values straight into the controller (best perf/no timing issues)
+        // ✅ Apply scale to the prefab root (this object)
+        transform.localScale = Vector3.one * uniformScale;
+
         if (dropController == null)
             dropController = GetComponentInChildren<CircleDropController>(true);
 
         if (dropController != null)
-        {
-            dropController.SetDamping(linearDamp, angularDamp);
-        }
+            dropController.SetPhysics(linearDamp, angularDamp, gravityStart, gravityEnd);
         else
-        {
-            Debug.LogWarning("[BallInfo] No CircleDropController found to receive damping.");
-        }
-
-#if UNITY_EDITOR
-        //Debug.Log($"[BallInfo] Setup: Level={level}, Type={type}, LinDamp={linearDamp}, AngDamp={angularDamp}");
-        //gameObject.name = $"{type}_{level}";
-#endif
+            Debug.LogWarning("[BallInfo] No CircleDropController found to receive physics.");
     }
 
     public void SetLevel(int lvl) => level = lvl;

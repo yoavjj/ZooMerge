@@ -84,8 +84,10 @@ MonoBehaviour:
   animator: {fileID: 6809441968144047243}
   circle: {fileID: 3406247674932545277}
   introTinyRadius: 0.02
-  introGrowDuration: 0.1
-  introGrowCurve:
+  mergeOvershootFactor: 1.25
+  mergeExplodeUpDuration: 0.1
+  mergeSettleDownDuration: 0.1
+  mergeUpCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
@@ -100,11 +102,35 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: -0.9658239
-      outSlope: -0.9658239
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.121019125
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  mergeDownCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -173,7 +199,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.6495463
+  m_Radius: 0.57
 --- !u!95 &6809441968144047243
 Animator:
   serializedVersion: 7
