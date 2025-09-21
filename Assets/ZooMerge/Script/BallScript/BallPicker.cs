@@ -104,4 +104,14 @@ public class BallPicker : MonoBehaviour
         prefab = pool[pool.Count - 1].prefab;
         return true;
     }
+
+    public float GetScaleForEntry(BallSet.Entry entry)
+    {
+        if (entry == null || ballSet == null) return 1f;
+
+        var data = ballSet.GetPhysicsFor(entry);
+        if (data == null) return 1f;
+
+        return data.uniformScale > 0f ? data.uniformScale : 1f;
+    }
 }

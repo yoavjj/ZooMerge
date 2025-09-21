@@ -122,10 +122,17 @@ public class CircleDragInput : MonoBehaviour,
     {
         if (entryAnchor == null || currentPrefabRoot == null) return;
 
-        if (!TryGetWorldBounds(currentPrefabRoot, out var b)) return;
+        // Try get the collider
+        var circle = currentPrefabRoot.GetComponentInChildren<CircleCollider2D>(true);
+        if (circle == null) return;
 
-        float targetBottomY = entryAnchor.position.y + entryGap;
-        float dy = targetBottomY - b.min.y;                 // lift/lower so bottom sits on the line
+        float targetTopY = entryAnchor.position.y + entryGap;
+
+        float radius = circle.radius;
+        float scaleY = circle.transform.lossyScale.y; // account for scale
+        float ballTopY = currentPrefabRoot.position.y + (radius * scaleY);
+
+        float dy = targetTopY - ballTopY;
         currentPrefabRoot.position += new Vector3(0f, dy, 0f);
     }
 
@@ -288,9 +295,9 @@ public class CircleDragInput : MonoBehaviour,
             yield return new WaitForSeconds(spawnDelay);
 
         if (hasLastDropX)
-            spawner.SpawnCircleAtX(lastDropX);
+            spawner.PromoteFromPreviewAtX(lastDropX);
         else
-            spawner.SpawnCircle();
+            spawner.PromoteFromPreview();
 
         isSpawnCooldown = false;
         spawnDelayRoutine = null;

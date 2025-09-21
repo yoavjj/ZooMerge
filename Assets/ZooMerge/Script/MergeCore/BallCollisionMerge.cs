@@ -23,9 +23,15 @@ public class BallCollisionMerge : MonoBehaviour
     {
         if (!initialized || core == null) return;
 
+        // Must be dropped (not draggable)
+        if (self.DropController != null && self.DropController.IsDraggable()) return;
+
         // Try to get BallInfo
         var other = col.collider.GetComponentInParent<BallInfo>();
         if (other == null || other == self) return;
+
+        // Skip if other is still draggable (i.e., not yet dropped)
+        if (other.DropController != null && other.DropController.IsDraggable()) return;
 
         // MERGE ATTEMPT
         Vector2 contact = (col.contactCount > 0)
@@ -39,10 +45,8 @@ public class BallCollisionMerge : MonoBehaviour
         {
             self.DropController?.ApplyFinalPhysicsImmediately();
             other.DropController?.ApplyFinalPhysicsImmediately();
-
             TryApplyFriction(self, other); // optional nudge
         }
-
     }
 
     private void TryApplyFriction(BallInfo a, BallInfo b)
