@@ -17,13 +17,13 @@ public class BallSpawner : MonoBehaviour
     private BallSet.Entry queuedEntry;
     private string lastPickWhy;
 
-    private void Start()
+    public void BeginSession()
     {
-        // seed the system: create a preview, promote it to active, then queue another preview
         PrepareNextPreview();
         PromotePreviewToActive(null);
         PrepareNextPreview();
     }
+
 
     // called by input after a drop (optionally with X override)
     public void PromoteFromPreview() => PromotePreviewAndQueueNext(null);
@@ -102,6 +102,15 @@ public class BallSpawner : MonoBehaviour
         var spawnContainer = CircleDragInput.Instance?.spawnContainer;
         if (spawnContainer != null)
             previewGo.transform.SetParent(spawnContainer, worldPositionStays: true);
+
+        // 🔹 Play Hover animation on transition to active
+        var hoverAnim = previewGo.GetComponentInChildren<Animator>(true);
+        if (hoverAnim != null)
+        {
+            hoverAnim.ResetTrigger("Merged");
+            hoverAnim.ResetTrigger("New");
+            hoverAnim.SetTrigger("Hover");
+        }
 
         // register with input + play intro
         var controller = previewGo.GetComponentInChildren<CircleDropController>();

@@ -303,7 +303,6 @@ public class CircleDropController : MonoBehaviour
         }
 
         circle.radius = targetRadius; // savedRadius
-        circle.isTrigger = false;        // re-enable collisions
         Drop();                          // go live
 
         introRoutine = null;

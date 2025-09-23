@@ -25,6 +25,7 @@ public class CircleDragInput : MonoBehaviour,
 
     [Header("Drag Settings")]
     [SerializeField] private float minPressTimeBeforeDrop = 0.05f; // seconds
+    private DragSmoother dragSmoother = new DragSmoother(0.05f);
 
     [Header("Spawn Settings")]
     [SerializeField] private float spawnDelay = 0.5f; // seconds between drop and next spawn
@@ -217,6 +218,7 @@ public class CircleDragInput : MonoBehaviour,
         if (Time.frameCount == pointerDownFrame) return;
         if (Time.unscaledTime - pointerDownTime < minPressTimeBeforeDrop) return;
 
+        dragSmoother.Reset();
         DropAndSpawn();
     }
 
@@ -236,9 +238,10 @@ public class CircleDragInput : MonoBehaviour,
         float min = hasCachedBounds ? cachedMinX : minX;
         float max = hasCachedBounds ? cachedMaxX : maxX;
 
-        var pos = t.position;
-        pos.x = Mathf.Clamp(worldPos.x, min, max);
-        t.position = new Vector3(pos.x, pos.y, t.position.z);
+        float targetX = Mathf.Clamp(worldPos.x, min, max);
+        float smoothX = dragSmoother.Smooth(t.position.x, targetX);
+
+        t.position = new Vector3(smoothX, t.position.y, t.position.z);
     }
 
     /// <summary>
