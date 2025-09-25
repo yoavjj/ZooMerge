@@ -1,0 +1,643 @@
+Unity Editor version:    6000.0.32f1 (b2e806cf271c)
+Branch:                  6000.0/staging
+Build type:              Release
+Batch mode:              YES
+macOS version:           Version 15.6.1 (Build 24G90)
+Darwin version:          24.6.0
+Architecture:            x86_64
+Running under Rosetta:   NO
+Available memory:        32768 MB
+Using pre-set license
+Pro License: YES
+
+COMMAND LINE ARGUMENTS:
+/Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/MacOS/Unity
+-adb2
+-batchMode
+-noUpm
+-name
+AssetImportWorker2
+-projectPath
+/Users/aguda/Documents/GitHub/ZooMerge
+-logFile
+Logs/AssetImportWorker2.log
+-srvPort
+52088
+-job-worker-count
+7
+-background-job-worker-count
+8
+-gc-helper-count
+1
+Successfully changed project path to: /Users/aguda/Documents/GitHub/ZooMerge
+/Users/aguda/Documents/GitHub/ZooMerge
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gfx=262144"
+Player connection [140704323878784]  Target information:
+
+Player connection [140704323878784]  * "[IP] 10.0.0.5 [Port] 0 [Flags] 2 [Guid] 4123765452 [EditorId] 4123765452 [Version] 1048832 [Id] OSXEditor(0,MacBookPro) [Debug] 1 [PackageName] OSXEditor [ProjectName] Editor" 
+
+Player connection [140704323878784] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [140704323878784] Host joined alternative multi-casting on [225.0.0.222:34997]...
+JobSystem: Creating JobQueue using job-worker-count value 7
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Refreshing native plugins compatible for Editor in 4.34 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.0.32f1 (b2e806cf271c)
+[Subsystems] Discovering subsystems at path /Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path /Users/aguda/Documents/GitHub/ZooMerge/Assets
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+Color LCD preferred device: AMD Radeon Pro 5500M (high power)
+Metal devices available: 2
+0: AMD Radeon Pro 5500M (high power)
+1: Intel(R) UHD Graphics 630 (low power)
+Using device AMD Radeon Pro 5500M (high power)
+Initializing Metal device caps: AMD Radeon Pro 5500M
+Initialize mono
+Mono path[0] = '/Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/Managed'
+Mono path[1] = '/Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/MonoBleedingEdge/lib/mono/unityjit-macos'
+Mono config path = '/Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56763
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: /Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/PlaybackEngines/MacStandaloneSupport/UnityEditor.OSXStandalone.Extensions.dll
+Register platform support module: /Applications/Unity/Hub/Editor/6000.0.32f1/PlaybackEngines/AndroidPlayer/UnityEditor.Android.Extensions.dll
+Registered in 0.007189 seconds.
+- Loaded All Assemblies, in  0.765 seconds
+Native extension for Android target not found
+Android Extension - Scanning For ADB Devices 203 ms
+Native extension for OSXStandalone target not found
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.891 seconds
+Domain Reload Profiling: 1656ms
+	BeginReloadAssembly (276ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (1ms)
+	RebuildCommonClasses (75ms)
+	RebuildNativeTypeToScriptingClass (23ms)
+	initialDomainReloadingComplete (87ms)
+	LoadAllAssembliesAndSetupDomain (303ms)
+		LoadAssemblies (278ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (296ms)
+			TypeCache.Refresh (293ms)
+				TypeCache.ScanAssembly (269ms)
+			BuildScriptInfoCaches (0ms)
+			ResolveRequiredComponents (1ms)
+	FinalizeReload (892ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (816ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (372ms)
+			SetLoadedEditorAssemblies (7ms)
+			BeforeProcessingInitializeOnLoad (96ms)
+			ProcessInitializeOnLoadAttributes (226ms)
+			ProcessInitializeOnLoadMethodAttributes (114ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+========================================================================
+Worker process is ready to serve import requests
+Import Worker Mode flag is 0x00
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  1.551 seconds
+Refreshing native plugins compatible for Editor in 1.00 ms, found 3 plugins.
+Native extension for Android target not found
+Native extension for OSXStandalone target not found
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  1.464 seconds
+Domain Reload Profiling: 3006ms
+	BeginReloadAssembly (257ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (11ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (68ms)
+	RebuildCommonClasses (74ms)
+	RebuildNativeTypeToScriptingClass (22ms)
+	initialDomainReloadingComplete (67ms)
+	LoadAllAssembliesAndSetupDomain (1119ms)
+		LoadAssemblies (677ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (567ms)
+			TypeCache.Refresh (415ms)
+				TypeCache.ScanAssembly (386ms)
+			BuildScriptInfoCaches (124ms)
+			ResolveRequiredComponents (21ms)
+	FinalizeReload (1465ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (1182ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (18ms)
+			SetLoadedEditorAssemblies (9ms)
+			BeforeProcessingInitializeOnLoad (189ms)
+			ProcessInitializeOnLoadAttributes (773ms)
+			ProcessInitializeOnLoadMethodAttributes (192ms)
+			AfterProcessingInitializeOnLoad (1ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (5ms)
+Launching external process: /Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/Tools/UnityShaderCompiler
+Launched and connected shader compiler UnityShaderCompiler after 0.12 seconds
+Refreshing native plugins compatible for Editor in 1.11 ms, found 3 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Unloading 234 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 7274 unused Assets / (4.6 MB). Loaded Objects now: 7992.
+Memory consumption went from 182.6 MB to 177.9 MB.
+Total: 14.137447 ms (FindLiveObjects: 1.325814 ms CreateObjectMapping: 1.369058 ms MarkObjects: 8.116152 ms  DeleteObjects: 3.325152 ms)
+
+========================================================================
+Received Import Request.
+  Time since last request: 38036.680622 seconds.
+  path: Assets/ZooMerge/Textures/Ui/fonts
+  artifactKey: Guid(f2524942aace649208013a4c8a5e67d3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/fonts using Guid(f2524942aace649208013a4c8a5e67d3) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '0b677a24f002a73d229367b79d2a3d20') in 0.007747101 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 46.735861 seconds.
+  path: Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght.ttf
+  artifactKey: Guid(28b3de93277024819aad8ae9722e5162) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght.ttf using Guid(28b3de93277024819aad8ae9722e5162) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'e8e866e4209e7da3daa6be8ad13966de') in 0.700398717 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 4
+
+========================================================================
+Received Import Request.
+  Time since last request: 112.655810 seconds.
+  path: Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght SDF.asset
+  artifactKey: Guid(d1247f6e5ce4e420aa0562066b18fd16) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght SDF.asset using Guid(d1247f6e5ce4e420aa0562066b18fd16) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '9a9542f9c4236f7ad1da2cc3fbe22784') in 0.019762232 seconds
+Number of updated asset objects reloaded before import = 1Number of asset objects unloaded after import = 6
+
+========================================================================
+Received Import Request.
+  Time since last request: 90.173389 seconds.
+  path: Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght 1.ttf
+  artifactKey: Guid(1bc839fd161f947d79c2ab79e8ae0bbc) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght 1.ttf using Guid(1bc839fd161f947d79c2ab79e8ae0bbc) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '1ab0d7be996cfec038c6b9afd6052215') in 0.009363494 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 4
+
+========================================================================
+Received Import Request.
+  Time since last request: 111.914513 seconds.
+  path: Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght SDF.asset
+  artifactKey: Guid(d1247f6e5ce4e420aa0562066b18fd16) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght SDF.asset using Guid(d1247f6e5ce4e420aa0562066b18fd16) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'c276d0cdb936b30c8ba095d72912fdfc') in 0.014380497 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 6
+
+========================================================================
+Received Import Request.
+  Time since last request: 19.949572 seconds.
+  path: Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght.ttf
+  artifactKey: Guid(28b3de93277024819aad8ae9722e5162) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght.ttf using Guid(28b3de93277024819aad8ae9722e5162) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'c767c443314c07859817c63ba94de346') in 0.044184073 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 4
+
+========================================================================
+Received Import Request.
+  Time since last request: 6.880864 seconds.
+  path: Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght.ttf
+  artifactKey: Guid(28b3de93277024819aad8ae9722e5162) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght.ttf using Guid(28b3de93277024819aad8ae9722e5162) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'de381af77d8620f3f1d674cbe30e418e') in 0.010535552 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 4
+
+========================================================================
+Received Import Request.
+  Time since last request: 37.238609 seconds.
+  path: Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght SDF.asset
+  artifactKey: Guid(d1247f6e5ce4e420aa0562066b18fd16) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/fonts/Heebo-VariableFont_wght SDF.asset using Guid(d1247f6e5ce4e420aa0562066b18fd16) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '379ddea3d91c77c6e15b9b7f6d83ff4b') in 0.014012179 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 6
+
+========================================================================
+Received Import Request.
+  Time since last request: 285.554561 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements
+  artifactKey: Guid(2578ecab5ed3241089ab8c82fbdb8a2e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements using Guid(2578ecab5ed3241089ab8c82fbdb8a2e) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '5177236d9a3b1c657ab7a3fe6ea71472') in 0.000725429 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 5.288700 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_currency_holder.prefab
+  artifactKey: Guid(4b8b93166fea9483c99ef0d1120b12c0) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_currency_holder.prefab using Guid(4b8b93166fea9483c99ef0d1120b12c0) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '0c5833666f52bc349922ac94c15b25d2') in 0.059625628 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 26
+
+========================================================================
+Received Import Request.
+  Time since last request: 183.205329 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/Menu_bg.png
+  artifactKey: Guid(142ec5c3bcce04f7e9b3cef10cd9c96e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/Menu_bg.png using Guid(142ec5c3bcce04f7e9b3cef10cd9c96e) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '28f7138edc111df887ddf4113c2b2a3e') in 0.030068546 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 11.074769 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/Menu_bg.png
+  artifactKey: Guid(142ec5c3bcce04f7e9b3cef10cd9c96e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/Menu_bg.png using Guid(142ec5c3bcce04f7e9b3cef10cd9c96e) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '808efceebec947060734b114570a5896') in 0.042102374 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 35.890924 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/currency_bg_holder.png
+  artifactKey: Guid(314c8c89d8d6f49b393b8aa4a4e63340) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/currency_bg_holder.png using Guid(314c8c89d8d6f49b393b8aa4a4e63340) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b197bfb1f9f712bf7f2db5a6486eed3e') in 0.010917344 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 50.647997 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/Menu_bg.png
+  artifactKey: Guid(142ec5c3bcce04f7e9b3cef10cd9c96e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/Menu_bg.png using Guid(142ec5c3bcce04f7e9b3cef10cd9c96e) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '2e281e2d21488bc9f0c3e5358fcf18d0') in 0.011836296 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 7.173089 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/Menu_bg.png
+  artifactKey: Guid(142ec5c3bcce04f7e9b3cef10cd9c96e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/Menu_bg.png using Guid(142ec5c3bcce04f7e9b3cef10cd9c96e) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '3246789d07f3fd4a5709f7e2d555bd06') in 0.010784717 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 13.958067 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/Menu_bg.png
+  artifactKey: Guid(142ec5c3bcce04f7e9b3cef10cd9c96e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/Menu_bg.png using Guid(142ec5c3bcce04f7e9b3cef10cd9c96e) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'f01ba6975826333a37d81275e07c94db') in 0.009825863 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 188.083406 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_TopBar.prefab
+  artifactKey: Guid(f5d9fc621080b410ca615aeb97f00df2) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_TopBar.prefab using Guid(f5d9fc621080b410ca615aeb97f00df2) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '0ea09af382eb6fc6f16c0a770f39eb5b') in 0.018965399 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 65
+
+========================================================================
+Received Import Request.
+  Time since last request: 1.828166 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_BotBar.prefab
+  artifactKey: Guid(42a349444f65844e09169631cdcdba35) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_BotBar.prefab using Guid(42a349444f65844e09169631cdcdba35) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '1d491edc826d5b188821ac745f930bba') in 0.009696966 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 9
+
+========================================================================
+Received Import Request.
+  Time since last request: 489.328660 seconds.
+  path: Assets/ZooMerge/Prefabs/Popups/Popup_MainMenu.prefab
+  artifactKey: Guid(824ce9cc6f9204257990c0be4b78014d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Popups/Popup_MainMenu.prefab using Guid(824ce9cc6f9204257990c0be4b78014d) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '39bb069d8cc46c831cf4510d36ba1e03') in 0.148967294 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 302
+
+========================================================================
+Received Import Request.
+  Time since last request: 335.402507 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_currency_holder.prefab
+  artifactKey: Guid(4b8b93166fea9483c99ef0d1120b12c0) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_currency_holder.prefab using Guid(4b8b93166fea9483c99ef0d1120b12c0) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'e30d070ad37fab3730163d594a888e0d') in 0.009952118 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 31
+
+========================================================================
+Received Import Request.
+  Time since last request: 23.874878 seconds.
+  path: Assets/ZooMerge/Prefabs/Popups/Popup_MainMenu.prefab
+  artifactKey: Guid(824ce9cc6f9204257990c0be4b78014d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Popups/Popup_MainMenu.prefab using Guid(824ce9cc6f9204257990c0be4b78014d) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd3ebe37a6fd7aa9279d9f10132a04792') in 0.106657376 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 295
+
+========================================================================
+Received Import Request.
+  Time since last request: 41.688695 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_currency_holder.prefab
+  artifactKey: Guid(4b8b93166fea9483c99ef0d1120b12c0) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_currency_holder.prefab using Guid(4b8b93166fea9483c99ef0d1120b12c0) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '78762b81243ad2517db31054e6b435b0') in 0.010072353 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 23
+
+========================================================================
+Received Import Request.
+  Time since last request: 44.581423 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_coins_holder.prefab
+  artifactKey: Guid(de46c2c6afa3c4298be6e4bc1a55d366) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_coins_holder.prefab using Guid(de46c2c6afa3c4298be6e4bc1a55d366) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '27f987d4831879f6584e3ef28fa5e96b') in 0.012670054 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 39
+
+========================================================================
+Received Import Request.
+  Time since last request: 10.001689 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_currency_holder_coins.prefab
+  artifactKey: Guid(a4b797a27755e4d01b233e07de9b43e6) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_currency_holder_coins.prefab using Guid(a4b797a27755e4d01b233e07de9b43e6) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'ec7753bcb9058cde9e10399934ef3629') in 0.004344097 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 39
+
+========================================================================
+Received Import Request.
+  Time since last request: 12.437939 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_currency_holder_spcialCoin.prefab
+  artifactKey: Guid(79213c62e42184e0584b599b4c4a6e68) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_currency_holder_spcialCoin.prefab using Guid(79213c62e42184e0584b599b4c4a6e68) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'ea676ccdb7314e145952933025bd1571') in 0.004367083 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 39
+
+========================================================================
+Received Import Request.
+  Time since last request: 34.365141 seconds.
+  path: Assets/ZooMerge/Prefabs/Popups/Popup_MainMenu.prefab
+  artifactKey: Guid(824ce9cc6f9204257990c0be4b78014d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Popups/Popup_MainMenu.prefab using Guid(824ce9cc6f9204257990c0be4b78014d) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'f8fa2c509aeb558b43f51e9f47029d0c') in 0.11450294 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 325
+
+========================================================================
+Received Import Request.
+  Time since last request: 12.585892 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_currency_holder_coins.prefab
+  artifactKey: Guid(a4b797a27755e4d01b233e07de9b43e6) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_currency_holder_coins.prefab using Guid(a4b797a27755e4d01b233e07de9b43e6) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '6ef15e581899e7596564425b1f9925d1') in 0.009697449 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 40
+
+========================================================================
+Received Import Request.
+  Time since last request: 57.060838 seconds.
+  path: Assets/ZooMerge/Prefabs/Popups/Popup_MainMenu.prefab
+  artifactKey: Guid(824ce9cc6f9204257990c0be4b78014d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Popups/Popup_MainMenu.prefab using Guid(824ce9cc6f9204257990c0be4b78014d) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '07fd43046cdfc15a67a39a596d36c609') in 0.098458986 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 357
+
+========================================================================
+Received Import Request.
+  Time since last request: 22.873765 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/PlayerHolder.prefab
+  artifactKey: Guid(4b3f41715ffbc4d349de2f5f8873786d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/PlayerHolder.prefab using Guid(4b3f41715ffbc4d349de2f5f8873786d) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd8180e7ee3ebf454348de0e2d2015601') in 0.008893287 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 22
+
+========================================================================
+Received Import Request.
+  Time since last request: 241.893535 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/menuBarButton_Holder.prefab
+  artifactKey: Guid(9dd7805cab4fc42fc9d03b53c7e13b3a) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/menuBarButton_Holder.prefab using Guid(9dd7805cab4fc42fc9d03b53c7e13b3a) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '03d7b28415ee03e59b504a2ae4b647f9') in 0.01985547 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 22
+
+========================================================================
+Received Import Request.
+  Time since last request: 26.880065 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/New Folder
+  artifactKey: Guid(eb7653a730a9946ad83b8fd5fc18d84f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/New Folder using Guid(eb7653a730a9946ad83b8fd5fc18d84f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '4f9e85d93ce41aa712f6ce33e7d59eaf') in 0.005509678 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 7.296403 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/Currency
+  artifactKey: Guid(eb7653a730a9946ad83b8fd5fc18d84f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/Currency using Guid(eb7653a730a9946ad83b8fd5fc18d84f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '825eb38254c1577982e40815280e10dc') in 0.000497788 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 4.755143 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_BotBar.prefab
+  artifactKey: Guid(42a349444f65844e09169631cdcdba35) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_BotBar.prefab using Guid(42a349444f65844e09169631cdcdba35) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'fb2f1780d4904252c2db85e2052f3cf4') in 0.017567251 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 34
+
+========================================================================
+Received Import Request.
+  Time since last request: 10.707210 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/topBar
+  artifactKey: Guid(4f56906147db24be4a89740c8268aed7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/topBar using Guid(4f56906147db24be4a89740c8268aed7) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '896b4de5e00dbfc53ce77deea75921ee') in 0.001092156 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 1.391501 seconds.
+  path: Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_TopBar.prefab
+  artifactKey: Guid(f5d9fc621080b410ca615aeb97f00df2) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Generic_elements/mainMenu_TopBar.prefab using Guid(f5d9fc621080b410ca615aeb97f00df2) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'ee4cab41837dd7e485a74bd201027ae8') in 0.009765296 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 60
+
+========================================================================
+Received Import Request.
+  Time since last request: 20.701264 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/botBar
+  artifactKey: Guid(5fc5fdc730d9f49ffba31f51e0012410) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/botBar using Guid(5fc5fdc730d9f49ffba31f51e0012410) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'dadc101a97d798ac9dd1d5db14b12799') in 0.008214763 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 13.665487 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButtons
+  artifactKey: Guid(340b67c27f56f45109f3d934d0ab287c) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButtons using Guid(340b67c27f56f45109f3d934d0ab287c) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '9bc9b05e3163cb3f095a2cde46cf7bd6') in 0.000635856 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 6.439304 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/MenuGenericButtons
+  artifactKey: Guid(340b67c27f56f45109f3d934d0ab287c) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/MenuGenericButtons using Guid(340b67c27f56f45109f3d934d0ab287c) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '8b3a1d61c605940b996b2c8aea2dea0e') in 0.000496051 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 4.536156 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/MenuButtons
+  artifactKey: Guid(340b67c27f56f45109f3d934d0ab287c) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/MenuButtons using Guid(340b67c27f56f45109f3d934d0ab287c) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '51b23aacf100155d0ef19b8f357ae893') in 0.000589524 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 16.534842 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder.prefab
+  artifactKey: Guid(9dd7805cab4fc42fc9d03b53c7e13b3a) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder.prefab using Guid(9dd7805cab4fc42fc9d03b53c7e13b3a) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'fe0d53757815c37da2a1d35e45006486') in 0.015737741 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 22
+
+========================================================================
+Received Import Request.
+  Time since last request: 4.601259 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant.prefab
+  artifactKey: Guid(c239291bad7924a7a9a9d1489df1756f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant.prefab using Guid(c239291bad7924a7a9a9d1489df1756f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '443a0d3dba23377b166dc8d424127a4f') in 0.01857899 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 1.303255 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant 1.prefab
+  artifactKey: Guid(22262f935a0674d679e68e1f97808fcc) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant 1.prefab using Guid(22262f935a0674d679e68e1f97808fcc) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'ebeca64efe737ef83484373afadf7ca8') in 0.018455858 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.389685 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant 2.prefab
+  artifactKey: Guid(3240110085830432087e70dd5b8cf2cb) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant 2.prefab using Guid(3240110085830432087e70dd5b8cf2cb) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '5d5dc80b2361a7e8fb2d5088ed4945ab') in 0.017488802 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.148750 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant 3.prefab
+  artifactKey: Guid(af20f4d65caea4336a5802115de80a60) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant 3.prefab using Guid(af20f4d65caea4336a5802115de80a60) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '71afea622e44580cae3eef448c5d10c7') in 0.018046727 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.159519 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant 4.prefab
+  artifactKey: Guid(dd6ccce96820c49c9ba301862acd0a03) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant 4.prefab using Guid(dd6ccce96820c49c9ba301862acd0a03) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '8f296ed81ca62f165a6c955f7a5f884a') in 0.017698084 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.154391 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant 5.prefab
+  artifactKey: Guid(87b24ddd2a35244f1ba61be50513fd36) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant 5.prefab using Guid(87b24ddd2a35244f1ba61be50513fd36) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '27f4a2794266252e09d091d30c4e1aeb') in 0.017788706 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.466246 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant 6.prefab
+  artifactKey: Guid(a9465c22735d24723b794fae1cc682ed) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/GenericButton_Holder Variant 6.prefab using Guid(a9465c22735d24723b794fae1cc682ed) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd974054529141c13111721125074389f') in 0.017674389 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 9.081360 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/PlayButton_Holder.prefab
+  artifactKey: Guid(c239291bad7924a7a9a9d1489df1756f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/PlayButton_Holder.prefab using Guid(c239291bad7924a7a9a9d1489df1756f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '56e5842fc038b06b7b51062728d4911e') in 0.017290512 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 12.418735 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/eventsButton_Holder.prefab
+  artifactKey: Guid(22262f935a0674d679e68e1f97808fcc) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/eventsButton_Holder.prefab using Guid(22262f935a0674d679e68e1f97808fcc) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '462a2be4bbeeb96bf9b8665074afa825') in 0.017481067 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 12.107609 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/settingsButton_Holder.prefab
+  artifactKey: Guid(3240110085830432087e70dd5b8cf2cb) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/settingsButton_Holder.prefab using Guid(3240110085830432087e70dd5b8cf2cb) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b6e46b7b7dfb087a4029f061f45ed469') in 0.016788411 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 15.718088 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/labButton_Holder.prefab
+  artifactKey: Guid(af20f4d65caea4336a5802115de80a60) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/labButton_Holder.prefab using Guid(af20f4d65caea4336a5802115de80a60) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '2b796c79c227d46405b3b3f448641e22') in 0.016732528 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 12.173751 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/storeButton_Holder.prefab
+  artifactKey: Guid(dd6ccce96820c49c9ba301862acd0a03) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/storeButton_Holder.prefab using Guid(dd6ccce96820c49c9ba301862acd0a03) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '41e8beec51a85a3f9f4edba546dee50a') in 0.017158686 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 12.921506 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/lunchButton_Holder.prefab
+  artifactKey: Guid(87b24ddd2a35244f1ba61be50513fd36) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/lunchButton_Holder.prefab using Guid(87b24ddd2a35244f1ba61be50513fd36) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '42b033c2b874f9f7df5076d68fcbe4aa') in 0.017088861 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
+========================================================================
+Received Import Request.
+  Time since last request: 108.874562 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/MenuButtons/eventsButton_Holder.prefab
+  artifactKey: Guid(22262f935a0674d679e68e1f97808fcc) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/MenuButtons/eventsButton_Holder.prefab using Guid(22262f935a0674d679e68e1f97808fcc) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '9ec6359d65290ef9cca0c6f29fe2ce77') in 0.016508332 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 39
+
+========================================================================
+Received Import Request.
+  Time since last request: 5.648938 seconds.
+  path: Assets/ZooMerge/Prefabs/Popups/Popup_MainMenu.prefab
+  artifactKey: Guid(824ce9cc6f9204257990c0be4b78014d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Popups/Popup_MainMenu.prefab using Guid(824ce9cc6f9204257990c0be4b78014d) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'dd74b2115969beea8254d642e85f26ee') in 0.147134364 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 455
+
+========================================================================
+Received Import Request.
+  Time since last request: 7.229631 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/MenuButtons/PlayButton_Holder.prefab
+  artifactKey: Guid(c239291bad7924a7a9a9d1489df1756f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/MenuButtons/PlayButton_Holder.prefab using Guid(c239291bad7924a7a9a9d1489df1756f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '9ac4fa0a1ac16e9a08d4d125f2c8cf89') in 0.018584307 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 38
+
