@@ -4,7 +4,7 @@ Build type:              Release
 Batch mode:              YES
 macOS version:           Version 15.6.1 (Build 24G90)
 Darwin version:          24.6.0
-Architecture:            arm64
+Architecture:            x86_64
 Running under Rosetta:   NO
 Available memory:        32768 MB
 Using pre-set license
@@ -18,19 +18,19 @@ COMMAND LINE ARGUMENTS:
 -name
 AssetImportWorker0
 -projectPath
-/Users/levyyoavjacques/UnityProjects/ZooMerge
+/Users/aguda/Documents/GitHub/ZooMerge
 -logFile
 Logs/AssetImportWorker0.log
 -srvPort
-49917
+49262
 -job-worker-count
-5
+7
 -background-job-worker-count
 8
 -gc-helper-count
 1
-Successfully changed project path to: /Users/levyyoavjacques/UnityProjects/ZooMerge
-/Users/levyyoavjacques/UnityProjects/ZooMerge
+Successfully changed project path to: /Users/aguda/Documents/GitHub/ZooMerge
+/Users/aguda/Documents/GitHub/ZooMerge
 [UnityMemory] Configuration Parameters - Can be set up in boot.config
     "memorysetup-bucket-allocator-granularity=16"
     "memorysetup-bucket-allocator-bucket-count=8"
@@ -66,15 +66,13 @@ Successfully changed project path to: /Users/levyyoavjacques/UnityProjects/ZooMe
     "memorysetup-temp-allocator-size-gi-baking-worker=262144"
     "memorysetup-temp-allocator-size-gi-baking-worker=262144"
     "memorysetup-temp-allocator-size-gfx=262144"
-Player connection [8677220544]  Target information:
+Player connection [140704286834560]  Target information:
 
-Player connection [8677220544]  * "[IP] 169.254.127.99 [Port] 0 [Flags] 2 [Guid] 1092496886 [EditorId] 1092496886 [Version] 1048832 [Id] OSXEditor(0,Levys-MacBook-Pro.local) [Debug] 1 [PackageName] OSXEditor [ProjectName] Editor" 
+Player connection [140704286834560]  * "[IP] 10.0.0.5 [Port] 0 [Flags] 2 [Guid] 4122448757 [EditorId] 4122448757 [Version] 1048832 [Id] OSXEditor(0,NAVADS-MacBook.local) [Debug] 1 [PackageName] OSXEditor [ProjectName] Editor" 
 
-Player connection [8677220544]  * "[IP] 192.168.1.90 [Port] 0 [Flags] 2 [Guid] 1092496886 [EditorId] 1092496886 [Version] 1048832 [Id] OSXEditor(0,Levys-MacBook-Pro.local) [Debug] 1 [PackageName] OSXEditor [ProjectName] Editor" 
-
-Player connection [8677220544] Host joined multi-casting on [225.0.0.222:54997]...
-Player connection [8677220544] Host joined alternative multi-casting on [225.0.0.222:34997]...
-JobSystem: Creating JobQueue using job-worker-count value 5
+Player connection [140704286834560] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [140704286834560] Host joined alternative multi-casting on [225.0.0.222:34997]...
+JobSystem: Creating JobQueue using job-worker-count value 7
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
 Library Redirect Path: Library/
@@ -84,67 +82,62 @@ Library Redirect Path: Library/
 [Physics::Module] SDK Version: 4.1.2
 [Physics::Module] Integration Version: 1.0.0
 [Physics::Module] Threading Mode: Multi-Threaded
-Refreshing native plugins compatible for Editor in 3.01 ms, found 3 plugins.
+Refreshing native plugins compatible for Editor in 4.51 ms, found 3 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
 Initialize engine version: 6000.0.32f1 (b2e806cf271c)
 [Subsystems] Discovering subsystems at path /Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/Resources/UnitySubsystems
-[Subsystems] Discovering subsystems at path /Users/levyyoavjacques/UnityProjects/ZooMerge/Assets
+[Subsystems] Discovering subsystems at path /Users/aguda/Documents/GitHub/ZooMerge/Assets
 GfxDevice: creating device client; kGfxThreadingModeNonThreaded
- preferred device: Apple M2 Max (high power)
-Metal devices available: 1
-0: Apple M2 Max (high power)
-Using device Apple M2 Max (high power)
-Initializing Metal device caps: Apple M2 Max
+Color LCD preferred device: AMD Radeon Pro 5500M (high power)
+Metal devices available: 2
+0: AMD Radeon Pro 5500M (high power)
+1: Intel(R) UHD Graphics 630 (low power)
+Using device AMD Radeon Pro 5500M (high power)
+Initializing Metal device caps: AMD Radeon Pro 5500M
 Initialize mono
 Mono path[0] = '/Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/Managed'
 Mono path[1] = '/Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/MonoBleedingEdge/lib/mono/unityjit-macos'
 Mono config path = '/Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56364
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56201
 Begin MonoManager ReloadAssembly
 Registering precompiled unity dll's ...
 Register platform support module: /Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/PlaybackEngines/MacStandaloneSupport/UnityEditor.OSXStandalone.Extensions.dll
 Register platform support module: /Applications/Unity/Hub/Editor/6000.0.32f1/PlaybackEngines/AndroidPlayer/UnityEditor.Android.Extensions.dll
-Register platform support module: /Applications/Unity/Hub/Editor/6000.0.32f1/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.dll
-Registered in 0.004421 seconds.
-- Loaded All Assemblies, in  0.278 seconds
-[usbmuxd] Start listen thread
-[usbmuxd] Listen thread started
-[usbmuxd] Send listen message
-[usbmuxd] Attached: 1 00008120-0010656C2EF0201E
-Native extension for iOS target not found
+Registered in 0.001646 seconds.
+- Loaded All Assemblies, in  0.548 seconds
 Native extension for Android target not found
-Android Extension - Scanning For ADB Devices 79 ms
+Android Extension - Scanning For ADB Devices 172 ms
 Native extension for OSXStandalone target not found
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.402 seconds
-Domain Reload Profiling: 680ms
-	BeginReloadAssembly (91ms)
+- Finished resetting the current domain, in  0.820 seconds
+Domain Reload Profiling: 1368ms
+	BeginReloadAssembly (144ms)
 		ExecutionOrderSort (0ms)
 		DisableScriptedObjects (0ms)
 		BackupInstance (0ms)
 		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (0ms)
-	RebuildCommonClasses (26ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (31ms)
-	LoadAllAssembliesAndSetupDomain (120ms)
-		LoadAssemblies (92ms)
+		CreateAndSetChildDomain (1ms)
+	RebuildCommonClasses (62ms)
+	RebuildNativeTypeToScriptingClass (18ms)
+	initialDomainReloadingComplete (69ms)
+	LoadAllAssembliesAndSetupDomain (253ms)
+		LoadAssemblies (144ms)
 		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (117ms)
-			TypeCache.Refresh (116ms)
-				TypeCache.ScanAssembly (106ms)
+		AnalyzeDomain (249ms)
+			TypeCache.Refresh (246ms)
+				TypeCache.ScanAssembly (228ms)
 			BuildScriptInfoCaches (0ms)
-			ResolveRequiredComponents (0ms)
-	FinalizeReload (402ms)
+			ResolveRequiredComponents (1ms)
+	FinalizeReload (820ms)
 		ReleaseScriptCaches (0ms)
 		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (366ms)
+		SetupLoadedEditorAssemblies (749ms)
 			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (189ms)
-			SetLoadedEditorAssemblies (3ms)
-			BeforeProcessingInitializeOnLoad (40ms)
-			ProcessInitializeOnLoadAttributes (87ms)
-			ProcessInitializeOnLoadMethodAttributes (46ms)
+			InitializePlatformSupportModulesInManaged (325ms)
+			SetLoadedEditorAssemblies (8ms)
+			BeforeProcessingInitializeOnLoad (89ms)
+			ProcessInitializeOnLoadAttributes (205ms)
+			ProcessInitializeOnLoadMethodAttributes (120ms)
 			AfterProcessingInitializeOnLoad (0ms)
 			EditorAssembliesLoaded (0ms)
 		ExecutionOrderSort2 (0ms)
@@ -153,1272 +146,851 @@ Domain Reload Profiling: 680ms
 Worker process is ready to serve import requests
 Import Worker Mode flag is 0x00
 Begin MonoManager ReloadAssembly
-- Loaded All Assemblies, in  0.599 seconds
-Refreshing native plugins compatible for Editor in 0.32 ms, found 3 plugins.
-Native extension for iOS target not found
+- Loaded All Assemblies, in  1.430 seconds
+Refreshing native plugins compatible for Editor in 0.96 ms, found 3 plugins.
 Native extension for Android target not found
 Native extension for OSXStandalone target not found
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.709 seconds
-Domain Reload Profiling: 1307ms
-	BeginReloadAssembly (88ms)
+- Finished resetting the current domain, in  1.613 seconds
+Domain Reload Profiling: 3043ms
+	BeginReloadAssembly (242ms)
 		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (4ms)
+		DisableScriptedObjects (12ms)
 		BackupInstance (0ms)
 		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (27ms)
-	RebuildCommonClasses (25ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (22ms)
-	LoadAllAssembliesAndSetupDomain (454ms)
-		LoadAssemblies (282ms)
+		CreateAndSetChildDomain (65ms)
+	RebuildCommonClasses (72ms)
+	RebuildNativeTypeToScriptingClass (21ms)
+	initialDomainReloadingComplete (67ms)
+	LoadAllAssembliesAndSetupDomain (1028ms)
+		LoadAssemblies (545ms)
 		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (210ms)
-			TypeCache.Refresh (154ms)
-				TypeCache.ScanAssembly (138ms)
-			BuildScriptInfoCaches (45ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (709ms)
+		AnalyzeDomain (596ms)
+			TypeCache.Refresh (432ms)
+				TypeCache.ScanAssembly (400ms)
+			BuildScriptInfoCaches (133ms)
+			ResolveRequiredComponents (24ms)
+	FinalizeReload (1613ms)
 		ReleaseScriptCaches (0ms)
 		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (606ms)
+		SetupLoadedEditorAssemblies (1296ms)
 			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (6ms)
-			BeforeProcessingInitializeOnLoad (113ms)
-			ProcessInitializeOnLoadAttributes (394ms)
-			ProcessInitializeOnLoadMethodAttributes (80ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (2ms)
-Launching external process: /Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/Tools/UnityShaderCompiler
-Launched and connected shader compiler UnityShaderCompiler after 0.03 seconds
-Refreshing native plugins compatible for Editor in 1.50 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 235 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7274 unused Assets / (4.8 MB). Loaded Objects now: 8027.
-Memory consumption went from 179.3 MB to 174.6 MB.
-Total: 7.561875 ms (FindLiveObjects: 0.934708 ms CreateObjectMapping: 0.246167 ms MarkObjects: 4.579708 ms  DeleteObjects: 1.801125 ms)
-
-========================================================================
-Received Import Request.
-  Time since last request: 845.808961 seconds.
-  path: Assets/ZooMerge/Prefabs/Bug_Prefabs/Prefab_Bug_4.prefab
-  artifactKey: Guid(edb7a070b6771467cb127d67381a6a9f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/ZooMerge/Prefabs/Bug_Prefabs/Prefab_Bug_4.prefab using Guid(edb7a070b6771467cb127d67381a6a9f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '64cae7f2d2e4b694a03bf36b06d1fd50') in 0.299033042 seconds
-Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 45
-
-========================================================================
-Received Import Request.
-  Time since last request: 0.852647 seconds.
-  path: Assets/ZooMerge/Prefabs/Bug_Prefabs/Prefab_Bug_4.prefab
-  artifactKey: Guid(edb7a070b6771467cb127d67381a6a9f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/ZooMerge/Prefabs/Bug_Prefabs/Prefab_Bug_4.prefab using Guid(edb7a070b6771467cb127d67381a6a9f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '78733e610caa5e24c09ef7a71009dbc2') in 0.006644333 seconds
-Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 45
-
-========================================================================
-Received Import Request.
-  Time since last request: 0.347765 seconds.
-  path: Assets/ZooMerge/Prefabs/Doggy_Prefabs/Prefab_Doggy_1.prefab
-  artifactKey: Guid(3e3041739ef97471dba19b2d73b0a6cb) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/ZooMerge/Prefabs/Doggy_Prefabs/Prefab_Doggy_1.prefab using Guid(3e3041739ef97471dba19b2d73b0a6cb) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'fe80b72a91a08c1d4062469783e2a04a') in 0.006002 seconds
-Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 46
-
-========================================================================
-Received Import Request.
-  Time since last request: 2.924476 seconds.
-  path: Assets/ZooMerge/Prefabs/Doggy_Prefabs/Prefab_Doggy_3.prefab
-  artifactKey: Guid(d9d7332e26a564edf9bd7e23c0134a50) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/ZooMerge/Prefabs/Doggy_Prefabs/Prefab_Doggy_3.prefab using Guid(d9d7332e26a564edf9bd7e23c0134a50) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '4707858c04c6668c5a039be1cdcda250') in 0.006741833 seconds
-Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 46
-
-========================================================================
-Received Import Request.
-  Time since last request: 0.824796 seconds.
-  path: Assets/ZooMerge/Prefabs/Doggy_Prefabs/Prefab_Doggy_2.prefab
-  artifactKey: Guid(d0bf4580cb9294923b895601179052a7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/ZooMerge/Prefabs/Doggy_Prefabs/Prefab_Doggy_2.prefab using Guid(d0bf4580cb9294923b895601179052a7) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'aff7427ea2cdff16938f7a5a052da369') in 0.006201125 seconds
-Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 46
-
-========================================================================
-Received Import Request.
-  Time since last request: 4.167160 seconds.
-  path: Assets/ZooMerge/Prefabs/Doggy_Prefabs/Prefab_Doggy_4.prefab
-  artifactKey: Guid(7bfb102c440bc4adf949389829e5e7e1) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/ZooMerge/Prefabs/Doggy_Prefabs/Prefab_Doggy_4.prefab using Guid(7bfb102c440bc4adf949389829e5e7e1) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '5f2f5d3cdf7c40cb5e8d51d8901f852b') in 0.00702825 seconds
-Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 47
-
-========================================================================
-Received Import Request.
-  Time since last request: 4.533650 seconds.
-  path: Assets/ZooMerge/Prefabs/Doggy_Prefabs/Prefab_Doggy_4.prefab
-  artifactKey: Guid(7bfb102c440bc4adf949389829e5e7e1) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/ZooMerge/Prefabs/Doggy_Prefabs/Prefab_Doggy_4.prefab using Guid(7bfb102c440bc4adf949389829e5e7e1) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '699eecf2b28389420dbf2e790c36bcab') in 0.00676425 seconds
-Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 47
-
-========================================================================
-Received Import Request.
-  Time since last request: 2.029886 seconds.
-  path: Assets/ZooMerge/Prefabs/Turtle_Prefab/Prefab_Turtle_1.prefab
-  artifactKey: Guid(58f9a1025171c4297a7fa6b5bc586187) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/ZooMerge/Prefabs/Turtle_Prefab/Prefab_Turtle_1.prefab using Guid(58f9a1025171c4297a7fa6b5bc586187) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd76695748a5b60d98ef968788470a39d') in 0.006633292 seconds
-Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 46
-
-========================================================================
-Received Import Request.
-  Time since last request: 2.523457 seconds.
-  path: Assets/ZooMerge/Prefabs/Turtle_Prefab/Prefab_Turtle_2.prefab
-  artifactKey: Guid(caa483cf559084f129499b756be920e1) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/ZooMerge/Prefabs/Turtle_Prefab/Prefab_Turtle_2.prefab using Guid(caa483cf559084f129499b756be920e1) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '5df1041406bbf2f0f3fee4e2d3424d8d') in 0.006464125 seconds
-Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 46
-
-========================================================================
-Received Import Request.
-  Time since last request: 1.906724 seconds.
-  path: Assets/ZooMerge/Prefabs/Turtle_Prefab/Prefab_Turtle_3.prefab
-  artifactKey: Guid(5747853a92a8745b1a5d894af33480c2) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/ZooMerge/Prefabs/Turtle_Prefab/Prefab_Turtle_3.prefab using Guid(5747853a92a8745b1a5d894af33480c2) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '980922170e5fe2fc1cb25d13df77854d') in 0.00660675 seconds
-Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 46
-
-========================================================================
-Received Import Request.
-  Time since last request: 2.070427 seconds.
-  path: Assets/ZooMerge/Prefabs/Turtle_Prefab/Prefab_Turtle_4.prefab
-  artifactKey: Guid(d7c5be608ac794220821cc86a5eed6d7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
-Start importing Assets/ZooMerge/Prefabs/Turtle_Prefab/Prefab_Turtle_4.prefab using Guid(d7c5be608ac794220821cc86a5eed6d7) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '75d416f51562c8b095051805a840ac3a') in 0.006546334 seconds
-Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 47
-
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x331c67000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.499 seconds
-Refreshing native plugins compatible for Editor in 0.36 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.654 seconds
-Domain Reload Profiling: 1156ms
-	BeginReloadAssembly (135ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (16ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (59ms)
-	RebuildCommonClasses (27ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (13ms)
-	LoadAllAssembliesAndSetupDomain (317ms)
-		LoadAssemblies (198ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (147ms)
-			TypeCache.Refresh (9ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (128ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (655ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (514ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (117ms)
-			ProcessInitializeOnLoadAttributes (335ms)
-			ProcessInitializeOnLoadMethodAttributes (45ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (6ms)
-Refreshing native plugins compatible for Editor in 0.47 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.4 MB). Loaded Objects now: 8066.
-Memory consumption went from 167.6 MB to 163.2 MB.
-Total: 7.220292 ms (FindLiveObjects: 0.391875 ms CreateObjectMapping: 0.281459 ms MarkObjects: 4.582541 ms  DeleteObjects: 1.964250 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fa93000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.470 seconds
-Refreshing native plugins compatible for Editor in 0.33 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.663 seconds
-Domain Reload Profiling: 1136ms
-	BeginReloadAssembly (125ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (9ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (56ms)
-	RebuildCommonClasses (25ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (12ms)
-	LoadAllAssembliesAndSetupDomain (301ms)
-		LoadAssemblies (178ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (150ms)
-			TypeCache.Refresh (10ms)
-				TypeCache.ScanAssembly (1ms)
-			BuildScriptInfoCaches (130ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (663ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (517ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (13ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (118ms)
-			ProcessInitializeOnLoadAttributes (337ms)
-			ProcessInitializeOnLoadMethodAttributes (43ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (6ms)
-Refreshing native plugins compatible for Editor in 0.59 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.7 MB). Loaded Objects now: 8071.
-Memory consumption went from 163.4 MB to 158.7 MB.
-Total: 6.921875 ms (FindLiveObjects: 0.407916 ms CreateObjectMapping: 0.257625 ms MarkObjects: 4.493084 ms  DeleteObjects: 1.762959 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fa8b000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.453 seconds
-Refreshing native plugins compatible for Editor in 0.37 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.647 seconds
-Domain Reload Profiling: 1105ms
-	BeginReloadAssembly (118ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (9ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (49ms)
-	RebuildCommonClasses (25ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (13ms)
-	LoadAllAssembliesAndSetupDomain (293ms)
-		LoadAssemblies (171ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (148ms)
-			TypeCache.Refresh (8ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (130ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (647ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (509ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (110ms)
-			ProcessInitializeOnLoadAttributes (336ms)
-			ProcessInitializeOnLoadMethodAttributes (46ms)
-			AfterProcessingInitializeOnLoad (0ms)
+			InitializePlatformSupportModulesInManaged (18ms)
+			SetLoadedEditorAssemblies (8ms)
+			BeforeProcessingInitializeOnLoad (204ms)
+			ProcessInitializeOnLoadAttributes (856ms)
+			ProcessInitializeOnLoadMethodAttributes (207ms)
+			AfterProcessingInitializeOnLoad (2ms)
 			EditorAssembliesLoaded (0ms)
 		ExecutionOrderSort2 (0ms)
 		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.41 ms, found 3 plugins.
+Launching external process: /Applications/Unity/Hub/Editor/6000.0.32f1/Unity.app/Contents/Tools/UnityShaderCompiler
+Launched and connected shader compiler UnityShaderCompiler after 0.11 seconds
+Refreshing native plugins compatible for Editor in 0.99 ms, found 3 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.5 MB). Loaded Objects now: 8076.
-Memory consumption went from 163.4 MB to 158.9 MB.
-Total: 6.975834 ms (FindLiveObjects: 0.412584 ms CreateObjectMapping: 0.232458 ms MarkObjects: 4.627375 ms  DeleteObjects: 1.703083 ms)
+Unloading 234 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 7274 unused Assets / (4.9 MB). Loaded Objects now: 7992.
+Memory consumption went from 180.1 MB to 175.2 MB.
+Total: 15.514659 ms (FindLiveObjects: 1.030882 ms CreateObjectMapping: 1.291621 ms MarkObjects: 8.871648 ms  DeleteObjects: 4.319184 ms)
 
-Prepare: number of updated asset objects reloaded= 0
+========================================================================
+Received Import Request.
+  Time since last request: 132.499582 seconds.
+  path: Assets/ZooMerge/Prefabs/Popups/Popup_MainMenu.prefab
+  artifactKey: Guid(824ce9cc6f9204257990c0be4b78014d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/Popups/Popup_MainMenu.prefab using Guid(824ce9cc6f9204257990c0be4b78014d) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '692025fe29b72a0e84ca2521da8d9dc6') in 0.792072377 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 608
+
+========================================================================
+Received Import Request.
+  Time since last request: 224.206569 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/currency_bg_holder.png
+  artifactKey: Guid(314c8c89d8d6f49b393b8aa4a4e63340) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/currency_bg_holder.png using Guid(314c8c89d8d6f49b393b8aa4a4e63340) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '89b6f1a8c06bbb598a7ca823e9384562') in 0.021615792 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 2
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.000061 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/mainMenu_store_button.png
+  artifactKey: Guid(bf51f97c7b9a148c28d034c5c68d3caa) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/mainMenu_store_button.png using Guid(bf51f97c7b9a148c28d034c5c68d3caa) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '4d3d843f09fac3b7e648cf35d69aff69') in 0.029866436 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 21.786510 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/special_coin_currency.png
+  artifactKey: Guid(25ee7e8a9122340409e58c446699c543) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/special_coin_currency.png using Guid(25ee7e8a9122340409e58c446699c543) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'e6dc94afd6ece96ea566db15774eefc0') in 0.010214387 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 19.559872 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/currency_bg_holder.png
+  artifactKey: Guid(314c8c89d8d6f49b393b8aa4a4e63340) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/currency_bg_holder.png using Guid(314c8c89d8d6f49b393b8aa4a4e63340) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'e59f6bbd7a3acbaf75507f11d3a05a24') in 0.008412483 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 15.160740 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/currency_bg_holder.png
+  artifactKey: Guid(314c8c89d8d6f49b393b8aa4a4e63340) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/currency_bg_holder.png using Guid(314c8c89d8d6f49b393b8aa4a4e63340) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '0c26f25c648ce5af7ea2b9859e7d1441') in 0.016028953 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 193.584317 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/Worlds/firstWorld
+  artifactKey: Guid(a3885b28c8a13400e85bb2e054eaddf1) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/Worlds/firstWorld using Guid(a3885b28c8a13400e85bb2e054eaddf1) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'c750e54678733fb97aa11949587057ba') in 0.002513998 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 204.266022 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/Worlds
+  artifactKey: Guid(9ea34aff6565041e9aae74210845eab9) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/Worlds using Guid(9ea34aff6565041e9aae74210845eab9) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '50c28d9de90e44b17e0d00a87a9c2f13') in 0.000553084 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 23.067155 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_indicator_holder_bg.png
+  artifactKey: Guid(3044ddc4cf4cd4cb18c5059a62c8677a) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_indicator_holder_bg.png using Guid(3044ddc4cf4cd4cb18c5059a62c8677a) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '5864b9e48cf2ef02d517eadaece5043d') in 0.01109622 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 29.155717 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_indicator_holder_bg.png
+  artifactKey: Guid(3044ddc4cf4cd4cb18c5059a62c8677a) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_indicator_holder_bg.png using Guid(3044ddc4cf4cd4cb18c5059a62c8677a) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '7e1a0877f011c4d7cc341455c16083a3') in 0.018209887 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 32.228492 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_indicator_holder_bg.png
+  artifactKey: Guid(3044ddc4cf4cd4cb18c5059a62c8677a) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_indicator_holder_bg.png using Guid(3044ddc4cf4cd4cb18c5059a62c8677a) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '453152c72238db81debae910c901a6c2') in 0.016583045 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 189.617832 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_bg_fullStep.png
+  artifactKey: Guid(2b2b589fc74e64681ad46d8089d8c74a) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_bg_fullStep.png using Guid(2b2b589fc74e64681ad46d8089d8c74a) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'aa9c1d932ade1050248c865aa1fe47c5') in 0.010718723 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 17.899585 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_bg_fullStep.png
+  artifactKey: Guid(2b2b589fc74e64681ad46d8089d8c74a) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_bg_fullStep.png using Guid(2b2b589fc74e64681ad46d8089d8c74a) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '746a7d1c08301d43696efe809d363059') in 0.009394838 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 3.060613 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_bg_emptyStep.png
+  artifactKey: Guid(52e612a4e6ca9444597a095c0bcea7dc) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_bg_emptyStep.png using Guid(52e612a4e6ca9444597a095c0bcea7dc) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '1cae5852283fd25df5a802ff2d4b6084') in 0.008781657 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 20.139050 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_bg_emptyStep.png
+  artifactKey: Guid(52e612a4e6ca9444597a095c0bcea7dc) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_bg_emptyStep.png using Guid(52e612a4e6ca9444597a095c0bcea7dc) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '59ae7ff584b1f8ea33b14b9108772e42') in 0.011493654 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 283.277873 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_emptyStep.png
+  artifactKey: Guid(bc885fabed0d5404ba779566b5767166) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_emptyStep.png using Guid(bc885fabed0d5404ba779566b5767166) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '6c921fdaa7c3d3ccc17734f478ff2a47') in 0.010443711 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 20.164248 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_emptyStep.png
+  artifactKey: Guid(bc885fabed0d5404ba779566b5767166) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_emptyStep.png using Guid(bc885fabed0d5404ba779566b5767166) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '063a97ec4e93414f6c251360076c8a7f') in 0.040214756 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 2.469147 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_fullStep.png
+  artifactKey: Guid(9d520c93ba4db41a6bbe3be6d56cc03f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_fullStep.png using Guid(9d520c93ba4db41a6bbe3be6d56cc03f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '359b1a45ac8e40cefaee33f7cd38e73b') in 0.02288405 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 19.462033 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_fullStep.png
+  artifactKey: Guid(9d520c93ba4db41a6bbe3be6d56cc03f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_fullStep.png using Guid(9d520c93ba4db41a6bbe3be6d56cc03f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b2895852899a5f6ed4f0741be31066e0') in 0.011950762 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 30.407607 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_emptyStep.png
+  artifactKey: Guid(bc885fabed0d5404ba779566b5767166) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_emptyStep.png using Guid(bc885fabed0d5404ba779566b5767166) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd1e7a72b06e6b4d3e0800db435e8a398') in 0.01558316 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 7.808149 seconds.
+  path: Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_emptyStep.png
+  artifactKey: Guid(bc885fabed0d5404ba779566b5767166) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/levelIndicator/level_progressBar_emptyStep.png using Guid(bc885fabed0d5404ba779566b5767166) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '231fe01d9a76fb28273730d91f94f47c') in 0.011234872 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 519.760016 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui
+  artifactKey: Guid(85897fbe5c7b34718b3d4e185893383d) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui using Guid(85897fbe5c7b34718b3d4e185893383d) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '8ff9632838aa70d3aed8d90e516e45f3') in 0.001040141 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 6.440493 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/buttons
+  artifactKey: Guid(fbfc2ade2a3e84657b6df4b17461ec3b) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/buttons using Guid(fbfc2ade2a3e84657b6df4b17461ec3b) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '36281d08d69d9b2bbce1af790250a97c') in 0.00070774 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 5.342547 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/items
+  artifactKey: Guid(43f7cf4f1f894443ba419f0f17578552) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/items using Guid(43f7cf4f1f894443ba419f0f17578552) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '2419a147675c4a295f73c9b2112ba752') in 0.000750851 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 10.360839 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/buttons/info_Button.prefab
+  artifactKey: Guid(337f86ca2711143eb886bd2410fd645e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/buttons/info_Button.prefab using Guid(337f86ca2711143eb886bd2410fd645e) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '558f08d9474871b88276a3f8162d53f7') in 0.002654273 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 8
+
+========================================================================
+Received Import Request.
+  Time since last request: 12.091840 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/items/priceArt_holder.prefab
+  artifactKey: Guid(7ac602413efdc476ab5c42eeefb79cfe) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/items/priceArt_holder.prefab using Guid(7ac602413efdc476ab5c42eeefb79cfe) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '6057b935143bd6f1c6f6bfe2e269af83') in 0.002572504 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 7
+
+========================================================================
+Received Import Request.
+  Time since last request: 13.763679 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/items/priceArt_holder.prefab
+  artifactKey: Guid(7ac602413efdc476ab5c42eeefb79cfe) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/items/priceArt_holder.prefab using Guid(7ac602413efdc476ab5c42eeefb79cfe) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'aa126cd2a7ae9ed53316b4895b811ce7') in 0.002917221 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 16
+
+========================================================================
+Received Import Request.
+  Time since last request: 23.126559 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs
+  artifactKey: Guid(2578ecab5ed3241089ab8c82fbdb8a2e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs using Guid(2578ecab5ed3241089ab8c82fbdb8a2e) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '123d71f194221ee670ae35a326a61cc9') in 0.000637801 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 9.918377 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder
+  artifactKey: Guid(a1bd92d71be3c4b2b9b18e91c4312255) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder using Guid(a1bd92d71be3c4b2b9b18e91c4312255) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'cfbdf1c8ac7a95112d2e694b5d72baff') in 0.00073019 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 7.889987 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1.prefab
+  artifactKey: Guid(8f02c1940f3c64d3dad11ec143649a93) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1.prefab using Guid(8f02c1940f3c64d3dad11ec143649a93) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'fc1b884ffc20d74b0724e3d5721c9aa5') in 0.005669902 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 42
+
+========================================================================
+Received Import Request.
+  Time since last request: 4.470657 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step.prefab
+  artifactKey: Guid(8f02c1940f3c64d3dad11ec143649a93) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step.prefab using Guid(8f02c1940f3c64d3dad11ec143649a93) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'c72151df9c2ebbde20096a52bee33fe1') in 0.004088157 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 42
+
+========================================================================
+Received Import Request.
+  Time since last request: 7.739204 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1.prefab
+  artifactKey: Guid(1c30e709b3e2642fba8fa41491efa148) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1.prefab using Guid(1c30e709b3e2642fba8fa41491efa148) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'a3829c1f327b09915738704ae0e8695a') in 0.006293495 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 6.192924 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1 1.prefab
+  artifactKey: Guid(2aeb16a476c7f40329203dd9b1af6005) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1 1.prefab using Guid(2aeb16a476c7f40329203dd9b1af6005) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'e2f6fbd843e506df14bacefe0e16cd09') in 0.005095311 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.512684 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1 2.prefab
+  artifactKey: Guid(1ed76cb6e02bc4fe2a01250d903e88d7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1 2.prefab using Guid(1ed76cb6e02bc4fe2a01250d903e88d7) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '9eeb945651cc02679020753b2cbdb929') in 0.00487769 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.219474 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1 3.prefab
+  artifactKey: Guid(93877302985464654884e726af3ccfbe) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1 3.prefab using Guid(93877302985464654884e726af3ccfbe) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '97feb5c6888953006b826f6e58a4f420') in 0.004594922 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.175842 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1 4.prefab
+  artifactKey: Guid(66489605726cc4e998628cfb0f0f926a) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1 4.prefab using Guid(66489605726cc4e998628cfb0f0f926a) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '2708a745ab4e8b99b954f11b59841332') in 0.004561586 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 2.917235 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_2.prefab
+  artifactKey: Guid(2aeb16a476c7f40329203dd9b1af6005) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_2.prefab using Guid(2aeb16a476c7f40329203dd9b1af6005) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b0d702d0663916ced1b87981d2671b11') in 0.0045984 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 3.876981 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_3.prefab
+  artifactKey: Guid(1ed76cb6e02bc4fe2a01250d903e88d7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_3.prefab using Guid(1ed76cb6e02bc4fe2a01250d903e88d7) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd94409cdfdfc7cc73af54cf4e8e45c4d') in 0.004319008 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 110.574335 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_2.prefab
+  artifactKey: Guid(2aeb16a476c7f40329203dd9b1af6005) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_2.prefab using Guid(2aeb16a476c7f40329203dd9b1af6005) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '429a61b22fca88f5301ba0b85d564d8f') in 0.005139352 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.469962 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1.prefab
+  artifactKey: Guid(1c30e709b3e2642fba8fa41491efa148) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1.prefab using Guid(1c30e709b3e2642fba8fa41491efa148) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '779e3a9ba6d8d177452465c58889965c') in 0.004723651 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 100.329545 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1.prefab
+  artifactKey: Guid(1c30e709b3e2642fba8fa41491efa148) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_1.prefab using Guid(1c30e709b3e2642fba8fa41491efa148) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '770db778c120900a62e61b2773a0f24c') in 0.004682535 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 65.553101 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_3.prefab
+  artifactKey: Guid(1ed76cb6e02bc4fe2a01250d903e88d7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_3.prefab using Guid(1ed76cb6e02bc4fe2a01250d903e88d7) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'f9470eb6fa6062f0c4f504448f763a04') in 0.004944224 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.579787 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step.prefab
+  artifactKey: Guid(8f02c1940f3c64d3dad11ec143649a93) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step.prefab using Guid(8f02c1940f3c64d3dad11ec143649a93) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '0d97ee25730cf298c517f7add17ee8c8') in 0.004098982 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 42
+
+========================================================================
+Received Import Request.
+  Time since last request: 16.644797 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step.prefab
+  artifactKey: Guid(8f02c1940f3c64d3dad11ec143649a93) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step.prefab using Guid(8f02c1940f3c64d3dad11ec143649a93) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '618b91a430a6448ade4da708c9590334') in 0.004304746 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 42
+
+========================================================================
+Received Import Request.
+  Time since last request: 14.854733 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_01.prefab
+  artifactKey: Guid(fbb617f1a449f450caf9f3065ac467f6) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_01.prefab using Guid(fbb617f1a449f450caf9f3065ac467f6) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '492cca54458f594005aab3272f8ded0c') in 0.004902381 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 1.044688 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_01 1.prefab
+  artifactKey: Guid(dc46d44e7df4a4173973c54b791c7eb6) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_01 1.prefab using Guid(dc46d44e7df4a4173973c54b791c7eb6) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '4638f5de682d9c0ddf1582735cb50b11') in 0.004590134 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.381689 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_01 2.prefab
+  artifactKey: Guid(a3fdc375991f242328c6a541fd112b93) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_01 2.prefab using Guid(a3fdc375991f242328c6a541fd112b93) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '6808c44762a730d6af65d5de7df751fd') in 0.004609508 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 3.218177 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_02.prefab
+  artifactKey: Guid(dc46d44e7df4a4173973c54b791c7eb6) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_02.prefab using Guid(dc46d44e7df4a4173973c54b791c7eb6) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '0caf53050a9b8a1f0bbb20276d3195ce') in 0.004516883 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 5.075571 seconds.
+  path: Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_03.prefab
+  artifactKey: Guid(a3fdc375991f242328c6a541fd112b93) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/MenuPrefabs/level_Indicator_Holder/step_03.prefab using Guid(a3fdc375991f242328c6a541fd112b93) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'ff6a6c68add006be7af116ed1219caa8') in 0.004607176 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 79
+
+========================================================================
+Received Import Request.
+  Time since last request: 212.764096 seconds.
+  path: Assets/ZooMerge/Textures/Animals/level_0/level_0.png
+  artifactKey: Guid(f2b9e63d9f2bf4cd6b717b57b47408c3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Animals/level_0/level_0.png using Guid(f2b9e63d9f2bf4cd6b717b57b47408c3) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '9db840f52bb9745cfb3a6b30693ecc9c') in 0.025860467 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
+
+========================================================================
+Received Import Request.
+  Time since last request: 78.848001 seconds.
+  path: Assets/ZooMerge/Textures/Animals/level_0/level_0.png
+  artifactKey: Guid(f2b9e63d9f2bf4cd6b717b57b47408c3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Animals/level_0/level_0.png using Guid(f2b9e63d9f2bf4cd6b717b57b47408c3) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '09ef68f89ac99d0b0849658dfda761e2') in 0.027814724 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
+
+========================================================================
+Received Import Request.
+  Time since last request: 20.972534 seconds.
+  path: Assets/ZooMerge/Textures/Animals/level_0/level_0.png
+  artifactKey: Guid(f2b9e63d9f2bf4cd6b717b57b47408c3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Animals/level_0/level_0.png using Guid(f2b9e63d9f2bf4cd6b717b57b47408c3) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '73bb6c885ebfa63eed7c50bcc25bb43f') in 0.02849252 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 6
+
+========================================================================
+Received Import Request.
+  Time since last request: 359.800424 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_holder_bg-1.png
+  artifactKey: Guid(50ce0204d0a0e4c62a5eca8e36a5c2e7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_holder_bg-1.png using Guid(50ce0204d0a0e4c62a5eca8e36a5c2e7) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '9909ae6548e9a0fe7f1ee6d4c7f1de17') in 0.012617881 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 6.518764 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_tooltip_bg.png
+  artifactKey: Guid(cf30bad7f86b543d28aca5bccae8668f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_tooltip_bg.png using Guid(cf30bad7f86b543d28aca5bccae8668f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '4a58dbf6b1c2636a66aba977dacbbbce') in 0.013411887 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 21.715029 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_tooltip_bg.png
+  artifactKey: Guid(cf30bad7f86b543d28aca5bccae8668f) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_tooltip_bg.png using Guid(cf30bad7f86b543d28aca5bccae8668f) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '5895c459fe123c06b3c44c476076421f') in 0.013457865 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 2.224336 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_play_button.png
+  artifactKey: Guid(be01c6df69a3843a6b6b3ac2afc9ea22) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_play_button.png using Guid(be01c6df69a3843a6b6b3ac2afc9ea22) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd77bf468b9cb70e96815c4805762c3e0') in 0.020805316 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 15.760308 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_play_button.png
+  artifactKey: Guid(be01c6df69a3843a6b6b3ac2afc9ea22) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_play_button.png using Guid(be01c6df69a3843a6b6b3ac2afc9ea22) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'cd0599583c8f6000144a6a4a89596e0f') in 0.012828875 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 2.803773 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_slider.png
+  artifactKey: Guid(5a5e7a669eb14464c9e174e90223c715) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_slider.png using Guid(5a5e7a669eb14464c9e174e90223c715) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'dd37ec7401dba9577fc04a5c9c158c3b') in 0.021292054 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 9.128304 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_slider.png
+  artifactKey: Guid(5a5e7a669eb14464c9e174e90223c715) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_slider.png using Guid(5a5e7a669eb14464c9e174e90223c715) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'fade133c17c1dc80fbade4a1ddbde3d3') in 0.010973028 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 2.072209 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_bg.png
+  artifactKey: Guid(af6c4b055477341778bb797af42abacd) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_bg.png using Guid(af6c4b055477341778bb797af42abacd) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '17e2c95ca3f882401c3f27a7eb2b7dc4') in 0.014814822 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 26.081623 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_bg.png
+  artifactKey: Guid(af6c4b055477341778bb797af42abacd) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_bg.png using Guid(af6c4b055477341778bb797af42abacd) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'ea2b8329799aa9561e7a2526e28d3d61') in 0.011273307 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 16.769404 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_holder_bg-1.png
+  artifactKey: Guid(50ce0204d0a0e4c62a5eca8e36a5c2e7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_holder_bg-1.png using Guid(50ce0204d0a0e4c62a5eca8e36a5c2e7) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b9f083bd7f7bcd82d5a83e42a607de0a') in 0.01259559 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 216.579087 seconds.
+  path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Anton SDF.asset
+  artifactKey: Guid(8a89fa14b10d46a99122fd4f73fca9a2) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Anton SDF.asset using Guid(8a89fa14b10d46a99122fd4f73fca9a2) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'cec8b4a429d5fe0d0e2cdd8c44e43146') in 0.088065366 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 6
+
+========================================================================
+Received Import Request.
+  Time since last request: 1376.987853 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/heroCards/puppyCard_profile.png
+  artifactKey: Guid(c4cb673dc46fb40f189f1d0d43190a4c) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/heroCards/puppyCard_profile.png using Guid(c4cb673dc46fb40f189f1d0d43190a4c) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'e8c8fff4f320c9d8e4b590adc37b4fcf') in 0.013936228 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 76.965369 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/heroCards/puppyCard_profile.png
+  artifactKey: Guid(c4cb673dc46fb40f189f1d0d43190a4c) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/heroCards/puppyCard_profile.png using Guid(c4cb673dc46fb40f189f1d0d43190a4c) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '2909c4d8a0c11b09ec1674bc0857553b') in 0.016082711 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.427572 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/heroCards/ladyBugCard_profile.png
+  artifactKey: Guid(23adc8e1476b14cb3b678805596d9309) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/heroCards/ladyBugCard_profile.png using Guid(23adc8e1476b14cb3b678805596d9309) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'de201ca13164b23b5ace84580c1ec15f') in 0.014592759 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 78.778794 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/heroCards/turtleCard_profile.png
+  artifactKey: Guid(18a9454725557480689d569ba0ab143a) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/heroCards/turtleCard_profile.png using Guid(18a9454725557480689d569ba0ab143a) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b6b6bf0bcd1626d2107ab676c539c01c') in 0.031642735 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 272.330138 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_slider.png
+  artifactKey: Guid(5a5e7a669eb14464c9e174e90223c715) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_slider.png using Guid(5a5e7a669eb14464c9e174e90223c715) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '7e870ea93a7df2106bdd2a734c13f963') in 0.012483428 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 238.098492 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_slider.png
+  artifactKey: Guid(5a5e7a669eb14464c9e174e90223c715) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_slider.png using Guid(5a5e7a669eb14464c9e174e90223c715) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '55338f79e63ef894a5ce7b9ee69e3925') in 0.011061933 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 10.318345 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_slider.png
+  artifactKey: Guid(5a5e7a669eb14464c9e174e90223c715) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/hero_level_slider.png using Guid(5a5e7a669eb14464c9e174e90223c715) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '5899450e1d421755663b05033e9de650') in 0.010073929 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 65.074028 seconds.
+  path: Assets/ZooMerge/Textures/Ui/hero_Tooltip/heroCards/level_arrow.png
+  artifactKey: Guid(57d9636a2419e4405b04a24d4a2d2850) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/hero_Tooltip/heroCards/level_arrow.png using Guid(57d9636a2419e4405b04a24d4a2d2850) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'f877c06ec7a73782ccbcb10748ebc1cc') in 0.027464096 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 188.170588 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards
+  artifactKey: Guid(56ed1a86dde0044e193991807c9619ef) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards using Guid(56ed1a86dde0044e193991807c9619ef) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '187bd99851b8b3f6e923e20acf0bf02d') in 0.001418447 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 20.877297 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_generic.prefab
+  artifactKey: Guid(c6edf957d6f624323913783ecdc753b5) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_generic.prefab using Guid(c6edf957d6f624323913783ecdc753b5) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '507009f4e34e7011cf71e7895f70ac00') in 0.037042624 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 58
+
+========================================================================
+Received Import Request.
+  Time since last request: 126.193862 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_generic.prefab
+  artifactKey: Guid(c6edf957d6f624323913783ecdc753b5) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_generic.prefab using Guid(c6edf957d6f624323913783ecdc753b5) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'a5ede2a51b9efa5f7bb757e702628fe3') in 0.03793314 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 58
+
+========================================================================
+Received Import Request.
+  Time since last request: 5.337033 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_generic Variant.prefab
+  artifactKey: Guid(0ea475ec7befc4898b77f689a233b499) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_generic Variant.prefab using Guid(0ea475ec7befc4898b77f689a233b499) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'c466b57108f6016686214cd11fd5aac2') in 0.032429969 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 103
+
+========================================================================
+Received Import Request.
+  Time since last request: 1.153349 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_generic Variant 1.prefab
+  artifactKey: Guid(ed85ab32a5e274bb7a9592c5a330b5ac) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_generic Variant 1.prefab using Guid(ed85ab32a5e274bb7a9592c5a330b5ac) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd9fab4466652bfd9e35c275a62d15697') in 0.034527738 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 103
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.431604 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_generic Variant 2.prefab
+  artifactKey: Guid(aa355152760234ae090bfb90ac353bad) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_generic Variant 2.prefab using Guid(aa355152760234ae090bfb90ac353bad) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '653e47a5bf1a12a89ec63a654cc9d21e') in 0.031890879 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 103
+
+========================================================================
+Received Import Request.
+  Time since last request: 6.653453 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_puppy.prefab
+  artifactKey: Guid(0ea475ec7befc4898b77f689a233b499) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_puppy.prefab using Guid(0ea475ec7befc4898b77f689a233b499) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '2998b490fcc077b946bb7f175494eb95') in 0.029368032 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 103
+
+========================================================================
+Received Import Request.
+  Time since last request: 7.260857 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_turtle.prefab
+  artifactKey: Guid(aa355152760234ae090bfb90ac353bad) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_turtle.prefab using Guid(aa355152760234ae090bfb90ac353bad) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '53a975fd7898fa07f64f43916576f996') in 0.030518599 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 103
+
+========================================================================
+Received Import Request.
+  Time since last request: 7.981159 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_ladyBug.prefab
+  artifactKey: Guid(ed85ab32a5e274bb7a9592c5a330b5ac) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_ladyBug.prefab using Guid(ed85ab32a5e274bb7a9592c5a330b5ac) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '89447cd4a7ecfc5243de3129ba82f4ef') in 0.029593741 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 103
+
+========================================================================
+Received Import Request.
+  Time since last request: 31.114255 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_turtle.prefab
+  artifactKey: Guid(aa355152760234ae090bfb90ac353bad) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_turtle.prefab using Guid(aa355152760234ae090bfb90ac353bad) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b374a3e420dfc90304dcea9b9a8a5ccd') in 0.043669213 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 103
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.351674 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_puppy.prefab
+  artifactKey: Guid(0ea475ec7befc4898b77f689a233b499) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_puppy.prefab using Guid(0ea475ec7befc4898b77f689a233b499) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd51c34798ce137b9d996b4d3b70a1a8a') in 0.049952714 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 103
+
+========================================================================
+Received Import Request.
+  Time since last request: 37.415373 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_turtle 1.prefab
+  artifactKey: Guid(d9f6f4844515c4637a5c7f4014796d95) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_turtle 1.prefab using Guid(d9f6f4844515c4637a5c7f4014796d95) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '41d2210a30eddc229b254dd680a0f44d') in 0.032099961 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 103
+
+========================================================================
+Received Import Request.
+  Time since last request: 4.111445 seconds.
+  path: Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_empty.prefab
+  artifactKey: Guid(d9f6f4844515c4637a5c7f4014796d95) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Prefabs/generic_Ui/MenuPrefabs/HeroCards/heroCard_empty.prefab using Guid(d9f6f4844515c4637a5c7f4014796d95) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '17c65cff7ada15843f701c23a33e0051') in 0.030086683 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 103
+
+========================================================================
+Received Import Request.
+  Time since last request: 316.590454 seconds.
+  path: Assets/ZooMerge/Textures/enemies/level 0/level_0_enemies.png
+  artifactKey: Guid(c8a4559113fbe447e9728b59e95b299a) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/enemies/level 0/level_0_enemies.png using Guid(c8a4559113fbe447e9728b59e95b299a) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '352eed3a055c095eedbaab0ddb5593ea') in 0.031543073 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 6
+
+========================================================================
+Received Import Request.
+  Time since last request: 166.258970 seconds.
+  path: Assets/ZooMerge/Textures/Ui/mainMenu/hero_Tooltip
+  artifactKey: Guid(7032eb845d60b4597acde0aa83e2a2fb) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/mainMenu/hero_Tooltip using Guid(7032eb845d60b4597acde0aa83e2a2fb) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'b6b48fafbffba84046bf18efe1a5817d') in 0.00079015 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 16.722227 seconds.
+  path: Assets/ZooMerge/Textures/Ui/Player
+  artifactKey: Guid(1e6b294dac0e548cca6553b80a67eea9) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/Player using Guid(1e6b294dac0e548cca6553b80a67eea9) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'e079f3f3e6920e11ccd388aed39dc4af') in 0.000888242 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 0
+
+========================================================================
+Received Import Request.
+  Time since last request: 3.227690 seconds.
+  path: Assets/ZooMerge/Textures/Ui/playerFrame_PlaceHolder.png
+  artifactKey: Guid(d56b25458f73a41b79ba7a2207545b7c) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/playerFrame_PlaceHolder.png using Guid(d56b25458f73a41b79ba7a2207545b7c) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'd9f4351cc48ee564fbf499d1d652510e') in 0.035576981 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 84.323376 seconds.
+  path: Assets/ZooMerge/Textures/Ui/Player/player 1.png
+  artifactKey: Guid(547c418003ba74e40a061552cae4bdf7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/Player/player 1.png using Guid(547c418003ba74e40a061552cae4bdf7) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '4ae721446ec40cd5b8b7f63b1fb0e3b5') in 0.031470087 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 23.661040 seconds.
+  path: Assets/ZooMerge/Textures/Ui/Player/player.png
+  artifactKey: Guid(547c418003ba74e40a061552cae4bdf7) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/Player/player.png using Guid(547c418003ba74e40a061552cae4bdf7) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'cfa9087e84ca2df0e7e444807d789989') in 0.011932085 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 48.050366 seconds.
+  path: Assets/ZooMerge/Textures/Ui/Player/Player_ship_LightGuide.png
+  artifactKey: Guid(f9fb5beef61a6430b930deb8211c7953) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/Player/Player_ship_LightGuide.png using Guid(f9fb5beef61a6430b930deb8211c7953) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '2842ed8869dc66f60a601aba4e44e180') in 0.032591441 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.298609 seconds.
+  path: Assets/ZooMerge/Textures/Ui/Player/Player_ship_LightGuide_compresed.png
+  artifactKey: Guid(f7a627e5a0d93496682b39f5414be9d8) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/Player/Player_ship_LightGuide_compresed.png using Guid(f7a627e5a0d93496682b39f5414be9d8) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'f8f4489ae8de918281b1983c8d18c3e7') in 0.014848896 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
+========================================================================
+Received Import Request.
+  Time since last request: 22.451270 seconds.
+  path: Assets/ZooMerge/Textures/Ui/Player/Player_ship_LightGuide_compresed.png
+  artifactKey: Guid(f7a627e5a0d93496682b39f5414be9d8) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Ui/Player/Player_ship_LightGuide_compresed.png using Guid(f7a627e5a0d93496682b39f5414be9d8) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: 'e255360b92c77d738a036c503faf563a') in 0.020488942 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 3
+
 ========================================================================
 Received Prepare
 Begin MonoManager ReloadAssembly
-Thread 0x17fa8b000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.451 seconds
-Refreshing native plugins compatible for Editor in 0.35 ms, found 3 plugins.
-Native extension for iOS target not found
+- Loaded All Assemblies, in  1.998 seconds
+Refreshing native plugins compatible for Editor in 1.66 ms, found 3 plugins.
 Native extension for Android target not found
 Native extension for OSXStandalone target not found
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.626 seconds
-Domain Reload Profiling: 1079ms
-	BeginReloadAssembly (118ms)
+- Finished resetting the current domain, in  2.144 seconds
+Domain Reload Profiling: 4148ms
+	BeginReloadAssembly (521ms)
 		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (9ms)
+		DisableScriptedObjects (72ms)
 		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (49ms)
-	RebuildCommonClasses (25ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (14ms)
-	LoadAllAssembliesAndSetupDomain (286ms)
-		LoadAssemblies (172ms)
+		ReleaseScriptingObjects (1ms)
+		CreateAndSetChildDomain (208ms)
+	RebuildCommonClasses (107ms)
+	RebuildNativeTypeToScriptingClass (33ms)
+	initialDomainReloadingComplete (56ms)
+	LoadAllAssembliesAndSetupDomain (1285ms)
+		LoadAssemblies (848ms)
 		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (142ms)
-			TypeCache.Refresh (7ms)
+		AnalyzeDomain (589ms)
+			TypeCache.Refresh (16ms)
 				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (126ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (626ms)
+			BuildScriptInfoCaches (531ms)
+			ResolveRequiredComponents (33ms)
+	FinalizeReload (2145ms)
 		ReleaseScriptCaches (0ms)
 		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (489ms)
+		SetupLoadedEditorAssemblies (1555ms)
 			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (111ms)
-			ProcessInitializeOnLoadAttributes (320ms)
-			ProcessInitializeOnLoadMethodAttributes (40ms)
-			AfterProcessingInitializeOnLoad (1ms)
+			InitializePlatformSupportModulesInManaged (28ms)
+			SetLoadedEditorAssemblies (13ms)
+			BeforeProcessingInitializeOnLoad (298ms)
+			ProcessInitializeOnLoadAttributes (1014ms)
+			ProcessInitializeOnLoadMethodAttributes (199ms)
+			AfterProcessingInitializeOnLoad (2ms)
 			EditorAssembliesLoaded (1ms)
 		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.41 ms, found 3 plugins.
+		AwakeInstancesAfterBackupRestoration (29ms)
+Refreshing native plugins compatible for Editor in 1.64 ms, found 3 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
 Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.2 MB). Loaded Objects now: 8081.
-Memory consumption went from 163.4 MB to 159.3 MB.
-Total: 6.387375 ms (FindLiveObjects: 0.382125 ms CreateObjectMapping: 0.240416 ms MarkObjects: 4.263500 ms  DeleteObjects: 1.501250 ms)
+Unloading 7272 unused Assets / (4.5 MB). Loaded Objects now: 8114.
+Memory consumption went from 156.7 MB to 152.3 MB.
+Total: 22.255167 ms (FindLiveObjects: 1.375762 ms CreateObjectMapping: 2.196579 ms MarkObjects: 13.672051 ms  DeleteObjects: 5.008474 ms)
 
 Prepare: number of updated asset objects reloaded= 0
 ========================================================================
-Received Prepare
-Refreshing native plugins compatible for Editor in 0.45 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7261 unused Assets / (4.8 MB). Loaded Objects now: 8081.
-Memory consumption went from 147.6 MB to 142.7 MB.
-Total: 7.385708 ms (FindLiveObjects: 0.363750 ms CreateObjectMapping: 0.237084 ms MarkObjects: 5.198750 ms  DeleteObjects: 1.585917 ms)
+Received Import Request.
+  Time since last request: 661.909074 seconds.
+  path: Assets/ZooMerge/Textures/Animals/level_2/level_2.png
+  artifactKey: Guid(0000eeaf718d243529bc7ba8205c6145) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/ZooMerge/Textures/Animals/level_2/level_2.png using Guid(0000eeaf718d243529bc7ba8205c6145) Importer(815301076,1909f56bfc062723c751e8b465ee728b) (PreviewImporter) -> (artifact id: '0335062e6c3e851749de26892bb0805c') in 0.132458303 seconds
+Number of updated asset objects reloaded before import = 0Number of asset objects unloaded after import = 5
 
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fa8b000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.493 seconds
-Refreshing native plugins compatible for Editor in 0.33 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.662 seconds
-Domain Reload Profiling: 1157ms
-	BeginReloadAssembly (126ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (9ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (52ms)
-	RebuildCommonClasses (27ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (13ms)
-	LoadAllAssembliesAndSetupDomain (320ms)
-		LoadAssemblies (199ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (153ms)
-			TypeCache.Refresh (11ms)
-				TypeCache.ScanAssembly (1ms)
-			BuildScriptInfoCaches (131ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (662ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (517ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (14ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (117ms)
-			ProcessInitializeOnLoadAttributes (336ms)
-			ProcessInitializeOnLoadMethodAttributes (44ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (6ms)
-Refreshing native plugins compatible for Editor in 0.40 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.4 MB). Loaded Objects now: 8086.
-Memory consumption went from 163.5 MB to 159.1 MB.
-Total: 7.012500 ms (FindLiveObjects: 0.401875 ms CreateObjectMapping: 0.320208 ms MarkObjects: 4.435875 ms  DeleteObjects: 1.854375 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fa8b000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.446 seconds
-Refreshing native plugins compatible for Editor in 0.35 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.654 seconds
-Domain Reload Profiling: 1103ms
-	BeginReloadAssembly (120ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (8ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (52ms)
-	RebuildCommonClasses (25ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (13ms)
-	LoadAllAssembliesAndSetupDomain (282ms)
-		LoadAssemblies (162ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (148ms)
-			TypeCache.Refresh (7ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (130ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (654ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (513ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (111ms)
-			ProcessInitializeOnLoadAttributes (340ms)
-			ProcessInitializeOnLoadMethodAttributes (44ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.41 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.9 MB). Loaded Objects now: 8091.
-Memory consumption went from 163.5 MB to 158.6 MB.
-Total: 7.760083 ms (FindLiveObjects: 0.398792 ms CreateObjectMapping: 0.276083 ms MarkObjects: 5.103250 ms  DeleteObjects: 1.980500 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fa8b000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.471 seconds
-Refreshing native plugins compatible for Editor in 0.35 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.657 seconds
-Domain Reload Profiling: 1131ms
-	BeginReloadAssembly (120ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (9ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (53ms)
-	RebuildCommonClasses (26ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (13ms)
-	LoadAllAssembliesAndSetupDomain (305ms)
-		LoadAssemblies (182ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (150ms)
-			TypeCache.Refresh (8ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (132ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (657ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (515ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (109ms)
-			ProcessInitializeOnLoadAttributes (343ms)
-			ProcessInitializeOnLoadMethodAttributes (44ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.40 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.6 MB). Loaded Objects now: 8096.
-Memory consumption went from 163.5 MB to 158.9 MB.
-Total: 6.978291 ms (FindLiveObjects: 0.403834 ms CreateObjectMapping: 0.244625 ms MarkObjects: 4.384334 ms  DeleteObjects: 1.945250 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fa8b000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.459 seconds
-Refreshing native plugins compatible for Editor in 0.34 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.615 seconds
-Domain Reload Profiling: 1076ms
-	BeginReloadAssembly (120ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (8ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (51ms)
-	RebuildCommonClasses (27ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (14ms)
-	LoadAllAssembliesAndSetupDomain (292ms)
-		LoadAssemblies (171ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (150ms)
-			TypeCache.Refresh (7ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (132ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (615ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (475ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (108ms)
-			ProcessInitializeOnLoadAttributes (308ms)
-			ProcessInitializeOnLoadMethodAttributes (42ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.41 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.9 MB). Loaded Objects now: 8101.
-Memory consumption went from 163.5 MB to 158.7 MB.
-Total: 6.953667 ms (FindLiveObjects: 0.409625 ms CreateObjectMapping: 0.228125 ms MarkObjects: 4.632792 ms  DeleteObjects: 1.682833 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.462 seconds
-Refreshing native plugins compatible for Editor in 0.38 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.646 seconds
-Domain Reload Profiling: 1110ms
-	BeginReloadAssembly (121ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (8ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (51ms)
-	RebuildCommonClasses (25ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (13ms)
-	LoadAllAssembliesAndSetupDomain (297ms)
-		LoadAssemblies (181ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (146ms)
-			TypeCache.Refresh (10ms)
-				TypeCache.ScanAssembly (1ms)
-			BuildScriptInfoCaches (126ms)
-			ResolveRequiredComponents (7ms)
-	FinalizeReload (646ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (508ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (114ms)
-			ProcessInitializeOnLoadAttributes (334ms)
-			ProcessInitializeOnLoadMethodAttributes (42ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.49 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.7 MB). Loaded Objects now: 8106.
-Memory consumption went from 163.5 MB to 158.8 MB.
-Total: 6.636000 ms (FindLiveObjects: 0.357917 ms CreateObjectMapping: 0.231750 ms MarkObjects: 4.429250 ms  DeleteObjects: 1.616833 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.451 seconds
-Refreshing native plugins compatible for Editor in 0.34 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.632 seconds
-Domain Reload Profiling: 1085ms
-	BeginReloadAssembly (122ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (8ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (53ms)
-	RebuildCommonClasses (25ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (13ms)
-	LoadAllAssembliesAndSetupDomain (284ms)
-		LoadAssemblies (171ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (142ms)
-			TypeCache.Refresh (8ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (124ms)
-			ResolveRequiredComponents (7ms)
-	FinalizeReload (632ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (497ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (6ms)
-			BeforeProcessingInitializeOnLoad (109ms)
-			ProcessInitializeOnLoadAttributes (328ms)
-			ProcessInitializeOnLoadMethodAttributes (42ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.41 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.3 MB). Loaded Objects now: 8111.
-Memory consumption went from 163.5 MB to 159.2 MB.
-Total: 6.557916 ms (FindLiveObjects: 0.387375 ms CreateObjectMapping: 0.253625 ms MarkObjects: 4.349792 ms  DeleteObjects: 1.566916 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.475 seconds
-Refreshing native plugins compatible for Editor in 0.35 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.620 seconds
-Domain Reload Profiling: 1098ms
-	BeginReloadAssembly (119ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (9ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (51ms)
-	RebuildCommonClasses (25ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (12ms)
-	LoadAllAssembliesAndSetupDomain (313ms)
-		LoadAssemblies (191ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (148ms)
-			TypeCache.Refresh (11ms)
-				TypeCache.ScanAssembly (1ms)
-			BuildScriptInfoCaches (128ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (620ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (472ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (13ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (114ms)
-			ProcessInitializeOnLoadAttributes (301ms)
-			ProcessInitializeOnLoadMethodAttributes (39ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.40 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.6 MB). Loaded Objects now: 8116.
-Memory consumption went from 163.5 MB to 158.9 MB.
-Total: 6.497416 ms (FindLiveObjects: 0.285208 ms CreateObjectMapping: 0.231000 ms MarkObjects: 4.181917 ms  DeleteObjects: 1.799084 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.474 seconds
-Refreshing native plugins compatible for Editor in 0.36 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.651 seconds
-Domain Reload Profiling: 1128ms
-	BeginReloadAssembly (120ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (8ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (52ms)
-	RebuildCommonClasses (27ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (13ms)
-	LoadAllAssembliesAndSetupDomain (308ms)
-		LoadAssemblies (184ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (152ms)
-			TypeCache.Refresh (8ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (134ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (651ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (511ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (13ms)
-			SetLoadedEditorAssemblies (4ms)
-			BeforeProcessingInitializeOnLoad (109ms)
-			ProcessInitializeOnLoadAttributes (338ms)
-			ProcessInitializeOnLoadMethodAttributes (45ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.40 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.5 MB). Loaded Objects now: 8121.
-Memory consumption went from 163.5 MB to 159.1 MB.
-Total: 7.032917 ms (FindLiveObjects: 0.401542 ms CreateObjectMapping: 0.242125 ms MarkObjects: 4.570041 ms  DeleteObjects: 1.818917 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.462 seconds
-Refreshing native plugins compatible for Editor in 0.36 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.655 seconds
-Domain Reload Profiling: 1120ms
-	BeginReloadAssembly (120ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (8ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (52ms)
-	RebuildCommonClasses (26ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (13ms)
-	LoadAllAssembliesAndSetupDomain (296ms)
-		LoadAssemblies (172ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (153ms)
-			TypeCache.Refresh (8ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (134ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (655ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (511ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (14ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (112ms)
-			ProcessInitializeOnLoadAttributes (334ms)
-			ProcessInitializeOnLoadMethodAttributes (46ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.46 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.4 MB). Loaded Objects now: 8126.
-Memory consumption went from 163.5 MB to 159.1 MB.
-Total: 7.282167 ms (FindLiveObjects: 0.418875 ms CreateObjectMapping: 0.265625 ms MarkObjects: 4.579375 ms  DeleteObjects: 2.018125 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.455 seconds
-Refreshing native plugins compatible for Editor in 0.35 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.653 seconds
-Domain Reload Profiling: 1110ms
-	BeginReloadAssembly (119ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (9ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (51ms)
-	RebuildCommonClasses (26ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (13ms)
-	LoadAllAssembliesAndSetupDomain (290ms)
-		LoadAssemblies (165ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (152ms)
-			TypeCache.Refresh (8ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (134ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (653ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (511ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (108ms)
-			ProcessInitializeOnLoadAttributes (340ms)
-			ProcessInitializeOnLoadMethodAttributes (45ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.40 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.7 MB). Loaded Objects now: 8131.
-Memory consumption went from 163.5 MB to 158.8 MB.
-Total: 7.153250 ms (FindLiveObjects: 0.394333 ms CreateObjectMapping: 0.246375 ms MarkObjects: 4.600125 ms  DeleteObjects: 1.912000 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-[usbmuxd] Detached: 1 00008120-0010656C2EF0201E
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.549 seconds
-Refreshing native plugins compatible for Editor in 0.34 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.662 seconds
-Domain Reload Profiling: 1214ms
-	BeginReloadAssembly (163ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (14ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (71ms)
-	RebuildCommonClasses (25ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (17ms)
-	LoadAllAssembliesAndSetupDomain (338ms)
-		LoadAssemblies (215ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (158ms)
-			TypeCache.Refresh (9ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (137ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (663ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (521ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (114ms)
-			ProcessInitializeOnLoadAttributes (345ms)
-			ProcessInitializeOnLoadMethodAttributes (44ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.53 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.4 MB). Loaded Objects now: 8136.
-Memory consumption went from 163.5 MB to 159.1 MB.
-Total: 7.376084 ms (FindLiveObjects: 0.435333 ms CreateObjectMapping: 0.303667 ms MarkObjects: 4.739708 ms  DeleteObjects: 1.897167 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.570 seconds
-Refreshing native plugins compatible for Editor in 0.34 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.634 seconds
-Domain Reload Profiling: 1208ms
-	BeginReloadAssembly (173ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (15ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (74ms)
-	RebuildCommonClasses (26ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (16ms)
-	LoadAllAssembliesAndSetupDomain (349ms)
-		LoadAssemblies (215ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (176ms)
-			TypeCache.Refresh (14ms)
-				TypeCache.ScanAssembly (1ms)
-			BuildScriptInfoCaches (151ms)
-			ResolveRequiredComponents (7ms)
-	FinalizeReload (635ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (493ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (109ms)
-			ProcessInitializeOnLoadAttributes (327ms)
-			ProcessInitializeOnLoadMethodAttributes (40ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.59 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (3.1 MB). Loaded Objects now: 8141.
-Memory consumption went from 163.6 MB to 160.4 MB.
-Total: 7.164333 ms (FindLiveObjects: 0.436000 ms CreateObjectMapping: 0.285500 ms MarkObjects: 4.728125 ms  DeleteObjects: 1.714208 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.471 seconds
-Refreshing native plugins compatible for Editor in 0.49 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.636 seconds
-Domain Reload Profiling: 1111ms
-	BeginReloadAssembly (128ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (8ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (55ms)
-	RebuildCommonClasses (26ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (13ms)
-	LoadAllAssembliesAndSetupDomain (298ms)
-		LoadAssemblies (188ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (142ms)
-			TypeCache.Refresh (8ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (125ms)
-			ResolveRequiredComponents (7ms)
-	FinalizeReload (637ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (501ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (113ms)
-			ProcessInitializeOnLoadAttributes (330ms)
-			ProcessInitializeOnLoadMethodAttributes (41ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.50 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.4 MB). Loaded Objects now: 8146.
-Memory consumption went from 163.5 MB to 159.1 MB.
-Total: 6.797834 ms (FindLiveObjects: 0.417833 ms CreateObjectMapping: 0.276959 ms MarkObjects: 4.397291 ms  DeleteObjects: 1.705542 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.659 seconds
-Refreshing native plugins compatible for Editor in 0.38 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.640 seconds
-Domain Reload Profiling: 1302ms
-	BeginReloadAssembly (236ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (17ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (123ms)
-	RebuildCommonClasses (28ms)
-	RebuildNativeTypeToScriptingClass (10ms)
-	initialDomainReloadingComplete (24ms)
-	LoadAllAssembliesAndSetupDomain (363ms)
-		LoadAssemblies (246ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (173ms)
-			TypeCache.Refresh (11ms)
-				TypeCache.ScanAssembly (1ms)
-			BuildScriptInfoCaches (150ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (641ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (490ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (114ms)
-			ProcessInitializeOnLoadAttributes (319ms)
-			ProcessInitializeOnLoadMethodAttributes (39ms)
-			AfterProcessingInitializeOnLoad (0ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (6ms)
-Refreshing native plugins compatible for Editor in 0.48 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.8 MB). Loaded Objects now: 8151.
-Memory consumption went from 163.6 MB to 158.8 MB.
-Total: 6.423709 ms (FindLiveObjects: 0.391041 ms CreateObjectMapping: 0.221458 ms MarkObjects: 4.370959 ms  DeleteObjects: 1.440000 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.479 seconds
-Refreshing native plugins compatible for Editor in 0.35 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.641 seconds
-Domain Reload Profiling: 1123ms
-	BeginReloadAssembly (129ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (9ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (56ms)
-	RebuildCommonClasses (26ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (15ms)
-	LoadAllAssembliesAndSetupDomain (303ms)
-		LoadAssemblies (188ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (146ms)
-			TypeCache.Refresh (7ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (129ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (641ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (503ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (14ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (116ms)
-			ProcessInitializeOnLoadAttributes (326ms)
-			ProcessInitializeOnLoadMethodAttributes (42ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (6ms)
-Refreshing native plugins compatible for Editor in 0.78 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.3 MB). Loaded Objects now: 8156.
-Memory consumption went from 163.6 MB to 159.3 MB.
-Total: 7.007833 ms (FindLiveObjects: 0.400875 ms CreateObjectMapping: 0.277750 ms MarkObjects: 4.495208 ms  DeleteObjects: 1.833833 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.489 seconds
-Refreshing native plugins compatible for Editor in 0.44 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.627 seconds
-Domain Reload Profiling: 1118ms
-	BeginReloadAssembly (132ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (10ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (57ms)
-	RebuildCommonClasses (25ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (14ms)
-	LoadAllAssembliesAndSetupDomain (311ms)
-		LoadAssemblies (198ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (146ms)
-			TypeCache.Refresh (11ms)
-				TypeCache.ScanAssembly (1ms)
-			BuildScriptInfoCaches (125ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (627ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (494ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (4ms)
-			BeforeProcessingInitializeOnLoad (107ms)
-			ProcessInitializeOnLoadAttributes (330ms)
-			ProcessInitializeOnLoadMethodAttributes (40ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.37 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.9 MB). Loaded Objects now: 8161.
-Memory consumption went from 163.6 MB to 158.7 MB.
-Total: 6.255209 ms (FindLiveObjects: 0.323708 ms CreateObjectMapping: 0.238083 ms MarkObjects: 4.192875 ms  DeleteObjects: 1.500042 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.499 seconds
-Refreshing native plugins compatible for Editor in 0.34 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.661 seconds
-Domain Reload Profiling: 1164ms
-	BeginReloadAssembly (131ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (9ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (57ms)
-	RebuildCommonClasses (26ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (13ms)
-	LoadAllAssembliesAndSetupDomain (323ms)
-		LoadAssemblies (207ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (149ms)
-			TypeCache.Refresh (8ms)
-				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (131ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (662ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (516ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (13ms)
-			SetLoadedEditorAssemblies (6ms)
-			BeforeProcessingInitializeOnLoad (118ms)
-			ProcessInitializeOnLoadAttributes (336ms)
-			ProcessInitializeOnLoadMethodAttributes (43ms)
-			AfterProcessingInitializeOnLoad (1ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Refreshing native plugins compatible for Editor in 0.35 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.4 MB). Loaded Objects now: 8166.
-Memory consumption went from 163.6 MB to 159.1 MB.
-Total: 7.150125 ms (FindLiveObjects: 0.425084 ms CreateObjectMapping: 0.334167 ms MarkObjects: 4.459625 ms  DeleteObjects: 1.930834 ms)
-
-Prepare: number of updated asset objects reloaded= 0
-========================================================================
-Received Prepare
-Begin MonoManager ReloadAssembly
-Thread 0x17fba3000 may have been prematurely finalized
-- Loaded All Assemblies, in  0.529 seconds
-Refreshing native plugins compatible for Editor in 0.34 ms, found 3 plugins.
-Native extension for iOS target not found
-Native extension for Android target not found
-Native extension for OSXStandalone target not found
-Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.607 seconds
-Domain Reload Profiling: 1139ms
-	BeginReloadAssembly (141ms)
-		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (11ms)
-		BackupInstance (0ms)
-		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (59ms)
-	RebuildCommonClasses (26ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (14ms)
-	LoadAllAssembliesAndSetupDomain (342ms)
-		LoadAssemblies (214ms)
-		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (164ms)
-			TypeCache.Refresh (13ms)
-				TypeCache.ScanAssembly (1ms)
-			BuildScriptInfoCaches (138ms)
-			ResolveRequiredComponents (8ms)
-	FinalizeReload (607ms)
-		ReleaseScriptCaches (0ms)
-		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (469ms)
-			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (12ms)
-			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (107ms)
-			ProcessInitializeOnLoadAttributes (304ms)
-			ProcessInitializeOnLoadMethodAttributes (40ms)
-			AfterProcessingInitializeOnLoad (0ms)
-			EditorAssembliesLoaded (0ms)
-		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (6ms)
-Refreshing native plugins compatible for Editor in 0.43 ms, found 3 plugins.
-Preloading 0 native plugins for Editor in 0.00 ms.
-Unloading 14 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 7272 unused Assets / (4.7 MB). Loaded Objects now: 8171.
-Memory consumption went from 163.6 MB to 158.9 MB.
-Total: 6.654417 ms (FindLiveObjects: 0.398625 ms CreateObjectMapping: 0.239792 ms MarkObjects: 4.451500 ms  DeleteObjects: 1.564125 ms)
-
-Prepare: number of updated asset objects reloaded= 0
