@@ -237,18 +237,19 @@ public class CircleDropController : MonoBehaviour
     // Animation Event at the beginning of the intro clip
     public void IntroBegin()
     {
-        PrepareForDrag(); // kinematic + zero vels
+        if (!introIsMerged)
+            PrepareForDrag(); // Only for fresh balls
 
         if (circle == null) return;
-        if (savedRadius <= 0f) savedRadius = circle.radius; // ensure valid
+        if (savedRadius <= 0f) savedRadius = circle.radius;
 
         if (introRoutine != null) StopCoroutine(introRoutine);
 
         if (introIsMerged)
         {
-            // MERGED: explosive pop from 0.01 -> overshoot -> savedRadius
-            circle.isTrigger = false;       // avoid impulses while popping
-            circle.radius = introTinyRadius; // 0.01 start
+            Drop();                    // ✅ Make it dynamic *before* expansion
+            circle.isTrigger = false;  // ✅ Enable collisions immediately
+            circle.radius = introTinyRadius;
 
             introRoutine = StartCoroutine(ExplodeColliderRoutine(
                 savedRadius,
@@ -261,7 +262,6 @@ public class CircleDropController : MonoBehaviour
         }
         else
         {
-            // NEW: no pop — enable collider at real size and drop immediately
             circle.radius = savedRadius;
             circle.isTrigger = false;
         }

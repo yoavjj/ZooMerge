@@ -78,6 +78,7 @@ public class BallSpawner : MonoBehaviour
         // fallback if preview missing
         if (previewGo == null || queuedEntry == null)
         {
+            Debug.LogWarning("PromotePreviewToActive: Missing previewGo or queuedEntry. Using fallback.");
             SpawnCircleInternal(overrideX); // legacy path
             return;
         }
@@ -88,6 +89,10 @@ public class BallSpawner : MonoBehaviour
             // Reapply full-scale setup
             float scale = picker.GetScaleForEntry(queuedEntry);
             previewGo.transform.localScale = Vector3.one * scale;
+        }
+        else
+        {
+            Debug.LogWarning("[PromotePreviewToActive] No BallInfo found in previewGo.");
         }
 
         // wake preview to become the active, draggable ball

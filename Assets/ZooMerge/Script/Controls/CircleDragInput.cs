@@ -173,7 +173,7 @@ public class CircleDragInput : MonoBehaviour,
         pointerDownFrame = Time.frameCount;
 
         if (!hasCachedBounds) CacheBounds();
-        MoveActiveBallTo(eventData.position);
+        MoveActiveBallTo(eventData.position, instant: true);
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -227,7 +227,7 @@ public class CircleDragInput : MonoBehaviour,
     #region Core Logic
 
     /// <summary>Move the spawn container horizontally to match a screen position.</summary>
-    private void MoveActiveBallTo(Vector2 screenPos)
+    private void MoveActiveBallTo(Vector2 screenPos, bool instant = false)
     {
         if (activeBall == null || !activeBall.IsDraggable()) return;
 
@@ -239,9 +239,10 @@ public class CircleDragInput : MonoBehaviour,
         float max = hasCachedBounds ? cachedMaxX : maxX;
 
         float targetX = Mathf.Clamp(worldPos.x, min, max);
-        float smoothX = dragSmoother.Smooth(t.position.x, targetX);
 
-        t.position = new Vector3(smoothX, t.position.y, t.position.z);
+        float finalX = instant ? targetX : dragSmoother.Smooth(t.position.x, targetX);
+
+        t.position = new Vector3(finalX, t.position.y, t.position.z);
     }
 
     /// <summary>
