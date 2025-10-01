@@ -16,7 +16,7 @@ public class CircleDragInput : MonoBehaviour,
 
     [Header("Refs")]
     public BallSpawner spawner;
-    public DragBounds dragBounds;
+    public SceneLineMarker dragBounds;
     [SerializeField] private Transform exemptSpawnChild;
 
     [Header("Fallback Movement Limits (used if dragBounds is null)")]

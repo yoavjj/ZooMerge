@@ -58,7 +58,6 @@ public class BallSpawner : MonoBehaviour
             var anim = previewGo.GetComponentInChildren<Animator>(true);
             if (anim != null)
             {
-                anim.ResetTrigger("Merged");
                 anim.SetTrigger("New");
             }
         }

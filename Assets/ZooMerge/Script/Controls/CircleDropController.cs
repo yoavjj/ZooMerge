@@ -7,6 +7,9 @@ public class CircleDropController : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private float settleDuration = 3f; // seconds to fully settle
 
+    [SerializeField] private float gameOverDelay = 1.5f;
+    private bool gameOverCheckEnabled = false;
+
     [Header("Intro Animation")]
     [SerializeField] private Animator animator;
     [SerializeField] private CircleCollider2D circle;            // collider to pop
@@ -31,6 +34,10 @@ public class CircleDropController : MonoBehaviour
     [SerializeField] private PhysicsMaterial2D noFrictionMat2D; // assign in Inspector
     private PhysicsMaterial2D originalMat2D;
     private int wallContacts = 0;
+
+    [Header("Game Over Trigger Settings")]
+    [SerializeField] private float requiredGameOverContactTime = 3f;
+    private Coroutine gameOverTouchRoutine;
 
     // Settling
     private float finalLinearDamping;
@@ -105,6 +112,8 @@ public class CircleDropController : MonoBehaviour
         if (!isDragging) return;
         isDragging = false;
         rb.bodyType = RigidbodyType2D.Dynamic;
+
+        StartCoroutine(EnableGameOverCheckAfterDelay());
     }
 
     // ---- Collisions ----
@@ -136,6 +145,51 @@ public class CircleDropController : MonoBehaviour
             if (wallContacts == 0 && circle != null)
                 circle.sharedMaterial = originalMat2D; // restore on exit
         }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (!enabled || !gameObject.activeInHierarchy) return;
+        if (!introIsMerged && !gameOverCheckEnabled) return;
+
+        if (other.CompareTag("GameOver"))
+        {
+            // ✅ Animator: Trigger "Touching"
+            if (animator != null) animator.SetTrigger("Touching");
+
+            // ✅ Start delayed game over trigger
+            if (gameOverTouchRoutine == null)
+                gameOverTouchRoutine = StartCoroutine(WaitToTriggerGameOver());
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("GameOver"))
+        {
+            // ✅ Cancel pending game over
+            if (gameOverTouchRoutine != null)
+            {
+                // ✅ Animator: Trigger "Saved"
+                if (animator != null) animator.SetTrigger("Saved");
+                StopCoroutine(gameOverTouchRoutine);
+                gameOverTouchRoutine = null;
+            }
+        }
+    }
+
+    private IEnumerator WaitToTriggerGameOver()
+    {
+        yield return new WaitForSeconds(requiredGameOverContactTime);
+        BallEventManager.RaiseGameOver(ballInfo);
+        gameOverTouchRoutine = null;
+    }
+
+
+    private IEnumerator EnableGameOverCheckAfterDelay()
+    {
+        yield return new WaitForSeconds(gameOverDelay);
+        gameOverCheckEnabled = true;
     }
 
     private IEnumerator SettleAfterTime(float duration)
