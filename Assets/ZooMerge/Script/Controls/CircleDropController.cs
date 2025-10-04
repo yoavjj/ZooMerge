@@ -159,9 +159,6 @@ public class CircleDropController : MonoBehaviour
     {
         if (other.CompareTag("GameOver"))
         {
-            // ✅ Animator: Trigger "Touching"
-            if (animator != null) animator.SetTrigger("Touching");
-
             // ✅ Start delayed game over trigger
             gameOverTouchRoutine = StartCoroutine(WaitToTriggerGameOver());
         }
@@ -184,6 +181,10 @@ public class CircleDropController : MonoBehaviour
 
     private IEnumerator WaitToTriggerGameOver()
     {
+        yield return new WaitForSeconds(1f);
+        // ✅ Animator: Trigger "Touching"
+        if (animator != null) animator.SetTrigger("Touching");
+
         yield return new WaitForSeconds(requiredGameOverContactTime);
         BallEventManager.RaiseGameOver(ballInfo);
         gameOverTouchRoutine = null;
