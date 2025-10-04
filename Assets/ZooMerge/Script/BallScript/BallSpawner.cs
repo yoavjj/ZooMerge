@@ -132,18 +132,19 @@ public class BallSpawner : MonoBehaviour
 
     private void SetPreviewMode(GameObject go, bool on)
     {
-        // no physics / no collisions / no merge while previewing
+        // Disable physics + collisions for preview
         foreach (var rb2 in go.GetComponentsInChildren<Rigidbody2D>(true))
             rb2.simulated = !on;
 
         foreach (var col in go.GetComponentsInChildren<Collider2D>(true))
             col.enabled = !on;
 
-        foreach (var m in go.GetComponentsInChildren<BallCollisionMerge>(true))
-            m.enabled = !on;
-
+        // Optional: Tell scripts it's in preview mode (if they support it)
         var cdc = go.GetComponentInChildren<CircleDropController>(true);
-        if (cdc != null) cdc.enabled = !on;  // prevent Awake/logic acting while preview
+        if (cdc != null && cdc.ballInfo != null)
+        {
+            if (!on) BallRegistry.Register(cdc.ballInfo); // Register only once when going live
+        }
     }
 
     // ---------- legacy spawn (used as fallback) ----------

@@ -28,7 +28,7 @@ public class CircleDropController : MonoBehaviour
     private bool introIsMerged = false;
 
     [Header("Info")]
-    [SerializeField] private BallInfo ballInfo; // values pushed via SetDamping()
+    [SerializeField] public BallInfo ballInfo; // values pushed via SetDamping()
 
     [Header("Walls")]
     [SerializeField] private PhysicsMaterial2D noFrictionMat2D; // assign in Inspector
@@ -75,8 +75,15 @@ public class CircleDropController : MonoBehaviour
         rb.WakeUp();
     }
 
+    private void OnEnable()
+    {
+        BallEventManager.OnGameOverAnimation += HandleGameOverAnimation;
+    }
+
     private void OnDisable()
     {
+        BallEventManager.OnGameOverAnimation -= HandleGameOverAnimation;
+
         if (CircleDragInput.Instance != null)
             CircleDragInput.Instance.ClearActiveBall(this);
 
@@ -111,6 +118,7 @@ public class CircleDropController : MonoBehaviour
     {
         if (!isDragging) return;
         isDragging = false;
+        animator.SetTrigger("Dropped");
         rb.bodyType = RigidbodyType2D.Dynamic;
 
         StartCoroutine(EnableGameOverCheckAfterDelay());
@@ -149,17 +157,13 @@ public class CircleDropController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!enabled || !gameObject.activeInHierarchy) return;
-        if (!introIsMerged && !gameOverCheckEnabled) return;
-
         if (other.CompareTag("GameOver"))
         {
             // ✅ Animator: Trigger "Touching"
             if (animator != null) animator.SetTrigger("Touching");
 
             // ✅ Start delayed game over trigger
-            if (gameOverTouchRoutine == null)
-                gameOverTouchRoutine = StartCoroutine(WaitToTriggerGameOver());
+            gameOverTouchRoutine = StartCoroutine(WaitToTriggerGameOver());
         }
     }
 
@@ -360,5 +364,20 @@ public class CircleDropController : MonoBehaviour
         Drop();                          // go live
 
         introRoutine = null;
+    }
+
+    private void HandleGameOverAnimation()
+    {
+        float delay = Random.Range(0.05f, 0.35f);
+        StartCoroutine(PlayOutAnimationAfterDelay(delay));
+    }
+
+    private IEnumerator PlayOutAnimationAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (animator != null)
+            animator.Play("IntroBallAnimation_Out");
+
+        Destroy(gameObject, 2f); // cleanup after animation
     }
 }
