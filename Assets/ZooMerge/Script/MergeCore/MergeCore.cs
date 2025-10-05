@@ -26,23 +26,28 @@ public class MergeCore
         a.BeginMerge();
         b.BeginMerge();
 
-        // Get instance roots (the ones with CircleDropController)
         var rootA = GetInstanceRoot(a);
         var rootB = GetInstanceRoot(b);
 
-        var type = a.Type;                 // same as b.Type (enforced)
+        var type = a.Type;
         var nextLevel = a.Level + 1;
 
         factory.Despawn(rootA);
         factory.Despawn(rootB);
 
-        // ParentOverride left null so factory can place under its dropped container by default
         var merged = factory.SpawnLevel(type, nextLevel, spawnPos);
 
         if (merged != null)
         {
-            var cdc = merged != null ? merged.GetComponentInChildren<CircleDropController>(true) : null;
+            var cdc = merged.GetComponentInChildren<CircleDropController>(true);
             if (cdc != null) cdc.PlayIntroMerged();
+
+            // 🔹 Raise the merge event for game over logic
+            var ballInfo = merged.GetComponentInChildren<BallInfo>(true);
+            if (ballInfo != null)
+            {
+                BallEventManager.RaiseBallMerged(ballInfo);
+            }
         }
 
         return true;

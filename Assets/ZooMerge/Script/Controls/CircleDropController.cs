@@ -7,6 +7,9 @@ public class CircleDropController : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private float settleDuration = 3f; // seconds to fully settle
 
+    [SerializeField] private float gameOverDelay = 1.5f;
+    private bool gameOverCheckEnabled = false;
+
     [Header("Intro Animation")]
     [SerializeField] private Animator animator;
     [SerializeField] private CircleCollider2D circle;            // collider to pop
@@ -25,12 +28,16 @@ public class CircleDropController : MonoBehaviour
     private bool introIsMerged = false;
 
     [Header("Info")]
-    [SerializeField] private BallInfo ballInfo; // values pushed via SetDamping()
+    [SerializeField] public BallInfo ballInfo; // values pushed via SetDamping()
 
     [Header("Walls")]
     [SerializeField] private PhysicsMaterial2D noFrictionMat2D; // assign in Inspector
     private PhysicsMaterial2D originalMat2D;
     private int wallContacts = 0;
+
+    [Header("Game Over Trigger Settings")]
+    [SerializeField] private float requiredGameOverContactTime = 3f;
+    private Coroutine gameOverTouchRoutine;
 
     // Settling
     private float finalLinearDamping;
@@ -68,8 +75,15 @@ public class CircleDropController : MonoBehaviour
         rb.WakeUp();
     }
 
+    private void OnEnable()
+    {
+        BallEventManager.OnGameOverAnimation += HandleGameOverAnimation;
+    }
+
     private void OnDisable()
     {
+        BallEventManager.OnGameOverAnimation -= HandleGameOverAnimation;
+
         if (CircleDragInput.Instance != null)
             CircleDragInput.Instance.ClearActiveBall(this);
 
@@ -104,7 +118,10 @@ public class CircleDropController : MonoBehaviour
     {
         if (!isDragging) return;
         isDragging = false;
+        animator.SetTrigger("Dropped");
         rb.bodyType = RigidbodyType2D.Dynamic;
+
+        StartCoroutine(EnableGameOverCheckAfterDelay());
     }
 
     // ---- Collisions ----
@@ -136,6 +153,48 @@ public class CircleDropController : MonoBehaviour
             if (wallContacts == 0 && circle != null)
                 circle.sharedMaterial = originalMat2D; // restore on exit
         }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("GameOver"))
+        {
+            // ✅ Start delayed game over trigger
+            gameOverTouchRoutine = StartCoroutine(WaitToTriggerGameOver());
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("GameOver"))
+        {
+            // ✅ Cancel pending game over
+            if (gameOverTouchRoutine != null)
+            {
+                // ✅ Animator: Trigger "Saved"
+                if (animator != null) animator.SetTrigger("Saved");
+                StopCoroutine(gameOverTouchRoutine);
+                gameOverTouchRoutine = null;
+            }
+        }
+    }
+
+    private IEnumerator WaitToTriggerGameOver()
+    {
+        yield return new WaitForSeconds(1f);
+        // ✅ Animator: Trigger "Touching"
+        if (animator != null) animator.SetTrigger("Touching");
+
+        yield return new WaitForSeconds(requiredGameOverContactTime);
+        BallEventManager.RaiseGameOver(ballInfo);
+        gameOverTouchRoutine = null;
+    }
+
+
+    private IEnumerator EnableGameOverCheckAfterDelay()
+    {
+        yield return new WaitForSeconds(gameOverDelay);
+        gameOverCheckEnabled = true;
     }
 
     private IEnumerator SettleAfterTime(float duration)
@@ -237,18 +296,19 @@ public class CircleDropController : MonoBehaviour
     // Animation Event at the beginning of the intro clip
     public void IntroBegin()
     {
-        PrepareForDrag(); // kinematic + zero vels
+        if (!introIsMerged)
+            PrepareForDrag(); // Only for fresh balls
 
         if (circle == null) return;
-        if (savedRadius <= 0f) savedRadius = circle.radius; // ensure valid
+        if (savedRadius <= 0f) savedRadius = circle.radius;
 
         if (introRoutine != null) StopCoroutine(introRoutine);
 
         if (introIsMerged)
         {
-            // MERGED: explosive pop from 0.01 -> overshoot -> savedRadius
-            circle.isTrigger = false;       // avoid impulses while popping
-            circle.radius = introTinyRadius; // 0.01 start
+            Drop();                    // ✅ Make it dynamic *before* expansion
+            circle.isTrigger = false;  // ✅ Enable collisions immediately
+            circle.radius = introTinyRadius;
 
             introRoutine = StartCoroutine(ExplodeColliderRoutine(
                 savedRadius,
@@ -261,7 +321,6 @@ public class CircleDropController : MonoBehaviour
         }
         else
         {
-            // NEW: no pop — enable collider at real size and drop immediately
             circle.radius = savedRadius;
             circle.isTrigger = false;
         }
@@ -306,5 +365,20 @@ public class CircleDropController : MonoBehaviour
         Drop();                          // go live
 
         introRoutine = null;
+    }
+
+    private void HandleGameOverAnimation()
+    {
+        float delay = Random.Range(0.05f, 0.35f);
+        StartCoroutine(PlayOutAnimationAfterDelay(delay));
+    }
+
+    private IEnumerator PlayOutAnimationAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (animator != null)
+            animator.Play("IntroBallAnimation_Out");
+
+        Destroy(gameObject, 2f); // cleanup after animation
     }
 }

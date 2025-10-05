@@ -107,11 +107,18 @@ public class BallPicker : MonoBehaviour
 
     public float GetScaleForEntry(BallSet.Entry entry)
     {
-        if (entry == null || ballSet == null) return 1f;
+        if (entry == null || ballSet == null)
+        {
+            Debug.LogWarning("[BallPicker] GetScaleForEntry: entry or ballSet is null.");
+            return 1f;
+        }
 
         var data = ballSet.GetPhysicsFor(entry);
-        if (data == null) return 1f;
-
+        if (data == null)
+        {
+            Debug.LogWarning($"[BallPicker] No physics data for entry: {entry.type} level {entry.level}");
+            return 1f;
+        }
         return data.uniformScale > 0f ? data.uniformScale : 1f;
     }
 }
