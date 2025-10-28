@@ -42,12 +42,21 @@ public class MergeCore
             var cdc = merged.GetComponentInChildren<CircleDropController>(true);
             if (cdc != null) cdc.PlayIntroMerged();
 
-            // 🔹 Raise the merge event for game over logic
             var ballInfo = merged.GetComponentInChildren<BallInfo>(true);
             if (ballInfo != null)
             {
                 BallEventManager.RaiseBallMerged(ballInfo);
             }
+
+            int mergedLevel = a.Level;
+            int score = FirebaseInitializer.MergeScoreData?.scores?.Find(s => s.level == mergedLevel)?.score
+                        ?? FirebaseInitializer.BaseMergeScore;
+
+            // Raise score event
+            BallEventManager.RaiseMergeScore(spawnPos, score);
+
+            //Trigger merge particle effect
+            ParticleEvents.Request("merge", spawnPos);
         }
 
         return true;

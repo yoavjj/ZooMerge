@@ -20,8 +20,9 @@ public class MainMenuUI : MonoBehaviour
 
     private void OnPlayPressed()
     {
-        // Call the PopupManager to start the session
+        BallEventManager.RaiseSessionStarted();
         PopupManager.Instance?.OnPlayButtonPressed();
+        BallEventManager.RaiseResetCounters();
         Destroy(gameObject);
     }
 }

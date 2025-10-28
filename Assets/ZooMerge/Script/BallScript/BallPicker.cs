@@ -16,34 +16,20 @@ public class BallPicker : MonoBehaviour
         if (ballSet == null || ballSet.entries == null || ballSet.entries.Count == 0)
             return null;
 
-        // Filter by include + level range
         var pool = new List<BallSet.Entry>();
-        float totalWeight = 0f;
 
         foreach (var e in ballSet.entries)
         {
             if (e == null || e.prefab == null) continue;
             if (!e.includeInRandom) continue;
             if (e.level < minLevel || e.level > maxLevel) continue;
-            if (e.weight <= 0f) continue;
 
             pool.Add(e);
-            totalWeight += e.weight;
         }
 
-        if (pool.Count == 0 || totalWeight <= 0f) return null;
+        if (pool.Count == 0) return null;
 
-        // Weighted pick
-        float r = Random.value * totalWeight;
-        foreach (var e in pool)
-        {
-            r -= e.weight;
-            if (r <= 0f)
-                return e.prefab;
-        }
-
-        // Fallback
-        return pool[pool.Count - 1].prefab;
+        return pool[Random.Range(0, pool.Count)].prefab;
     }
 
     public bool TryPickRandomEntry(out BallSet.Entry entry, out string reason)
@@ -77,31 +63,23 @@ public class BallPicker : MonoBehaviour
         if (ballSet.entries == null || ballSet.entries.Count == 0) { reason = "BallSet has no entries."; return false; }
 
         var pool = new List<BallSet.Entry>();
-        float totalWeight = 0f;
 
         foreach (var e in ballSet.entries)
         {
-            if (e == null) continue;
-            if (e.prefab == null) continue;
+            if (e == null || e.prefab == null) continue;
             if (!e.includeInRandom) continue;
             if (e.level < minLevel || e.level > maxLevel) continue;
-            if (e.weight <= 0f) continue;
 
             pool.Add(e);
-            totalWeight += e.weight;
         }
 
-        if (pool.Count == 0) { reason = $"No entries in level range [{minLevel}..{maxLevel}] with includeInRandom=true and weight>0."; return false; }
-        if (totalWeight <= 0f) { reason = "Total weight is 0."; return false; }
-
-        float r = Random.value * totalWeight;
-        foreach (var e in pool)
+        if (pool.Count == 0)
         {
-            r -= e.weight;
-            if (r <= 0f) { prefab = e.prefab; return true; }
+            reason = $"No entries in level range [{minLevel}..{maxLevel}] with includeInRandom=true.";
+            return false;
         }
 
-        prefab = pool[pool.Count - 1].prefab;
+        prefab = pool[Random.Range(0, pool.Count)].prefab;
         return true;
     }
 

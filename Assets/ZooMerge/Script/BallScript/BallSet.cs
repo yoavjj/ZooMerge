@@ -11,7 +11,6 @@ public class BallSet : ScriptableObject
     {
         public string id;                              // e.g., "Prefab_Doggy_1"
         public AssetReferenceGameObject prefab;
-        [Range(0f, 10f)] public float weight = 1f;
         public int level = 0;                          // <-- the ONLY key we use for physics
         public bool includeInRandom = true;
         public BallType type = BallType.Bug;

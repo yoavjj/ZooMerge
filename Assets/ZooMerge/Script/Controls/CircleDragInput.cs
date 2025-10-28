@@ -189,8 +189,9 @@ public class CircleDragInput : MonoBehaviour,
         if (activeBall == null || !activeBall.IsDraggable()) return;
 
         var worldPos = cam.ScreenToWorldPoint(new Vector3(eventData.position.x, eventData.position.y, 0f));
-        float min = hasCachedBounds ? cachedMinX : minX;
-        float max = hasCachedBounds ? cachedMaxX : maxX;
+        float ballRadius = GetActiveBallWorldRadius();
+        float min = hasCachedBounds ? cachedMinX + ballRadius : minX + ballRadius;
+        float max = hasCachedBounds ? cachedMaxX - ballRadius : maxX - ballRadius;
 
         var t = GetMoveTarget();
         if (t == null) return;
@@ -235,8 +236,9 @@ public class CircleDragInput : MonoBehaviour,
         if (t == null) return;
 
         var worldPos = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
-        float min = hasCachedBounds ? cachedMinX : minX;
-        float max = hasCachedBounds ? cachedMaxX : maxX;
+        float ballRadius = GetActiveBallWorldRadius();
+        float min = hasCachedBounds ? cachedMinX + ballRadius : minX + ballRadius;
+        float max = hasCachedBounds ? cachedMaxX - ballRadius : maxX - ballRadius;
 
         float targetX = Mathf.Clamp(worldPos.x, min, max);
 
@@ -310,6 +312,19 @@ public class CircleDragInput : MonoBehaviour,
     #endregion
 
     #region Helpers
+
+    private float GetActiveBallWorldRadius()
+    {
+        if (currentPrefabRoot == null) return 0f;
+
+        var circle = currentPrefabRoot.GetComponentInChildren<CircleCollider2D>(true);
+        if (circle == null) return 0f;
+
+        float radius = circle.radius;
+        float scale = circle.transform.lossyScale.x; // Assuming uniform scale on X
+
+        return radius * scale;
+    }
 
     private void EnsureSpawnContainerHasSingleChild(Transform keepThis = null)
     {
