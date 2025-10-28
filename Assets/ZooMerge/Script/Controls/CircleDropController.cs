@@ -78,11 +78,13 @@ public class CircleDropController : MonoBehaviour
     private void OnEnable()
     {
         BallEventManager.OnGameOverAnimation += HandleGameOverAnimation;
+        BallEventManager.OnSessionWonAnimation += HandleSessionWonAnimation;
     }
 
     private void OnDisable()
     {
         BallEventManager.OnGameOverAnimation -= HandleGameOverAnimation;
+        BallEventManager.OnSessionWonAnimation -= HandleSessionWonAnimation;
 
         if (CircleDragInput.Instance != null)
             CircleDragInput.Instance.ClearActiveBall(this);
@@ -373,7 +375,7 @@ public class CircleDropController : MonoBehaviour
         StartCoroutine(PlayOutAnimationAfterDelay(delay));
     }
 
-    private IEnumerator PlayOutAnimationAfterDelay(float delay)
+    public IEnumerator PlayOutAnimationAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
         if (animator != null)
@@ -381,4 +383,10 @@ public class CircleDropController : MonoBehaviour
 
         Destroy(gameObject, 2f); // cleanup after animation
     }
+
+    private void HandleSessionWonAnimation()
+    {
+        StartCoroutine(PlayOutAnimationAfterDelay(0f)); // ✅ delay 0 as requested
+    }
+
 }

@@ -6,7 +6,7 @@ public class PopupManager : MonoBehaviour
 
     [Header("Refs")]
     [SerializeField] private GameObject mainMenuPopupPrefab;
-    [SerializeField] private GameObject gameUIPopupPrefab;
+    [SerializeField] private GameObject winLosePopupPrefab;
     [SerializeField] private BallSpawner ballSpawner;
 
     private GameObject mainMenuPopupInstance;
@@ -29,25 +29,44 @@ public class PopupManager : MonoBehaviour
             mainMenuPopupInstance = Instantiate(mainMenuPopupPrefab, transform);
             mainMenuPopupInstance.SetActive(true);
         }
+    }
 
-        if (gameUIPopupPrefab != null)
+    private void OnEnable()
+    {
+        BallEventManager.OnGameOver += ShowWinPopup;
+    }
+
+    private void OnDisable()
+    {
+        BallEventManager.OnGameOver -= ShowWinPopup;
+    }
+
+    private void ShowWinPopup(BallInfo _)
+    {
+        if (gameUIPopupInstance == null)
         {
-            gameUIPopupInstance = Instantiate(gameUIPopupPrefab, transform);
-            gameUIPopupInstance.SetActive(false);
+            gameUIPopupInstance = Instantiate(winLosePopupPrefab, transform);
+        }
+
+        var winLoseScript = gameUIPopupInstance.GetComponent<WinLosePopup>();
+        if (winLoseScript != null)
+        {
+            winLoseScript.SetMessage("You Won!");
         }
     }
 
     public void ShowMainMenu()
     {
-        if (mainMenuPopupInstance != null) mainMenuPopupInstance.SetActive(true);
-        if (gameUIPopupInstance != null) gameUIPopupInstance.SetActive(false);
+        if (mainMenuPopupPrefab != null)
+        {
+            mainMenuPopupInstance = Instantiate(mainMenuPopupPrefab, transform);
+            mainMenuPopupInstance.SetActive(true);
+        }
     }
 
     public void OnPlayButtonPressed()
     {
         if (mainMenuPopupInstance != null) mainMenuPopupInstance.SetActive(false);
-        if (gameUIPopupInstance != null) gameUIPopupInstance.SetActive(true);
-
         ballSpawner?.BeginSession();
     }
 }
