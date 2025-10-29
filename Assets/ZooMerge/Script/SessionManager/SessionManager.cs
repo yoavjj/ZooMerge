@@ -10,6 +10,9 @@ public class SessionManager : MonoBehaviour
             onReady: () =>
             {
                 Debug.Log("🔥 Firebase is ready!");
+
+                // ✅ Set starting level
+                MergeLevelManager.SetLevel(1); // Starts player at level 1
             },
             onError: err =>
             {
@@ -22,23 +25,66 @@ public class SessionManager : MonoBehaviour
         hasGameOvered = false;
     }
 
+    /// <summary>
+    /// Returns the score value for a given merge level in the current stage.
+    /// </summary>
     private int GetScoreForLevel(int level)
     {
-        var entry = FirebaseInitializer.MergeScoreData?.scores?.Find(s => s.level == level);
+        var current = MergeLevelManager.GetCurrentLevel();
+
+        if (current?.scores == null)
+        {
+            Debug.LogWarning("⚠️ Current level has no score data.");
+            return FirebaseInitializer.BaseMergeScore;
+        }
+
+        var entry = current.scores.Find(s => s.level == level);
         return entry != null ? entry.score : FirebaseInitializer.BaseMergeScore;
     }
 
-    private void PrintMergeScores()
+    /// <summary>
+    /// Prints all score data for the currently active level.
+    /// </summary>
+    private void PrintCurrentLevelInfo()
     {
-        if (FirebaseInitializer.MergeScoreData?.scores == null)
+        var level = MergeLevelManager.GetCurrentLevel();
+        if (level == null)
         {
-            Debug.LogWarning("No merge scores data available.");
+            Debug.LogWarning("⚠️ No current level data available.");
             return;
         }
 
-        foreach (var entry in FirebaseInitializer.MergeScoreData.scores)
+        Debug.Log($"📘 Current Level: {level.level}");
+        Debug.Log($"❤️ Enemy Health: {level.enemy_health}");
+
+        if (level.scores == null || level.scores.Count == 0)
         {
-            Debug.Log($"Level {entry.level} => Score {entry.score}");
+            Debug.LogWarning("No score entries found for this level.");
+            return;
         }
+
+        foreach (var entry in level.scores)
+        {
+            Debug.Log($"   ➤ Ball Level {entry.level} => Score {entry.score}");
+        }
+    }
+
+    /// <summary>
+    /// Moves to the next level, if available.
+    /// </summary>
+    public void AdvanceToNextLevel()
+    {
+        MergeLevelManager.AdvanceLevel();
+        var newLevel = MergeLevelManager.GetCurrentLevel();
+        Debug.Log($"🚀 Advanced to Level {newLevel.level} (Enemy Health: {newLevel.enemy_health})");
+    }
+
+    /// <summary>
+    /// Resets progression back to Level 1.
+    /// </summary>
+    public void RestartProgression()
+    {
+        MergeLevelManager.ResetLevel();
+        Debug.Log("🔁 Restarted level progression to Level 1.");
     }
 }

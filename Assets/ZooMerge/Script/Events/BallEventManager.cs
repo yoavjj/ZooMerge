@@ -3,10 +3,17 @@ using System;
 
 public static class BallEventManager
 {
+    public enum GameOverReason
+    {
+        Unknown,
+        Won,
+        Lost
+    }
+
     private static int lastScore = 0; // 🔸 Cache the last score
 
     public static Action<BallInfo> OnBallMerged;
-    public static Action<BallInfo> OnGameOver;
+    public static event Action<BallInfo, GameOverReason> OnGameOver;
     public static Action OnGameOverAnimation;
     public static Action<GameObject> OnEnemyHit;
     public static event Action OnSessionStarted;
@@ -35,9 +42,9 @@ public static class BallEventManager
         OnEnemyHitWithScore?.Invoke(lastScore); // 🔸 Use cached score
     }
 
-    public static void RaiseGameOver(BallInfo info)
+    public static void RaiseGameOver(BallInfo info, GameOverReason reason)
     {
-        OnGameOver?.Invoke(info);
+        OnGameOver?.Invoke(info, reason);
         OnGameOverAnimation?.Invoke();
     }
 

@@ -9,7 +9,6 @@ public class MergeCore
     private readonly IBallFactory factory;
     public MergeCore(IBallFactory factory) => this.factory = factory;
 
-    // Midpoint helper
     public bool TryMerge(BallInfo a, BallInfo b)
     {
         if (!CanMerge(a, b)) return false;
@@ -18,7 +17,6 @@ public class MergeCore
         return TryMergeAt(a, b, new Vector3(mid.x, mid.y, mid.z));
     }
 
-    // Explicit spawn position (e.g., collision contact)
     public bool TryMergeAt(BallInfo a, BallInfo b, Vector3 spawnPos)
     {
         if (!CanMerge(a, b)) return false;
@@ -48,21 +46,20 @@ public class MergeCore
                 BallEventManager.RaiseBallMerged(ballInfo);
             }
 
+            // ✅ Score based on current level config
+            var currentLevel = MergeLevelManager.GetCurrentLevel();
             int mergedLevel = a.Level;
-            int score = FirebaseInitializer.MergeScoreData?.scores?.Find(s => s.level == mergedLevel)?.score
+            int score = currentLevel.scores?.Find(s => s.level == mergedLevel)?.score
                         ?? FirebaseInitializer.BaseMergeScore;
 
-            // Raise score event
             BallEventManager.RaiseMergeScore(spawnPos, score);
-
-            //Trigger merge particle effect
             ParticleEvents.Request("merge", spawnPos);
+
+            Debug.Log($"💥 Merged balls at level {mergedLevel} → {score} points (Level {currentLevel.level})");
         }
 
         return true;
     }
-
-    // --- Helpers ---
 
     private static bool CanMerge(BallInfo a, BallInfo b)
     {
@@ -70,13 +67,13 @@ public class MergeCore
         if (!a.IsMergeReady || !b.IsMergeReady) return false;
         if (a.IsMerging || b.IsMerging) return false;
         if (a.Level != b.Level) return false;
-        if (a.Type != b.Type) return false;   // <-- type gate
+        if (a.Type != b.Type) return false;
         return true;
     }
 
     private static GameObject GetInstanceRoot(BallInfo info)
     {
         var cdc = info.GetComponentInParent<CircleDropController>(true);
-        return cdc != null ? cdc.gameObject : info.gameObject; // fallback
+        return cdc != null ? cdc.gameObject : info.gameObject;
     }
 }

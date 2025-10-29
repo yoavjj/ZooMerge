@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using static BallEventManager;
 
 public class CircleDropController : MonoBehaviour
 {
@@ -163,6 +164,7 @@ public class CircleDropController : MonoBehaviour
         {
             // ✅ Start delayed game over trigger
             gameOverTouchRoutine = StartCoroutine(WaitToTriggerGameOver());
+            if (animator != null) animator.SetBool("IsSaved", false);
         }
     }
 
@@ -174,7 +176,7 @@ public class CircleDropController : MonoBehaviour
             if (gameOverTouchRoutine != null)
             {
                 // ✅ Animator: Trigger "Saved"
-                if (animator != null) animator.SetTrigger("Saved");
+                if (animator != null) animator.SetBool("IsSaved", true);
                 StopCoroutine(gameOverTouchRoutine);
                 gameOverTouchRoutine = null;
             }
@@ -188,7 +190,7 @@ public class CircleDropController : MonoBehaviour
         if (animator != null) animator.SetTrigger("Touching");
 
         yield return new WaitForSeconds(requiredGameOverContactTime);
-        BallEventManager.RaiseGameOver(ballInfo);
+        BallEventManager.RaiseGameOver(ballInfo, GameOverReason.Lost);
         gameOverTouchRoutine = null;
     }
 
