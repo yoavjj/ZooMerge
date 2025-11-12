@@ -7,19 +7,25 @@ public class EnemyUnit : MonoBehaviour
     private void OnEnable()
     {
         BallEventManager.OnEnemyHit += HandleHit;
+        BallEventManager.OnEnemySessionEnded += HandleSessionEnd;
     }
 
     private void OnDisable()
     {
         BallEventManager.OnEnemyHit -= HandleHit;
+        BallEventManager.OnEnemySessionEnded -= HandleSessionEnd;
     }
 
     private void HandleHit(GameObject hitObject)
     {
-        // Only respond if this is the correct enemy
         if (hitObject == gameObject)
         {
             animator.SetTrigger("Hit");
         }
+    }
+
+    private void HandleSessionEnd()
+    {
+        Destroy(gameObject, 1.5f);
     }
 }

@@ -99,4 +99,9 @@ public class BallPicker : MonoBehaviour
         }
         return data.uniformScale > 0f ? data.uniformScale : 1f;
     }
+
+    internal bool TryPickRandomEntry(out BallSet.Entry entry, out object why)
+    {
+        throw new System.NotImplementedException();
+    }
 }

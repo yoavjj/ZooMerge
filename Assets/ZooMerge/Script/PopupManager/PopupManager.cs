@@ -1,4 +1,6 @@
+using System.Linq;
 using UnityEngine;
+using static BallEventManager;
 
 public class PopupManager : MonoBehaviour
 {
@@ -33,15 +35,15 @@ public class PopupManager : MonoBehaviour
 
     private void OnEnable()
     {
-        BallEventManager.OnGameOver += ShowWinPopup;
+        BallEventManager.OnGameOver += ShowEndPopup;
     }
 
     private void OnDisable()
     {
-        BallEventManager.OnGameOver -= ShowWinPopup;
+        BallEventManager.OnGameOver -= ShowEndPopup;
     }
 
-    private void ShowWinPopup(BallInfo _)
+    private void ShowEndPopup(BallInfo info, GameOverReason reason)
     {
         if (gameUIPopupInstance == null)
         {
@@ -51,9 +53,47 @@ public class PopupManager : MonoBehaviour
         var winLoseScript = gameUIPopupInstance.GetComponent<WinLosePopup>();
         if (winLoseScript != null)
         {
-            winLoseScript.SetMessage("You Won!");
+            string msg = reason switch
+            {
+                GameOverReason.Won => "You Won!",
+                GameOverReason.Lost => "Game Over",
+                _ => "Game Over"
+            };
+
+            winLoseScript.SetMessage(msg);
+            winLoseScript.SetLevelMessage(MergeLevelManager.CurrentLevelNumber, reason);
+
+            // Show continue if not first enemy
+            if (reason == GameOverReason.Lost && MergeLevelManager.CurrentEnemyIndex > 0)
+            {
+                winLoseScript.ShowContinueOption();
+            }
+        }
+
+        if (reason == GameOverReason.Won)
+        {
+            MergeLevelManager.AdvanceLevel();
         }
     }
+
+
+    public void ShowEnemyDefeatedMessage()
+    {
+        if (gameUIPopupInstance == null)
+        {
+            gameUIPopupInstance = Instantiate(winLosePopupPrefab, transform);
+        }
+
+        var winLoseScript = gameUIPopupInstance.GetComponent<WinLosePopup>();
+        if (winLoseScript != null)
+        {
+            winLoseScript.SetMessage("Enemy Defeated!");
+            winLoseScript.SetLevelMessage(MergeLevelManager.CurrentLevelNumber, GameOverReason.Won); // still in same level
+            winLoseScript.SetTemporaryMessage();
+        }
+    }
+
+
 
     public void ShowMainMenu()
     {
@@ -64,10 +104,29 @@ public class PopupManager : MonoBehaviour
         }
     }
 
-    public void OnPlayButtonPressed()
+    public void OnPlayButtonPressed(bool newLevel)
     {
-        if (mainMenuPopupInstance != null) mainMenuPopupInstance.SetActive(false);
+        if (mainMenuPopupInstance != null)
+            mainMenuPopupInstance.SetActive(false);
+
         ballSpawner?.BeginSession();
+
+        BallEventManager.RaiseSessionStarted();
+
+        int nextEnemyId = MergeLevelManager.GetCurrentEnemyId();
+        EnemySpawner.Instance?.ClearEnemy();
+        EnemySpawner.Instance?.SpawnEnemy(nextEnemyId);
+
+        if (!newLevel)
+        {
+            BallEventManager.RaiseEnemyAdvanced();
+        }
+
+
+        // ✅ Save state immediately after new session starts
+        BallStateSaver.Instance.SaveState(BallRegistry.ActiveBalls.ToArray());
+
+        BallEventManager.ResetMidLevelLossFlag();
     }
 }
 

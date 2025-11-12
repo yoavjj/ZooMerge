@@ -31,13 +31,30 @@ public class BallSet : ScriptableObject
         [Min(0.01f)] public float uniformScale = 1f;
     }
 
-    public List<Entry> entries = new List<Entry>();
-    public List<BallPhysicsData> physicsData = new List<BallPhysicsData>();
-
     /// Find physics strictly by level.
     public BallPhysicsData GetPhysicsFor(Entry entry)
     {
         return physicsData.Find(p => p != null && p.id == entry.level);
+    }
+
+
+    [Serializable]
+    public class EnemyEntry
+    {
+        public string id;
+        public AssetReferenceGameObject prefab;
+    }
+
+    public List<Entry> entries = new List<Entry>();
+    public List<BallPhysicsData> physicsData = new List<BallPhysicsData>();
+
+    [Header("Enemy Prefabs")]
+    public List<EnemyEntry> enemyPrefabs = new List<EnemyEntry>();
+
+    public AssetReferenceGameObject GetEnemyPrefabById(string id)
+    {
+        var entry = enemyPrefabs.Find(e => e != null && e.id == id);
+        return entry != null ? entry.prefab : null;
     }
 
 #if UNITY_EDITOR

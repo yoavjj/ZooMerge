@@ -8,6 +8,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 957511897588081554, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.0091665
+      objectReference: {fileID: 0}
+    - target: {fileID: 957511897588081554, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.0114751
+      objectReference: {fileID: 0}
+    - target: {fileID: 957511897588081554, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.0320605
+      objectReference: {fileID: 0}
+    - target: {fileID: 957511897588081554, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.0047
+      objectReference: {fileID: 0}
+    - target: {fileID: 957511897588081554, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.0268
+      objectReference: {fileID: 0}
     - target: {fileID: 1463995847669925942, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -101,6 +121,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4351655037974250520, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
+      propertyPath: rb
+      value: 
+      objectReference: {fileID: 2789727587737313856}
+    - target: {fileID: 4351655037974250520, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
       propertyPath: type
       value: 1
       objectReference: {fileID: 0}
@@ -108,6 +132,14 @@ PrefabInstance:
       propertyPath: level
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5766066479801581237, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
+      propertyPath: rb
+      value: 
+      objectReference: {fileID: 2789727587737313856}
+    - target: {fileID: 5766066479801581237, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
+      propertyPath: circle
+      value: 
+      objectReference: {fileID: 4518954253836093133}
     - target: {fileID: 5766066479801581237, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
       propertyPath: finalLinearDamping
       value: 2.5
@@ -125,3 +157,13 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
+--- !u!50 &2789727587737313856 stripped
+Rigidbody2D:
+  m_CorrespondingSourceObject: {fileID: 3982583607919010416, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
+  m_PrefabInstance: {fileID: 1293624654857945136}
+  m_PrefabAsset: {fileID: 0}
+--- !u!58 &4518954253836093133 stripped
+CircleCollider2D:
+  m_CorrespondingSourceObject: {fileID: 3406247674932545277, guid: e3fde41b5a80d4dcf948490f82266200, type: 3}
+  m_PrefabInstance: {fileID: 1293624654857945136}
+  m_PrefabAsset: {fileID: 0}

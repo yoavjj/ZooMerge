@@ -57,7 +57,7 @@ public class BallFactoryAddressables : MonoBehaviour, IBallFactory
         if (Instance == this) Instance = null;
     }
 
-    public GameObject SpawnLevel(BallType type, int level, Vector3 position, Transform parentOverride = null)
+    public BallInfo SpawnLevel(BallType type, int level, Vector3 position, Transform parentOverride = null)
     {
         if (!map.TryGetValue(type, out var levels) || !levels.TryGetValue(level, out var entry))
         {
@@ -65,10 +65,10 @@ public class BallFactoryAddressables : MonoBehaviour, IBallFactory
             return null;
         }
 
-        return SpawnEntry(entry, position, parentOverride); // ✅ use the new overload
+        return SpawnEntry(entry, position, parentOverride);
     }
 
-    public GameObject SpawnEntry(BallSet.Entry entry, Vector3 position, Transform parentOverride = null)
+    public BallInfo SpawnEntry(BallSet.Entry entry, Vector3 position, Transform parentOverride = null)
     {
         if (entry == null || entry.prefab == null)
         {
@@ -77,31 +77,59 @@ public class BallFactoryAddressables : MonoBehaviour, IBallFactory
         }
 
         var go = instantiator.SpawnAssetAt(entry.prefab, position, parentOverride);
-
-        if (go != null)
+        if (go == null)
         {
-            if (parentOverride == null && droppedContainer != null)
-                go.transform.SetParent(droppedContainer, worldPositionStays: true);
-
-            var info = go.GetComponentInChildren<BallInfo>(true);
-            if (info != null)
-            {
-                var physics = ballSet.GetPhysicsFor(entry); // <-- now by level only
-                if (physics != null)
-                    info.Setup(entry.level, entry.type,
-                               physics.finalLinearDamping, physics.finalAngularDamping,
-                               physics.gravityStart, physics.gravityEnd,
-                               physics.uniformScale);
-                else
-                    Debug.LogError($"[BallFactory] No physics data found for level '{entry.level}'");
-            }
+            Debug.LogError("[BallFactory] Failed to spawn prefab.");
+            return null;
         }
 
-        return go;
+        // ✅ Parent correction
+        if (parentOverride == null && droppedContainer != null)
+            go.transform.SetParent(droppedContainer, worldPositionStays: true);
+
+        // ✅ BallInfo is on the root (best practice)
+        var info = go.GetComponent<BallInfo>();
+        if (info == null)
+        {
+            Debug.LogWarning($"[BallFactory] Spawned prefab '{go.name}' missing BallInfo!");
+            return null;
+        }
+
+        // ✅ Setup physics
+        var physics = ballSet.GetPhysicsFor(entry);
+        if (physics != null)
+        {
+            info.Setup(entry.level, entry.type,
+                       physics.finalLinearDamping, physics.finalAngularDamping,
+                       physics.gravityStart, physics.gravityEnd,
+                       physics.uniformScale);
+        }
+        else
+        {
+            Debug.LogError($"[BallFactory] No physics data found for level '{entry.level}'");
+        }
+
+        return info;
     }
 
     public void Despawn(GameObject go)
     {
         if (go != null) Destroy(go);
+    }
+
+    internal object SpawnEntry(BallSet.Entry queuedEntry, object pos, Transform previewContainer)
+    {
+        throw new NotImplementedException();
+    }
+
+    public BallSet.BallPhysicsData GetPhysicsFor(BallType type, int level)
+    {
+        if (map.TryGetValue(type, out var levels) &&
+            levels.TryGetValue(level, out var entry))
+        {
+            return ballSet.GetPhysicsFor(entry);
+        }
+
+        return null;
     }
 }

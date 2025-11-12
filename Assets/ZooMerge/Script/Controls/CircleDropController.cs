@@ -1,11 +1,16 @@
 using System.Collections;
 using UnityEngine;
+using static BallEventManager;
 
 public class CircleDropController : MonoBehaviour
 {
     [Header("Core")]
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private float settleDuration = 3f; // seconds to fully settle
+    [SerializeField] private Transform motionTarget;
+
+    [SerializeField] private GameObject reflectionGO;
+    [SerializeField] private float reflectionActivateDelay = 1.5f;
 
     [SerializeField] private float gameOverDelay = 1.5f;
     private bool gameOverCheckEnabled = false;
@@ -56,7 +61,7 @@ public class CircleDropController : MonoBehaviour
     // ---- Lifecycle ----
     private void Awake()
     {
-        if (rb == null) rb = GetComponentInChildren<Rigidbody2D>(true);
+        if (rb == null && motionTarget != null) rb = motionTarget.GetComponentInChildren<Rigidbody2D>(true);
         if (animator == null) animator = GetComponentInChildren<Animator>(true);
         if (circle == null) circle = GetComponentInChildren<CircleCollider2D>(true);
         if (circle != null)
@@ -106,6 +111,9 @@ public class CircleDropController : MonoBehaviour
 
     public void PrepareForDrag()
     {
+        if (reflectionGO != null)
+            reflectionGO.SetActive(false);
+
         isDragging = true;
         if (rb != null)
         {
@@ -120,10 +128,36 @@ public class CircleDropController : MonoBehaviour
     {
         if (!isDragging) return;
         isDragging = false;
+
+        // ✅ Register the ball to BallRegistry when it goes live
+        if (ballInfo != null)
+            BallRegistry.Register(ballInfo);
+
         animator.SetTrigger("Dropped");
         rb.bodyType = RigidbodyType2D.Dynamic;
 
+        if (reflectionGO != null)
+            StartCoroutine(ActivateReflectionAfterDelay(reflectionActivateDelay));
+
         StartCoroutine(EnableGameOverCheckAfterDelay());
+    }
+
+    public void SetDraggable(bool value)
+    {
+        isDragging = value;
+
+        if (rb != null)
+        {
+            rb.bodyType = value ? RigidbodyType2D.Kinematic : RigidbodyType2D.Dynamic;
+            rb.useFullKinematicContacts = value;
+        }
+
+        if (!value)
+        {
+            rb.WakeUp(); // wake up physics system if going live
+        }
+
+        Debug.Log($"🎮 SetDraggable({value}) called on {name}");
     }
 
     // ---- Collisions ----
@@ -163,6 +197,7 @@ public class CircleDropController : MonoBehaviour
         {
             // ✅ Start delayed game over trigger
             gameOverTouchRoutine = StartCoroutine(WaitToTriggerGameOver());
+            if (animator != null) animator.SetBool("IsSaved", false);
         }
     }
 
@@ -174,7 +209,7 @@ public class CircleDropController : MonoBehaviour
             if (gameOverTouchRoutine != null)
             {
                 // ✅ Animator: Trigger "Saved"
-                if (animator != null) animator.SetTrigger("Saved");
+                if (animator != null) animator.SetBool("IsSaved", true);
                 StopCoroutine(gameOverTouchRoutine);
                 gameOverTouchRoutine = null;
             }
@@ -188,7 +223,7 @@ public class CircleDropController : MonoBehaviour
         if (animator != null) animator.SetTrigger("Touching");
 
         yield return new WaitForSeconds(requiredGameOverContactTime);
-        BallEventManager.RaiseGameOver(ballInfo);
+        BallEventManager.RaiseGameOver(ballInfo, GameOverReason.Lost);
         gameOverTouchRoutine = null;
     }
 
@@ -243,6 +278,13 @@ public class CircleDropController : MonoBehaviour
         settleRoutine = null;
     }
 
+    private IEnumerator ActivateReflectionAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (reflectionGO != null)
+            reflectionGO.SetActive(true);
+    }
+
     public void AccelerateSettle(float multiplier)
     {
         if (isSettling)
@@ -287,7 +329,21 @@ public class CircleDropController : MonoBehaviour
     public void PlayIntroMerged()
     {
         introIsMerged = true;
+
+        if (reflectionGO != null)
+            reflectionGO.SetActive(true);
+
         if (animator != null) animator.SetTrigger("Merged");
+    }
+
+    public void PlayIntroNewMidLevel()
+    {
+        if (reflectionGO != null)
+            reflectionGO.SetActive(true);
+
+        introIsMerged = false;
+        if (animator != null) animator.SetTrigger("New");
+        animator.SetTrigger("MidLevel");
     }
 
     public void IntroPrep()

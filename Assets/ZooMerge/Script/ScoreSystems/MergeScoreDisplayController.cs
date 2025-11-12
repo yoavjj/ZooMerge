@@ -6,9 +6,11 @@ public class MergeScoreDisplayController : MonoBehaviour
 {
     [Header("Refs")]
     [SerializeField] private Transform poolContainer;
-    [SerializeField] private ScorePopupInstance popupPrefab;
     [SerializeField] private Camera mainCamera;
     [SerializeField] private Transform targetPoint;
+
+    [Header("Popup Prefabs By Level")]
+    [SerializeField] private List<ScorePopupInstance> scorePrefabsByLevel = new();
 
     [Header("Movement Settings")]
     [SerializeField] private float moveDuration = 0.6f;
@@ -32,11 +34,10 @@ public class MergeScoreDisplayController : MonoBehaviour
         BallEventManager.OnMergeScore -= ShowScoreAtPosition;
     }
 
-    private void ShowScoreAtPosition(Vector3 worldPos, int score)
+    private void ShowScoreAtPosition(Vector3 worldPos, int score, int level)
     {
-        var popup = GetOrCreatePopup();
+        var popup = GetOrCreatePopup(level);
 
-        // 🟢 Set the score text!
         popup.Text.text = $"+{score}";
 
         popup.Init(
@@ -49,21 +50,30 @@ public class MergeScoreDisplayController : MonoBehaviour
             onComplete: ReturnToPool,
             xRange: controlPointXRange,
             yMin: controlPointYMin,
-            yMax: controlPointYMax
+            yMax: controlPointYMax,
+            score: score
         );
     }
 
-    private ScorePopupInstance GetOrCreatePopup()
+    private ScorePopupInstance GetOrCreatePopup(int level)
     {
-        if (pool.Count > 0)
+        int index = Mathf.Clamp(level - 1, 0, scorePrefabsByLevel.Count - 1);
+        var selectedPrefab = scorePrefabsByLevel[index];
+
+        // Check pool for available instance of this prefab
+        foreach (var popup in pool)
         {
-            var popup = pool.Dequeue();
-            popup.gameObject.SetActive(true);
-            return popup;
+            if (popup.name.Contains(selectedPrefab.name))
+            {
+                pool = new Queue<ScorePopupInstance>(pool); // remove from pool safely
+                popup.gameObject.SetActive(true);
+                return popup;
+            }
         }
 
+        // Instantiate new one if not found
         var parent = poolContainer != null ? poolContainer : transform;
-        return Instantiate(popupPrefab, parent);
+        return Instantiate(selectedPrefab, parent);
     }
 
     private void ReturnToPool(ScorePopupInstance popup)

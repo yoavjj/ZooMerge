@@ -7,14 +7,29 @@ using Firebase.RemoteConfig;
 using UnityEngine;
 using Newtonsoft.Json;
 
-[System.Serializable]
-public class MergeScoreList
+[Serializable]
+public class MergeLevelData
 {
-    public int enemy_health = 100;
-    public List<MergeScoreEntry> scores = new();
+    public List<MergeLevel> levels = new();
 }
 
-[System.Serializable]
+[Serializable]
+public class MergeLevel
+{
+    public int level;
+    public List<EnemyData> enemy_data;
+    public List<MergeScoreEntry> scores;
+    internal object enemies;
+}
+
+[Serializable]
+public class EnemyData
+{
+    public int id;
+    public int health;
+}
+
+[Serializable]
 public class MergeScoreEntry
 {
     public int level;
@@ -32,11 +47,8 @@ public static class FirebaseInitializer
     public static int BaseMergeScore { get; private set; } = 2;
     public static float ScoreMultiplier { get; private set; } = 1.0f;
 
-    public static MergeScoreList MergeScoreData { get; private set; } = new();
+    public static MergeLevelData MergeScoreData { get; private set; } = new();
 
-    /// <summary>
-    /// Ensures Firebase and Remote Config are initialized. Queues callbacks until ready.
-    /// </summary>
     public static void WaitForFirebase(Action onReady, Action<string> onError = null)
     {
         if (IsReady)
@@ -80,15 +92,14 @@ public static class FirebaseInitializer
     private static async Task InitializeRemoteConfig()
     {
         var defaults = new Dictionary<string, object>
-{
-    { "base_merge_score", 2 },
-    { "score_multiplier", 1.0f },
-    { "merge_scores", "{\"enemy_health\":51,\"scores\":[]}" }  // Default JSON fallback
-};
+        {
+            { "base_merge_score", 2 },
+            { "score_multiplier", 1.0f },
+            { "merge_scores", "{\"levels\":[]}" } // Updated default JSON
+        };
 
         await FirebaseRemoteConfig.DefaultInstance.SetDefaultsAsync(defaults);
 
-        // Fetch and activate
         try
         {
             await FirebaseRemoteConfig.DefaultInstance.FetchAsync(TimeSpan.Zero);
@@ -99,22 +110,21 @@ public static class FirebaseInitializer
             Debug.LogWarning($"⚠️ Remote Config fetch failed: {e.Message}");
         }
 
-        // Read simple values
         BaseMergeScore = (int)FirebaseRemoteConfig.DefaultInstance.GetValue("base_merge_score").LongValue;
         ScoreMultiplier = (float)FirebaseRemoteConfig.DefaultInstance.GetValue("score_multiplier").DoubleValue;
 
-        // Parse merge score list from JSON
-        string json = FirebaseRemoteConfig.DefaultInstance.GetValue("merge_scores").StringValue;
+        string json = FirebaseRemoteConfig.DefaultInstance.GetValue("merge_levels").StringValue;
         try
         {
-            MergeScoreData = JsonConvert.DeserializeObject<MergeScoreList>(json);
-            Debug.Log($"✅ Loaded {MergeScoreData?.scores?.Count ?? 0} merge scores.");
-            Debug.Log($"❤️ Enemy health loaded from JSON: {MergeScoreData.enemy_health}");
+            MergeScoreData = JsonConvert.DeserializeObject<MergeLevelData>(json);
+            MergeLevelManager.Initialize(MergeScoreData);
+
+            Debug.Log($"✅ Loaded {MergeScoreData?.levels?.Count ?? 0} levels.");
         }
         catch (Exception e)
         {
             Debug.LogWarning($"⚠️ Failed to parse merge_scores JSON: {e.Message}");
-            MergeScoreData = new MergeScoreList(); // fallback
+            MergeScoreData = new MergeLevelData(); // fallback
         }
     }
 
@@ -134,10 +144,11 @@ public static class FirebaseInitializer
             await FirebaseRemoteConfig.DefaultInstance.FetchAsync(TimeSpan.Zero);
             await FirebaseRemoteConfig.DefaultInstance.ActivateAsync();
 
-            // Re-parse JSON
             string json = FirebaseRemoteConfig.DefaultInstance.GetValue("merge_scores").StringValue;
-            MergeScoreData = JsonConvert.DeserializeObject<MergeScoreList>(json);
-            Debug.Log($"🔁 Refreshed: {MergeScoreData?.scores?.Count ?? 0} merge scores.");
+            MergeScoreData = JsonConvert.DeserializeObject<MergeLevelData>(json);
+            MergeLevelManager.Initialize(MergeScoreData);
+
+            Debug.Log($"🔁 Refreshed: {MergeScoreData?.levels?.Count ?? 0} levels.");
 
             onComplete?.Invoke();
         }

@@ -51,6 +51,7 @@
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_TextEventHandler.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/BallInfo.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/EnvMapAnimator.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Controls/ShipRayMarker.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_TextSelector_A.cs" />
     <Compile Include="Assets/ZooMerge/Script/Events/ParticleEvents.cs" />
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/HealthTween.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexJitter.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_UiFrameRateCounter.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexZoom.cs" />
+    <Compile Include="Assets/ZooMerge/Script/MergeLevelData/MergeLevelManager.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_TextSelector_B.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/MergeCore.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/SkewTextExample.cs" />
@@ -84,6 +86,7 @@
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/Benchmark04.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/ChatController.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/MergeCounterItem.cs" />
+    <Compile Include="Assets/ZooMerge/Script/MergeCore/MergeAttemptTracker.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_DigitValidator.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_FrameRateCounter.cs" />
     <Compile Include="Assets/ZooMerge/Script/SessionManager/SessionManager.cs" />
@@ -94,12 +97,15 @@
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/CameraController.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/Benchmark03.cs" />
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/GameHealthManager.cs" />
+    <Compile Include="Assets/JMO Assets/Cartoon FX Remaster/CFXR Assets/Shaders/BeamController.cs" />
     <Compile Include="Assets/ZooMerge/Script/FirebaseScript/FirebaseInitializer.cs" />
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/ScreenMover.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/BallCollisionMerge.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/DropdownSample.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexColorCycler.cs" />
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/ScorePopupInstance.cs" />
+    <Compile Include="Assets/ZooMerge/Script/BallScript/EnemySpawner.cs" />
+    <Compile Include="Assets/ZooMerge/Script/MergeLevelData/MergeLevelData.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/ObjectSpin.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_PhoneNumberValidator.cs" />
     <Compile Include="Assets/ZooMerge/Script/Events/BallEventManager.cs" />
@@ -109,11 +115,13 @@
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallPicker.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TextMeshProFloatingText.cs" />
     <Compile Include="Assets/JMO Assets/Cartoon FX Remaster/CFXR Assets/Scripts/CFXR_Effect.cs" />
+    <Compile Include="Assets/ZooMerge/Script/BallScript/BallStateSaver.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/SceneLineMarker.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/ReleaseOnDestroy.cs" />
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/MergeScoreDisplayController.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/MergeSessionTracker.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallSpawner.cs" />
+    <Compile Include="Assets/ZooMerge/Script/BallScript/BallSnapshot.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets/TextMesh Pro/Shaders/TMPro.cginc" />
@@ -127,6 +135,7 @@
     <None Include="Assets/TextMesh Pro/Examples &amp; Extras/Fonts/Oswald-Bold - OFL.txt" />
     <None Include="Assets/TextMesh Pro/Examples &amp; Extras/Fonts/Roboto-Bold - AFL.txt" />
     <None Include="Assets/Firebase/Plugins/Firebase.App.dll" />
+    <None Include="Assets/JMO Assets/Cartoon FX Remaster/CFXR Assets/Shaders/BeamRevealShader.shader" />
     <None Include="Assets/TextMesh Pro/Examples &amp; Extras/Fonts/Anton OFL.txt" />
     <None Include="Assets/TextMesh Pro/Shaders/TMPro_Mobile.cginc" />
     <None Include="Assets/JMO Assets/Cartoon FX Remaster/CFXR Assets/Shaders/CFXR_PASSES.cginc" />

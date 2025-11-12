@@ -17,10 +17,9 @@ MonoBehaviour:
     prefab:
       m_AssetGUID: e3fde41b5a80d4dcf948490f82266200
       m_SubObjectName: 
-      m_SubObjectGUID: 
       m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    weight: 1
     level: 1
     includeInRandom: 1
     type: 0
@@ -28,10 +27,9 @@ MonoBehaviour:
     prefab:
       m_AssetGUID: 4710a4c1b173d439e8dc392261a6d9e2
       m_SubObjectName: 
-      m_SubObjectGUID: 
       m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    weight: 1
     level: 2
     includeInRandom: 1
     type: 0
@@ -39,10 +37,9 @@ MonoBehaviour:
     prefab:
       m_AssetGUID: 6b8118eea4dda46509f6c7683472046b
       m_SubObjectName: 
-      m_SubObjectGUID: 
       m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    weight: 1
     level: 3
     includeInRandom: 0
     type: 0
@@ -50,10 +47,9 @@ MonoBehaviour:
     prefab:
       m_AssetGUID: edb7a070b6771467cb127d67381a6a9f
       m_SubObjectName: 
-      m_SubObjectGUID: 
       m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    weight: 1
     level: 4
     includeInRandom: 0
     type: 0
@@ -61,10 +57,9 @@ MonoBehaviour:
     prefab:
       m_AssetGUID: 58f9a1025171c4297a7fa6b5bc586187
       m_SubObjectName: 
-      m_SubObjectGUID: 
       m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    weight: 1
     level: 1
     includeInRandom: 1
     type: 1
@@ -72,10 +67,9 @@ MonoBehaviour:
     prefab:
       m_AssetGUID: caa483cf559084f129499b756be920e1
       m_SubObjectName: 
-      m_SubObjectGUID: 
       m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    weight: 1
     level: 2
     includeInRandom: 1
     type: 1
@@ -83,10 +77,9 @@ MonoBehaviour:
     prefab:
       m_AssetGUID: 5747853a92a8745b1a5d894af33480c2
       m_SubObjectName: 
-      m_SubObjectGUID: 
       m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    weight: 1
     level: 3
     includeInRandom: 0
     type: 1
@@ -94,10 +87,9 @@ MonoBehaviour:
     prefab:
       m_AssetGUID: d7c5be608ac794220821cc86a5eed6d7
       m_SubObjectName: 
-      m_SubObjectGUID: 
       m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    weight: 1
     level: 4
     includeInRandom: 0
     type: 1
@@ -105,10 +97,9 @@ MonoBehaviour:
     prefab:
       m_AssetGUID: 3e3041739ef97471dba19b2d73b0a6cb
       m_SubObjectName: 
-      m_SubObjectGUID: 
       m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    weight: 1
     level: 1
     includeInRandom: 1
     type: 2
@@ -116,10 +107,9 @@ MonoBehaviour:
     prefab:
       m_AssetGUID: d0bf4580cb9294923b895601179052a7
       m_SubObjectName: 
-      m_SubObjectGUID: 
       m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    weight: 1
     level: 2
     includeInRandom: 1
     type: 2
@@ -127,10 +117,9 @@ MonoBehaviour:
     prefab:
       m_AssetGUID: d9d7332e26a564edf9bd7e23c0134a50
       m_SubObjectName: 
-      m_SubObjectGUID: 
       m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    weight: 1
     level: 3
     includeInRandom: 0
     type: 2
@@ -138,10 +127,9 @@ MonoBehaviour:
     prefab:
       m_AssetGUID: 7bfb102c440bc4adf949389829e5e7e1
       m_SubObjectName: 
-      m_SubObjectGUID: 
       m_SubObjectType: 
+      m_SubObjectGUID: 
       m_EditorAssetChanged: 0
-    weight: 1
     level: 4
     includeInRandom: 0
     type: 2
@@ -149,24 +137,53 @@ MonoBehaviour:
   - id: 1
     finalLinearDamping: 2.5
     finalAngularDamping: 2.5
-    gravityStart: 0.45
-    gravityEnd: 0.55
+    gravityStart: 0.55
+    gravityEnd: 0.65
     uniformScale: 0.45
   - id: 2
     finalLinearDamping: 3.5
     finalAngularDamping: 3.5
-    gravityStart: 0.45
-    gravityEnd: 0.65
+    gravityStart: 0.55
+    gravityEnd: 0.75
     uniformScale: 0.65
   - id: 3
     finalLinearDamping: 4.5
     finalAngularDamping: 4.5
-    gravityStart: 0.45
-    gravityEnd: 0.75
+    gravityStart: 0.55
+    gravityEnd: 0.85
     uniformScale: 0.75
   - id: 4
     finalLinearDamping: 5.5
     finalAngularDamping: 5.5
-    gravityStart: 0.45
-    gravityEnd: 0.8
+    gravityStart: 0.55
+    gravityEnd: 0.9
     uniformScale: 1.05
+  enemyPrefabs:
+  - id: 1
+    prefab:
+      m_AssetGUID: 589049d92b7c6400e91d181315c647c4
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+  - id: 2
+    prefab:
+      m_AssetGUID: d3e68c0a2db504950a55e51ecf6bdda2
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 1
+  - id: 3
+    prefab:
+      m_AssetGUID: 766dcfcff9cc7451a96bf987e23164f4
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 1
+  - id: 4
+    prefab:
+      m_AssetGUID: a98da6d7dbbec48dfaebeb0257ac5a92
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 1
