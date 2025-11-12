@@ -20,9 +20,15 @@ public class MainMenuUI : MonoBehaviour
 
     private void OnPlayPressed()
     {
-        BallEventManager.RaiseSessionStarted();
-        PopupManager.Instance?.OnPlayButtonPressed();
-        BallEventManager.RaiseResetCounters();
+        // Inform progression system
+        MergeLevelManager.SetLevel(MergeLevelManager.CurrentLevelNumber);
+
+        // Determine if we are starting from the beginning of the level
+        bool isNewLevel = MergeLevelManager.CurrentEnemyIndex == 0;
+
+        // Pass this state to the popup
+        PopupManager.Instance?.OnPlayButtonPressed(isNewLevel);
+
         Destroy(gameObject);
     }
 }

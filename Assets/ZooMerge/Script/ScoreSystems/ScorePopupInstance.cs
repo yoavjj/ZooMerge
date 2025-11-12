@@ -23,6 +23,9 @@ public class ScorePopupInstance : MonoBehaviour
 
     private float targetZRotation;
 
+    // 🔹 Cache the score value when the popup is initialized
+    private int popupScore;
+
     public void Init(
         Vector3 screenStart,
         Camera cam,
@@ -33,11 +36,14 @@ public class ScorePopupInstance : MonoBehaviour
         System.Action<ScorePopupInstance> onComplete,
         float xRange,
         float yMin,
-        float yMax)
+        float yMax,
+        int score  // 👈 pass in the score value
+    )
     {
         this.onComplete = onComplete;
         this.cam = cam;
         this.target = target;
+        this.popupScore = score; // ✅ store score for collision event
         hasExited = false;
 
         // ✅ Reset transform rotation
@@ -104,7 +110,8 @@ public class ScorePopupInstance : MonoBehaviour
 
         hasExited = true;
 
-        BallEventManager.RaiseEnemyHit(other.gameObject);
+        // ✅ Pass the actual damage (popupScore) directly to the event
+        BallEventManager.RaiseEnemyHitWithDamage(other.gameObject, popupScore);
 
         animator.SetTrigger("Out");
         StartCoroutine(ReturnAfterDelay(1f));

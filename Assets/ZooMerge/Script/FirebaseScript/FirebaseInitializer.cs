@@ -17,8 +17,16 @@ public class MergeLevelData
 public class MergeLevel
 {
     public int level;
-    public int enemy_health;
+    public List<EnemyData> enemy_data;
     public List<MergeScoreEntry> scores;
+    internal object enemies;
+}
+
+[Serializable]
+public class EnemyData
+{
+    public int id;
+    public int health;
 }
 
 [Serializable]

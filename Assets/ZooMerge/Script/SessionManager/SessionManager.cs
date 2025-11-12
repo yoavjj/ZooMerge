@@ -55,7 +55,18 @@ public class SessionManager : MonoBehaviour
         }
 
         Debug.Log($"📘 Current Level: {level.level}");
-        Debug.Log($"❤️ Enemy Health: {level.enemy_health}");
+
+        if (level.enemy_data == null || level.enemy_data.Count == 0)
+        {
+            Debug.LogWarning("No enemies found in current level.");
+        }
+        else
+        {
+            foreach (var enemy in level.enemy_data)
+            {
+                Debug.Log($"   👾 Enemy ID: {enemy.id}, HP: {enemy.health}");
+            }
+        }
 
         if (level.scores == null || level.scores.Count == 0)
         {
@@ -76,7 +87,21 @@ public class SessionManager : MonoBehaviour
     {
         MergeLevelManager.AdvanceLevel();
         var newLevel = MergeLevelManager.GetCurrentLevel();
-        Debug.Log($"🚀 Advanced to Level {newLevel.level} (Enemy Health: {newLevel.enemy_health})");
+
+        Debug.Log($"🚀 Advanced to Level {newLevel.level}");
+
+        if (newLevel.enemy_data != null && newLevel.enemy_data.Count > 0)
+        {
+            Debug.Log("👾 Enemies in new level:");
+            foreach (var enemy in newLevel.enemy_data)
+            {
+                Debug.Log($"   ➤ Enemy ID: {enemy.id}, HP: {enemy.health}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ No enemies defined for new level.");
+        }
     }
 
     /// <summary>

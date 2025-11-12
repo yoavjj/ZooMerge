@@ -21,7 +21,6 @@ public class BallSpawner : MonoBehaviour
     {
         PrepareNextPreview();
         PromotePreviewToActive(null);
-        PrepareNextPreview();
     }
 
 
@@ -45,7 +44,8 @@ public class BallSpawner : MonoBehaviour
 
         // spawn under preview container
         var pos = previewContainer.position;
-        previewGo = BallFactoryAddressables.Instance.SpawnEntry(queuedEntry, pos, previewContainer);
+        var info = BallFactoryAddressables.Instance.SpawnEntry(queuedEntry, pos, previewContainer);
+        previewGo = info != null ? info.gameObject : null;
 
         if (previewGo != null)
         {
@@ -139,12 +139,6 @@ public class BallSpawner : MonoBehaviour
         foreach (var col in go.GetComponentsInChildren<Collider2D>(true))
             col.enabled = !on;
 
-        // Optional: Tell scripts it's in preview mode (if they support it)
-        var cdc = go.GetComponentInChildren<CircleDropController>(true);
-        if (cdc != null && cdc.ballInfo != null)
-        {
-            if (!on) BallRegistry.Register(cdc.ballInfo); // Register only once when going live
-        }
     }
 
     // ---------- legacy spawn (used as fallback) ----------
@@ -160,18 +154,19 @@ public class BallSpawner : MonoBehaviour
         var pos = spawnPoint != null ? spawnPoint.position : transform.position;
         if (overrideX.HasValue) pos.x = overrideX.Value;
 
-        GameObject go = null;
-        string why = "";
+        BallInfo info = null;
 
-        if (picker != null && picker.TryPickRandomEntry(out var entry, out why))
-            go = BallFactoryAddressables.Instance.SpawnEntry(entry, pos, CircleDragInput.Instance?.spawnContainer);
+        if (picker != null && picker.TryPickRandomEntry(out var entry, out lastPickWhy))
+            info = BallFactoryAddressables.Instance.SpawnEntry(entry, pos, CircleDragInput.Instance?.spawnContainer);
         else
-            go = BallFactoryAddressables.Instance.SpawnLevel(BallType.Bug, 0, pos, CircleDragInput.Instance?.spawnContainer);
+            info = BallFactoryAddressables.Instance.SpawnLevel(BallType.Bug, 0, pos, CircleDragInput.Instance?.spawnContainer);
+
+        GameObject go = info != null ? info.gameObject : null;
 
 #if UNITY_EDITOR
         if (go == null)
         {
-            var msg = string.IsNullOrEmpty(why) ? "Picker returned null." : why;
+            var msg = string.IsNullOrEmpty(lastPickWhy) ? "Picker returned null." : lastPickWhy;
             Debug.LogWarning($"BallSpawner: {msg} Falling back to default _ballPrefab.");
         }
 #endif

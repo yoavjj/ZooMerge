@@ -12,12 +12,13 @@ public class CircleDragInput : MonoBehaviour,
 
     [Header("Movement Target")]
     [SerializeField] public Transform spawnContainer;     // Holds the CURRENT draggable prefab while dragging
-    [SerializeField] private Transform droppedContainer;   // Where prefabs go AFTER drop (optional)
+    [SerializeField] public Transform droppedContainer;   // Where prefabs go AFTER drop (optional)
 
     [Header("Refs")]
     public BallSpawner spawner;
     public SceneLineMarker dragBounds;
     [SerializeField] private Transform exemptSpawnChild;
+    [SerializeField] ShipRayMarker shipRayMarker;
 
     [Header("Fallback Movement Limits (used if dragBounds is null)")]
     public float minX = -2.5f;
@@ -174,12 +175,23 @@ public class CircleDragInput : MonoBehaviour,
 
         if (!hasCachedBounds) CacheBounds();
         MoveActiveBallTo(eventData.position, instant: true);
+
+        // 🛸 Try casting ray from ShipRayMarker
+        if (shipRayMarker != null && shipRayMarker.TryGetBallHit(out var hit))
+        {
+            //Debug.Log($"🛸 Ray hit: {hit.name}");
+            // 👇 Add any visual cue or logic for ball highlight here if needed
+        }
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (eventData.pointerId != activePointerId) return;
-        // All logic is in OnDrag
+
+        if (shipRayMarker != null)
+        {
+            shipRayMarker.TryGetBallHit(out _);
+        }
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -199,12 +211,22 @@ public class CircleDragInput : MonoBehaviour,
         var pos = t.position;
         pos.x = Mathf.Clamp(worldPos.x, min, max);
         t.position = new Vector3(pos.x, pos.y, t.position.z);
+
+        if (shipRayMarker != null)
+        {
+            shipRayMarker.TryGetBallHit(out _);
+        }
     }
 
     // Do not drop on end drag; drop only on pointer up
     public void OnEndDrag(PointerEventData eventData)
     {
         if (eventData.pointerId != activePointerId) return;
+
+        if (shipRayMarker != null)
+        {
+            shipRayMarker.TryGetBallHit(out _);
+        }
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -218,6 +240,12 @@ public class CircleDragInput : MonoBehaviour,
         // Ignore click-through/focus glitches
         if (Time.frameCount == pointerDownFrame) return;
         if (Time.unscaledTime - pointerDownTime < minPressTimeBeforeDrop) return;
+
+        // ✨ Fade out the spotlight on release
+        if (shipRayMarker != null)
+        {
+            shipRayMarker.DisableHighlight();           // 👈 Trigger spotlight fade-out
+        }
 
         dragSmoother.Reset();
         DropAndSpawn();
@@ -235,7 +263,12 @@ public class CircleDragInput : MonoBehaviour,
         var t = GetMoveTarget();
         if (t == null) return;
 
-        var worldPos = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
+        float edgePadding = 90f; // ← adjust for more or less sensitivity
+
+        float virtualX = Mathf.InverseLerp(0, Screen.width, screenPos.x);
+        virtualX = Mathf.Lerp(-edgePadding, Screen.width + edgePadding, virtualX);
+
+        var worldPos = cam.ScreenToWorldPoint(new Vector3(virtualX, screenPos.y, 0f));
         float ballRadius = GetActiveBallWorldRadius();
         float min = hasCachedBounds ? cachedMinX + ballRadius : minX + ballRadius;
         float max = hasCachedBounds ? cachedMaxX - ballRadius : maxX - ballRadius;

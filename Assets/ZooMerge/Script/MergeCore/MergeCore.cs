@@ -11,7 +11,11 @@ public class MergeCore
 
     public bool TryMerge(BallInfo a, BallInfo b)
     {
-        if (!CanMerge(a, b)) return false;
+        if (!CanMerge(a, b, out string reason))
+        {
+            //Debug.LogWarning($"❌ Merge failed: {reason}\n→ A: {FormatBall(a)}\n→ B: {FormatBall(b)}");
+            return false;
+        }
 
         var mid = (a.transform.position + b.transform.position) * 0.5f;
         return TryMergeAt(a, b, new Vector3(mid.x, mid.y, mid.z));
@@ -19,8 +23,22 @@ public class MergeCore
 
     public bool TryMergeAt(BallInfo a, BallInfo b, Vector3 spawnPos)
     {
-        if (!CanMerge(a, b)) return false;
+        if (MergeAttemptTracker.HasAlreadyFailed(a, b))
+        {
+            return false;
+        }
 
+        if (!CanMerge(a, b, out string reason))
+        {
+            //Debug.LogWarning($"❌ Merge failed at position {spawnPos}: {reason}\n→ A: {FormatBall(a)}\n→ B: {FormatBall(b)}");
+
+            // 🔴 Record this failure to avoid retrying
+            MergeAttemptTracker.MarkFailed(a, b);
+            return false;
+        }
+
+        // ✅ Clear past failures for these balls since merge is succeeding
+        // No need to track anymore
         a.BeginMerge();
         b.BeginMerge();
 
@@ -37,37 +55,70 @@ public class MergeCore
 
         if (merged != null)
         {
-            var cdc = merged.GetComponentInChildren<CircleDropController>(true);
-            if (cdc != null) cdc.PlayIntroMerged();
+            // ✅ Play intro animation
+            merged.Controller?.PlayIntroMerged();
 
-            var ballInfo = merged.GetComponentInChildren<BallInfo>(true);
-            if (ballInfo != null)
-            {
-                BallEventManager.RaiseBallMerged(ballInfo);
-            }
+            // ✅ Raise event
+            BallEventManager.RaiseBallMerged(merged);
 
-            // ✅ Score based on current level config
+            // ✅ Register with registry
+            BallRegistry.Register(merged);
+
+            // ✅ Scoring logic
             var currentLevel = MergeLevelManager.GetCurrentLevel();
             int mergedLevel = a.Level;
             int score = currentLevel.scores?.Find(s => s.level == mergedLevel)?.score
                         ?? FirebaseInitializer.BaseMergeScore;
 
-            BallEventManager.RaiseMergeScore(spawnPos, score);
+            BallEventManager.RaiseMergeScore(spawnPos, score, level: mergedLevel);
             ParticleEvents.Request("merge", spawnPos);
 
-            Debug.Log($"💥 Merged balls at level {mergedLevel} → {score} points (Level {currentLevel.level})");
+            //Debug.Log($"✅ Merged level {a.Level} '{a.Type}' → level {nextLevel} at {spawnPos} → +{score} points");
         }
 
         return true;
     }
 
-    private static bool CanMerge(BallInfo a, BallInfo b)
+    private static bool CanMerge(BallInfo a, BallInfo b, out string reason)
     {
-        if (a == null || b == null || a == b) return false;
-        if (!a.IsMergeReady || !b.IsMergeReady) return false;
-        if (a.IsMerging || b.IsMerging) return false;
-        if (a.Level != b.Level) return false;
-        if (a.Type != b.Type) return false;
+        reason = "";
+
+        if (a == null || b == null)
+        {
+            reason = "One or both balls are null";
+            return false;
+        }
+
+        if (a == b)
+        {
+            reason = "Attempting to merge a ball with itself";
+            return false;
+        }
+
+        if (a.IsMerging || b.IsMerging)
+        {
+            reason = "One or both balls are already merging";
+            return false;
+        }
+
+        if (!a.IsMergeReady || !b.IsMergeReady)
+        {
+            reason = "One or both balls are not merge-ready";
+            return false;
+        }
+
+        if (a.Level != b.Level)
+        {
+            reason = $"Levels don't match (A: {a.Level}, B: {b.Level})";
+            return false;
+        }
+
+        if (a.Type != b.Type)
+        {
+            reason = $"Types don't match (A: {a.Type}, B: {b.Type})";
+            return false;
+        }
+
         return true;
     }
 
@@ -75,5 +126,12 @@ public class MergeCore
     {
         var cdc = info.GetComponentInParent<CircleDropController>(true);
         return cdc != null ? cdc.gameObject : info.gameObject;
+    }
+
+    private static string FormatBall(BallInfo b)
+    {
+        if (b == null) return "null";
+
+        return $"[{b.Type} | Lvl {b.Level} | Pos {b.transform.position} | Merging: {b.IsMerging} | Ready: {b.IsMergeReady}]";
     }
 }
