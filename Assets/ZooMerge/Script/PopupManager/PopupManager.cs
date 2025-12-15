@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 using static BallEventManager;
@@ -9,10 +10,18 @@ public class PopupManager : MonoBehaviour
     [Header("Refs")]
     [SerializeField] private GameObject mainMenuPopupPrefab;
     [SerializeField] private GameObject winLosePopupPrefab;
+    [SerializeField] private GameObject pauseRestartPopupPrefab;
     [SerializeField] private BallSpawner ballSpawner;
 
+    [Header("Timing")]
+    [SerializeField, Min(0f)] private float winLosePopupDelay = 0.5f;
+
+    private Coroutine winLosePopupRoutine;
+
+    private GameObject pauseRestartPopupInstance;
     private GameObject mainMenuPopupInstance;
     private GameObject gameUIPopupInstance;
+    private WinLosePopup winLosePopupScript;
 
     private void Awake()
     {
@@ -41,59 +50,52 @@ public class PopupManager : MonoBehaviour
     private void OnDisable()
     {
         BallEventManager.OnGameOver -= ShowEndPopup;
+        if (winLosePopupRoutine != null) { StopCoroutine(winLosePopupRoutine); winLosePopupRoutine = null; }
+    }
+
+    public void ShowPauseRestartPopup()
+    {
+        if (pauseRestartPopupInstance == null)
+        {
+            pauseRestartPopupInstance = Instantiate(pauseRestartPopupPrefab, transform);
+        }
+
+        pauseRestartPopupInstance.SetActive(true);
+    }
+
+    public void ClearPausePopupReference()
+    {
+        pauseRestartPopupInstance = null;
     }
 
     private void ShowEndPopup(BallInfo info, GameOverReason reason)
     {
-        if (gameUIPopupInstance == null)
+        if (winLosePopupRoutine != null) StopCoroutine(winLosePopupRoutine);
+        winLosePopupRoutine = StartCoroutine(ShowWinLosePopupAfterDelay(winLosePopupDelay, () =>
         {
-            gameUIPopupInstance = Instantiate(winLosePopupPrefab, transform);
-        }
-
-        var winLoseScript = gameUIPopupInstance.GetComponent<WinLosePopup>();
-        if (winLoseScript != null)
-        {
-            string msg = reason switch
-            {
-                GameOverReason.Won => "You Won!",
-                GameOverReason.Lost => "Game Over",
-                _ => "Game Over"
-            };
-
-            winLoseScript.SetMessage(msg);
-            winLoseScript.SetLevelMessage(MergeLevelManager.CurrentLevelNumber, reason);
-
-            // Show continue if not first enemy
-            if (reason == GameOverReason.Lost && MergeLevelManager.CurrentEnemyIndex > 0)
-            {
-                winLoseScript.ShowContinueOption();
-            }
-        }
-
-        if (reason == GameOverReason.Won)
-        {
-            MergeLevelManager.AdvanceLevel();
-        }
+            PopupMessageCenter.ShowEndPopupMessage(WinLosePopup.Instance, reason);
+        }));
     }
-
 
     public void ShowEnemyDefeatedMessage()
     {
-        if (gameUIPopupInstance == null)
+        if (winLosePopupRoutine != null) StopCoroutine(winLosePopupRoutine);
+        winLosePopupRoutine = StartCoroutine(ShowWinLosePopupAfterDelay(winLosePopupDelay, () =>
         {
-            gameUIPopupInstance = Instantiate(winLosePopupPrefab, transform);
-        }
-
-        var winLoseScript = gameUIPopupInstance.GetComponent<WinLosePopup>();
-        if (winLoseScript != null)
-        {
-            winLoseScript.SetMessage("Enemy Defeated!");
-            winLoseScript.SetLevelMessage(MergeLevelManager.CurrentLevelNumber, GameOverReason.Won); // still in same level
-            winLoseScript.SetTemporaryMessage();
-        }
+            PopupMessageCenter.ShowEnemyDefeated(WinLosePopup.Instance);
+        }));
     }
 
+    private IEnumerator ShowWinLosePopupAfterDelay(float delay, System.Action showBody)
+    {
+        if (delay > 0f) yield return new WaitForSeconds(delay);
 
+        if (gameUIPopupInstance == null)
+            gameUIPopupInstance = Instantiate(winLosePopupPrefab, transform);
+
+        showBody?.Invoke();
+        winLosePopupRoutine = null;
+    }
 
     public void ShowMainMenu()
     {
@@ -104,29 +106,83 @@ public class PopupManager : MonoBehaviour
         }
     }
 
-    public void OnPlayButtonPressed(bool newLevel)
+    public void BeginSession(bool isNewLevel, bool restartmidlevel = false)
     {
-        if (mainMenuPopupInstance != null)
-            mainMenuPopupInstance.SetActive(false);
+        AdManager.Instance?.LoadBanner();
+
+        // Clean up any hanging preview or active ball
+        CircleDragInput.Instance?.ClearSpawnContainer();
 
         ballSpawner?.BeginSession();
-
         BallEventManager.RaiseSessionStarted();
 
         int nextEnemyId = MergeLevelManager.GetCurrentEnemyId();
-        EnemySpawner.Instance?.ClearEnemy();
-        EnemySpawner.Instance?.SpawnEnemy(nextEnemyId);
+        EnemySpawner.Instance?.SpawnEnemy(nextEnemyId, delayEnter: true);
 
-        if (!newLevel)
+        if (!isNewLevel)
         {
             BallEventManager.RaiseEnemyAdvanced();
         }
 
+        if (restartmidlevel)
+        {
+            EnemySpawner.Instance?.ClearEnemy();
+        }
 
         // ✅ Save state immediately after new session starts
         BallStateSaver.Instance.SaveState(BallRegistry.ActiveBalls.ToArray());
-
         BallEventManager.ResetMidLevelLossFlag();
+        StartCoroutine(PromoteNextFrame());
+    }
+
+    private IEnumerator PromoteNextFrame()
+    {
+        yield return null; // wait one frame (UI, layout, etc.)
+        CircleDragInput.Instance?.spawner?.PromoteFromPreview();
+    }
+
+    public void ConfirmReturnToMainMenu()
+    {
+        BallStateSaver.Instance.Clear();
+
+        CircleDragInput.Instance?.ClearSpawnContainer(); // Clear active ball
+        BallEventManager.RaiseReturnToMainMenu(); // Destroys all balls
+        BallEventManager.RaiseResetCounters();    // Resets UI counters
+        EnemySpawner.Instance?.ClearEnemy();      // Clears current enemy
+        AdManager.Instance?.HideBanner();         // Hide ads
+
+        ShowMainMenu();                           // Show the actual main menu
+    }
+
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause)
+        {
+            TryShowPausePopupFromSystem();
+        }
+    }
+
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (!hasFocus)
+        {
+            TryShowPausePopupFromSystem();
+        }
+    }
+
+    private void TryShowPausePopupFromSystem()
+    {
+#if UNITY_EDITOR
+        return; // 👈 Skip showing pause popup in the Unity Editor
+#else
+        if (pauseRestartPopupInstance != null) return;
+
+        // Optional: Skip if main menu is active
+        if (mainMenuPopupInstance != null && mainMenuPopupInstance.activeInHierarchy)
+            return;
+
+        ShowPauseRestartPopup();
+#endif
     }
 }
 

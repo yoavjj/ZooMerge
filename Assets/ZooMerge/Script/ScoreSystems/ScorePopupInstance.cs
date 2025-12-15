@@ -106,15 +106,22 @@ public class ScorePopupInstance : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (hasExited || !other.CompareTag("Enemy")) return;
+        if (hasExited) return;
 
-        hasExited = true;
-
-        // ✅ Pass the actual damage (popupScore) directly to the event
-        BallEventManager.RaiseEnemyHitWithDamage(other.gameObject, popupScore);
-
-        animator.SetTrigger("Out");
-        StartCoroutine(ReturnAfterDelay(1f));
+        if (other.CompareTag("Enemy"))
+        {
+            hasExited = true;
+            BallEventManager.RaiseEnemyHitWithDamage(other.gameObject, popupScore);
+            animator.SetTrigger("Out");
+            StartCoroutine(ReturnAfterDelay(1f));
+        }
+        else if (other.CompareTag("MissZone"))
+        {
+            Debug.Log("🟡 Score popup missed — no enemy hit. Returning to pool.");
+            hasExited = true;
+            animator.SetTrigger("Out");
+            StartCoroutine(ReturnAfterDelay(1f));
+        }
     }
 
     private IEnumerator ReturnAfterDelay(float delay)

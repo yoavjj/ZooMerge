@@ -73,14 +73,10 @@ public static class BallEventManager
 
     public static void RaiseGameOver(BallInfo info, GameOverReason reason)
     {
-        // WasMidLevelLoss = reason == GameOverReason.Lost && MergeLevelManager.CurrentEnemyIndex > 0;
-
-        // if (WasMidLevelLoss)
-        // {
-        //     BallStateSaver.Instance.SaveState(BallRegistry.ActiveBalls.ToArray());
-        // }
-
         OnGameOver?.Invoke(info, reason);
         OnGameOverAnimation?.Invoke();
     }
+
+    public static event Action OnReturnToMainMenu;
+    public static void RaiseReturnToMainMenu() => OnReturnToMainMenu?.Invoke();
 }

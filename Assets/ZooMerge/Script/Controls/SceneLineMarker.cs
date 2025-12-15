@@ -21,6 +21,11 @@ public class SceneLineMarker : MonoBehaviour
     public float endCapRadius = 0.08f;
     public float lineYOffset = 0f; // vertical offset for the drag bounds line
 
+    [Header("Input Buffer Zone")]
+    public Vector2 bufferZoneSize = new Vector2(10f, 2f);
+    public Vector2 bufferZoneOffset = new Vector2(0f, -6f);
+    public Color bufferZoneColor = new Color(0f, 0.4f, 1f, 0.3f);
+
     public float MinX => transform.position.x - Mathf.Max(0f, halfExtent);
     public float MaxX => transform.position.x + Mathf.Max(0f, halfExtent);
     public float GameOverY => transform.position.y + gameOverYOffset;
@@ -73,6 +78,19 @@ public class SceneLineMarker : MonoBehaviour
                 gameOverYOffset = newHandlePos.y - transform.position.y;
             }
 #endif
+        }
+
+        Rect bufferRect = BufferZoneWorldRect;
+        Gizmos.color = bufferZoneColor;
+        Gizmos.DrawCube(bufferRect.center, new Vector3(bufferRect.width, bufferRect.height, 0f));
+    }
+
+    public Rect BufferZoneWorldRect
+    {
+        get
+        {
+            Vector2 center = (Vector2)transform.position + bufferZoneOffset;
+            return new Rect(center - bufferZoneSize * 0.5f, bufferZoneSize);
         }
     }
 }

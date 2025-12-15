@@ -16,10 +16,16 @@ public class CircleDropController : MonoBehaviour
     private bool gameOverCheckEnabled = false;
 
     [Header("Intro Animation")]
-    [SerializeField] private Animator animator;
-    [SerializeField] private CircleCollider2D circle;            // collider to pop
+    [SerializeField] public Animator animator;
+    [SerializeField] public CircleCollider2D circle;
+    public CircleCollider2D Collider => circle;
     [SerializeField, Min(0.0001f)] private float introTinyRadius = 0.01f; // <-- start at 0.01
     private float savedRadius;
+
+    [SerializeField] private Spine.Unity.SkeletonAnimation spineAnimation;
+    public Spine.Unity.SkeletonAnimation Spine => spineAnimation;
+
+    [SerializeField] private MeshRenderer spineRenderer;
 
     // Explosive POP settings for MERGED balls only
     [Header("Explosive (Merged Only)")]
@@ -53,10 +59,21 @@ public class CircleDropController : MonoBehaviour
     private float settleSpeedMultiplier = 1f;
     private bool isSettling = false;
     private bool hasAppliedInstantPhysics;
+    private bool hasLanded = false;
 
     private float targetGravityScale;
     private float startGravityScale;
     private float prefabGravityScale;
+    private int assignedSortingOrder = 5;
+    public int GetAssignedOrder() => assignedSortingOrder;
+
+    // --- Cached animation names (filled once) ---
+    private string animIdle;
+    private string animFalling;
+    private string animLand;
+    private string animTouching;
+
+    private bool animNamesCached = false;
 
     // ---- Lifecycle ----
     private void Awake()
@@ -78,18 +95,21 @@ public class CircleDropController : MonoBehaviour
     private void Start()
     {
         rb.WakeUp();
+        CacheAnimNamesIfNeeded();
     }
 
     private void OnEnable()
     {
         BallEventManager.OnGameOverAnimation += HandleGameOverAnimation;
         BallEventManager.OnSessionWonAnimation += HandleSessionWonAnimation;
+        BallEventManager.OnReturnToMainMenu += HandleReturnToMainMenu;
     }
 
     private void OnDisable()
     {
         BallEventManager.OnGameOverAnimation -= HandleGameOverAnimation;
         BallEventManager.OnSessionWonAnimation -= HandleSessionWonAnimation;
+        BallEventManager.OnReturnToMainMenu -= HandleReturnToMainMenu;
 
         if (CircleDragInput.Instance != null)
             CircleDragInput.Instance.ClearActiveBall(this);
@@ -140,6 +160,23 @@ public class CircleDropController : MonoBehaviour
             StartCoroutine(ActivateReflectionAfterDelay(reflectionActivateDelay));
 
         StartCoroutine(EnableGameOverCheckAfterDelay());
+
+        // ✅ Assign unique Spine sorting order
+        if (spineRenderer != null)
+        {
+            assignedSortingOrder = SpineSortingOrderManager.GetNextOrder();
+            spineRenderer.sortingOrder = assignedSortingOrder;
+        }
+
+        // ✅ Play Falling Animation
+        if (!introIsMerged && spineAnimation != null && ballInfo != null)
+        {
+            CacheAnimNamesIfNeeded();
+            if (!string.IsNullOrEmpty(animFalling) && SpineHasAnimation(animFalling))
+            {
+                PlaySpine(animFalling, true);
+            }
+        }
     }
 
     public void SetDraggable(bool value)
@@ -171,13 +208,30 @@ public class CircleDropController : MonoBehaviour
             return; // skip settle for walls
         }
 
-        if (collision.collider.CompareTag("Enclosure"))
+        if (isDragging) return;
+
+        if (hasLanded) return; // ✅ Already landed — skip
+
+        hasLanded = true; // ✅ Mark as landed on ANY collision
+        CacheAnimNamesIfNeeded();
+
+        if (spineAnimation != null)
         {
-            if (isDragging) return;
-            if (hasAppliedInstantPhysics) return;
-            ApplyFinalPhysicsImmediately();
-            //if (settleRoutine == null)
-            //settleRoutine = StartCoroutine(SettleAfterTime(settleDuration));
+            if (!string.IsNullOrEmpty(animLand) && SpineHasAnimation(animLand))
+            {
+                var entry = PlaySpine(animLand, false); // play landing once
+
+                // Queue idle after landing
+                if (!string.IsNullOrEmpty(animIdle) && SpineHasAnimation(animIdle))
+                {
+                    entry.Complete += delegate { PlaySpine(animIdle, true); };
+                }
+            }
+            else if (!string.IsNullOrEmpty(animIdle) && SpineHasAnimation(animIdle))
+            {
+                // Fallback straight to idle if no land anim
+                PlaySpine(animIdle, true);
+            }
         }
     }
 
@@ -189,30 +243,64 @@ public class CircleDropController : MonoBehaviour
             if (wallContacts == 0 && circle != null)
                 circle.sharedMaterial = originalMat2D; // restore on exit
         }
+
+
+        if (!hasLanded) return; // ✅ do not force idle until landed
+
+        CacheAnimNamesIfNeeded();
+        if (spineAnimation != null && !string.IsNullOrEmpty(animIdle) && SpineHasAnimation(animIdle))
+        {
+            PlaySpine(animIdle, true);
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("GameOver"))
         {
-            // ✅ Start delayed game over trigger
             gameOverTouchRoutine = StartCoroutine(WaitToTriggerGameOver());
-            if (animator != null) animator.SetBool("IsSaved", false);
+
+            if (animator != null)
+                animator.SetBool("IsSaved", false);
         }
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (other.CompareTag("GameOver"))
+        if (!other.CompareTag("GameOver")) return;
+
+        if (gameOverTouchRoutine != null)
         {
-            // ✅ Cancel pending game over
-            if (gameOverTouchRoutine != null)
+            if (animator != null)
+                animator.SetBool("IsSaved", true);
+
+            StopCoroutine(gameOverTouchRoutine);
+            gameOverTouchRoutine = null;
+
+            if (spineAnimation == null) return;
+
+            // Use cached names, don't re-fetch
+            CacheAnimNamesIfNeeded();
+
+            // Only restore if we were actually playing the touching loop.
+            var cur = spineAnimation.AnimationState.GetCurrent(0);
+            var curName = cur != null ? cur.Animation.Name : null;
+
+            // If we were in "touching", restore the correct loop for our state.
+            if (curName == animTouching || string.IsNullOrEmpty(curName))
             {
-                // ✅ Animator: Trigger "Saved"
-                if (animator != null) animator.SetBool("IsSaved", true);
-                StopCoroutine(gameOverTouchRoutine);
-                gameOverTouchRoutine = null;
+                if (!hasLanded)
+                {
+                    if (!string.IsNullOrEmpty(animFalling) && SpineHasAnimation(animFalling))
+                        PlaySpine(animFalling, true);   // keep falling loop
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(animIdle) && SpineHasAnimation(animIdle))
+                        PlaySpine(animIdle, true);      // back to idle loop
+                }
             }
+            // else: landing (or something else) is playing — let it finish; completion handler goes to idle.
         }
     }
 
@@ -221,6 +309,11 @@ public class CircleDropController : MonoBehaviour
         yield return new WaitForSeconds(1f);
         // ✅ Animator: Trigger "Touching"
         if (animator != null) animator.SetTrigger("Touching");
+
+        // 🔹 Play Touching animation via Spine
+        CacheAnimNamesIfNeeded();
+        if (spineAnimation != null && !string.IsNullOrEmpty(animTouching) && SpineHasAnimation(animTouching))
+            PlaySpine(animTouching, true);
 
         yield return new WaitForSeconds(requiredGameOverContactTime);
         BallEventManager.RaiseGameOver(ballInfo, GameOverReason.Lost);
@@ -323,8 +416,18 @@ public class CircleDropController : MonoBehaviour
     public void PlayIntroNew()
     {
         introIsMerged = false;
-        if (animator != null) animator.SetTrigger("New");
+
+        // Play existing Unity Animator intro
+        if (animator != null)
+            animator.SetTrigger("New");
+
+        // Play Spine idle animation automatically
+        CacheAnimNamesIfNeeded();
+        if (spineAnimation != null && !string.IsNullOrEmpty(animIdle) && SpineHasAnimation(animIdle))
+            PlaySpine(animIdle, true);
+
     }
+
 
     public void PlayIntroMerged()
     {
@@ -336,14 +439,36 @@ public class CircleDropController : MonoBehaviour
         if (animator != null) animator.SetTrigger("Merged");
     }
 
+    public Spine.TrackEntry PlaySpine(string anim, bool loop = false)
+    {
+        if (spineAnimation == null) return null;
+        return spineAnimation.AnimationState.SetAnimation(0, anim, loop);
+    }
+
+    private bool SpineHasAnimation(string anim)
+    {
+        if (spineAnimation == null || spineAnimation.Skeleton == null)
+            return false;
+
+        return spineAnimation.Skeleton.Data.FindAnimation(anim) != null;
+    }
+
     public void PlayIntroNewMidLevel()
     {
         if (reflectionGO != null)
             reflectionGO.SetActive(true);
 
         introIsMerged = false;
-        if (animator != null) animator.SetTrigger("New");
-        animator.SetTrigger("MidLevel");
+
+        if (animator != null)
+        {
+            animator.SetTrigger("New");
+            animator.SetTrigger("MidLevel");
+        }
+
+        CacheAnimNamesIfNeeded();
+        if (spineAnimation != null && !string.IsNullOrEmpty(animIdle) && SpineHasAnimation(animIdle))
+            PlaySpine(animIdle, true);
     }
 
     public void IntroPrep()
@@ -440,9 +565,30 @@ public class CircleDropController : MonoBehaviour
         Destroy(gameObject, 2f); // cleanup after animation
     }
 
+    private void HandleReturnToMainMenu()
+    {
+        Destroy(gameObject); // Clean up this ball
+    }
+
     private void HandleSessionWonAnimation()
     {
         StartCoroutine(PlayOutAnimationAfterDelay(0f)); // ✅ delay 0 as requested
     }
 
+    private void CacheAnimNamesIfNeeded()
+    {
+        if (animNamesCached) return;
+        if (ballInfo == null || BallFactoryAddressables.Instance == null) return;
+
+        var data = BallFactoryAddressables.Instance.BallSet.GetAnimationForLevel(ballInfo.Level);
+        if (data != null)
+        {
+            animIdle = data.idleAnimation;
+            animFalling = data.fallingAnimation;
+            animLand = data.landAnimation;
+            animTouching = data.TouchingAnimation; // if your struct uses a different name, keep it
+        }
+
+        animNamesCached = true;
+    }
 }

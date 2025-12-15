@@ -6,12 +6,17 @@ public class EnemySpawner : MonoBehaviour
 {
     public static EnemySpawner Instance { get; private set; } // 🔹 Singleton reference
 
+    private Coroutine delayedEnterRoutine;
+
     [Header("Refs")]
     [SerializeField] private BallSet ballSet;           // Contains enemy prefabs
     [SerializeField] private Transform spawnPoint;      // Spawn location
-    [SerializeField] private Transform enemyContainer;  // Optional parent
+    [SerializeField] private Transform enemyContainer;
 
-    private GameObject currentEnemy;
+    [Header("Settings")]
+    [SerializeField] private float enterDelayEnemySeconds = 1.0f;
+
+    private BallFactoryAddressables.SpawnedEnemy currentEnemy;
 
     private void Awake()
     {
@@ -24,90 +29,64 @@ public class EnemySpawner : MonoBehaviour
         Instance = this;
     }
 
-    private void OnEnable()
+    public void PlayEnterOnCurrentEnemy()
     {
-        //BallEventManager.OnSessionStarted += SpawnSingleEnemy;
-    }
-
-    private void OnDisable()
-    {
-        //BallEventManager.OnSessionStarted -= SpawnSingleEnemy;
-    }
-
-    private void SpawnSingleEnemy()
-    {
-        var level = MergeLevelManager.GetCurrentLevel();
-
-        if (level == null || level.enemy_data == null || level.enemy_data.Count == 0)
-        {
-            Debug.LogWarning("[EnemySpawner] No enemies defined for current level.");
-            return;
-        }
-
-        int enemyId = level.enemy_data[0].id; // Only take the first enemy's ID
-        string idString = enemyId.ToString();
-
-        var enemyRef = ballSet.enemyPrefabs.Find(e => e.id == idString);
-        if (enemyRef == null || enemyRef.prefab == null)
-        {
-            Debug.LogError($"[EnemySpawner] Enemy prefab not found for ID: {enemyId}");
-            return;
-        }
-
-        var handle = enemyRef.prefab.InstantiateAsync(
-            spawnPoint != null ? spawnPoint.position : transform.position,
-            Quaternion.identity,
-            enemyContainer != null ? enemyContainer : transform
-        );
-
-        handle.Completed += op =>
-        {
-            if (op.Status == AsyncOperationStatus.Succeeded)
-            {
-                currentEnemy = op.Result;
-                Debug.Log($"[EnemySpawner] Spawned enemy ID {enemyId}.");
-            }
-            else
-            {
-                Debug.LogError("[EnemySpawner] Failed to spawn enemy prefab.");
-            }
-        };
+        currentEnemy.unit?.PlayEnter();
     }
 
     public void ClearEnemy()
     {
-        if (currentEnemy != null)
+        if (delayedEnterRoutine != null)
         {
-            Destroy(currentEnemy);
-            currentEnemy = null;
+            StopCoroutine(delayedEnterRoutine);
+            delayedEnterRoutine = null;
+        }
+
+        if (currentEnemy.root != null)
+        {
+            EnemySessionTracker.Unregister(currentEnemy.root);
+            Destroy(currentEnemy.root);
+        }
+        currentEnemy = default;
+    }
+
+    public void SpawnEnemy(int enemyId, bool delayEnter = false)
+    {
+        currentEnemy = BallFactoryAddressables.Instance
+            .SpawnEnemyWithRefs(enemyId,
+                spawnPoint != null ? spawnPoint.position : transform.position,
+                enemyContainer != null ? enemyContainer : transform);
+
+        if (currentEnemy.IsValid)
+        {
+            EnemySessionTracker.Register(currentEnemy.root);
+            Debug.Log($"[EnemySpawner] Spawned enemy ID {enemyId}.");
+
+            if (delayEnter && enterDelayEnemySeconds > 0f)
+            {
+                if (delayedEnterRoutine != null) StopCoroutine(delayedEnterRoutine);
+                delayedEnterRoutine = StartCoroutine(DelayedEnter(enterDelayEnemySeconds));
+            }
+            else
+            {
+                PlayEnterOnCurrentEnemy();
+            }
+        }
+        else
+        {
+            Debug.LogError("[EnemySpawner] Failed to spawn enemy.");
         }
     }
 
-    public void SpawnEnemy(int enemyId)
+    private System.Collections.IEnumerator DelayedEnter(float delay)
     {
-        ClearEnemy(); // destroy previous
+        yield return new WaitForSeconds(delay);
+        PlayEnterOnCurrentEnemy();
+        delayedEnterRoutine = null;
+    }
 
-        string idString = enemyId.ToString();
-        var enemyRef = ballSet.enemyPrefabs.Find(e => e.id == idString);
-        if (enemyRef == null || enemyRef.prefab == null)
-        {
-            Debug.LogError($"[EnemySpawner] Enemy prefab not found for ID: {enemyId}");
-            return;
-        }
-
-        var handle = enemyRef.prefab.InstantiateAsync(
-            spawnPoint != null ? spawnPoint.position : transform.position,
-            Quaternion.identity,
-            enemyContainer != null ? enemyContainer : transform
-        );
-
-        handle.Completed += op =>
-        {
-            if (op.Status == AsyncOperationStatus.Succeeded)
-            {
-                currentEnemy = op.Result;
-                Debug.Log($"[EnemySpawner] Spawned enemy ID {enemyId}.");
-            }
-        };
+    public void NotifyEnemyDestroyed(GameObject root)
+    {
+        ClearEnemy();
     }
 }

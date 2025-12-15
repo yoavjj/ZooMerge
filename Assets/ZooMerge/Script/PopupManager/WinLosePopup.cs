@@ -4,6 +4,8 @@ using static BallEventManager;
 
 public class WinLosePopup : MonoBehaviour
 {
+    public static WinLosePopup Instance { get; private set; }
+
     [Header("UI Refs")]
     [SerializeField] private TextMeshProUGUI messageText;
     [SerializeField] private TextMeshProUGUI levelMessageText;
@@ -13,6 +15,11 @@ public class WinLosePopup : MonoBehaviour
     private bool isContinue = false;
 
     private GameOverReason currentReason;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     public void SetMessage(string msg)
     {
@@ -55,9 +62,9 @@ public class WinLosePopup : MonoBehaviour
 
     public void OnMainMenuButtonPressed()
     {
-        PopupManager.Instance?.ShowMainMenu();
+        PopupManager.Instance?.ConfirmReturnToMainMenu();
         animator.SetTrigger("Out");
-        Destroy(gameObject, 1.5f);
+        Destroy(gameObject, 1f);
     }
 
     public void OnPlayPressed()
@@ -69,13 +76,11 @@ public class WinLosePopup : MonoBehaviour
             var dropped = CircleDragInput.Instance?.droppedContainer;
             if (dropped != null)
                 BallStateSaver.Instance.RestoreState(dropped);
-            BallEventManager.RaiseSessionStarted();
+
             isContinue = false;
         }
-        else
-        {
-            PopupManager.Instance?.OnPlayButtonPressed(isNewLevel);
-        }
+
+        PopupManager.Instance?.BeginSession(isNewLevel);
 
         animator.SetTrigger("Out");
         Destroy(gameObject, 1.5f);
@@ -104,7 +109,19 @@ public class WinLosePopup : MonoBehaviour
         if (levelMessageText != null)
         {
             int currentLevel = MergeLevelManager.CurrentLevelNumber;
-            levelMessageText.text = $"You can retry from here\nLevel {currentLevel}";
+            int currentEnemy = MergeLevelManager.CurrentEnemyIndex + 1; // display-friendly (1-based)
+            int totalEnemies = MergeLevelManager.TotalEnemiesInLevel;
+
+            if (MergeLevelManager.CurrentEnemyIndex == 0)
+            {
+                // First enemy → show simpler message
+                levelMessageText.text = $"You can retry from here\nLevel {currentLevel}";
+            }
+            else
+            {
+                // Mid-level retry → show more context
+                levelMessageText.text = $"You can retry from here\nEnemy {currentEnemy}/{totalEnemies} · Level {currentLevel}";
+            }
         }
     }
 

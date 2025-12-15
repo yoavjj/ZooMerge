@@ -79,6 +79,25 @@ public class BallSet : ScriptableObject
         physicsData.Sort((a, b) => (a?.id ?? -1).CompareTo(b?.id ?? -1));
     }
 #endif
+
+    [Serializable]
+    public class BallAnimationData
+    {
+        public int level;          // the result level AFTER the merge
+        public string mergeAnimation; // e.g. "level_1-2"
+        public string idleAnimation;  // e.g. "level_2_idle"
+        public string TouchingAnimation;
+        public string fallingAnimation;  // Triggered when dropped
+        public string landAnimation;     // One-time when it hits something
+    }
+
+    [Header("Spine Animations")]
+    public List<BallAnimationData> animationData = new List<BallAnimationData>();
+
+    public BallAnimationData GetAnimationForLevel(int level)
+    {
+        return animationData.Find(a => a.level == level);
+    }
 }
 
 public enum BallType { Bug, Turtle, Doggy }
