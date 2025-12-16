@@ -59,6 +59,18 @@ public class EnemySpawner : MonoBehaviour
 
         if (currentEnemy.IsValid)
         {
+            // Snap to container origin in local space
+            var t = currentEnemy.root.transform;
+            if (enemyContainer != null)
+            {
+                if (t.parent != enemyContainer)
+                    t.SetParent(enemyContainer, false); // keep local transform
+
+                t.localPosition = new Vector3(0f, 0f, t.localPosition.z);
+                t.localRotation = Quaternion.identity; // optional
+                                                       // t.localScale = Vector3.one;         // optional
+            }
+
             EnemySessionTracker.Register(currentEnemy.root);
             Debug.Log($"[EnemySpawner] Spawned enemy ID {enemyId}.");
 

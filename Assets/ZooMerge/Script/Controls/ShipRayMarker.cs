@@ -32,6 +32,8 @@ public class ShipRayMarker : MonoBehaviour
     public Vector3 RayStart => transform.position + (Vector3)offset;
     public Vector3 RayEnd => RayStart + Vector3.down * currentRayLength;
 
+    public Vector3 LastHitPoint { get; private set; }
+
     // ======================================================
     // MAIN RAYCAST LOGIC
     // ======================================================
@@ -48,6 +50,7 @@ public class ShipRayMarker : MonoBehaviour
         if (hit != null)
         {
             currentRayLength = rayHit.distance;
+            LastHitPoint = rayHit.point;
             Debug.DrawRay(start, direction * currentRayLength, Color.green, 1f);
             HighlightBall(rayHit.point);
             return true;
