@@ -36,7 +36,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 145, y: 177.38}
+  m_SizeDelta: {x: 100, y: 177.38}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3049357684070178438
 MonoBehaviour:
@@ -83,6 +83,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3453958451476706271}
     m_Modifications:
+    - target: {fileID: 2757298781634035314, guid: 2ab74a6f35a0f48c9a00c04462b12921, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -13.7
+      objectReference: {fileID: 0}
     - target: {fileID: 5570753654485327149, guid: 2ab74a6f35a0f48c9a00c04462b12921, type: 3}
       propertyPath: m_Name
       value: MergeCounter_Prefab
@@ -101,27 +105,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8100247690444745145, guid: 2ab74a6f35a0f48c9a00c04462b12921, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8100247690444745145, guid: 2ab74a6f35a0f48c9a00c04462b12921, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8100247690444745145, guid: 2ab74a6f35a0f48c9a00c04462b12921, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8100247690444745145, guid: 2ab74a6f35a0f48c9a00c04462b12921, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8100247690444745145, guid: 2ab74a6f35a0f48c9a00c04462b12921, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 145.7223
+      value: 1.7223053
       objectReference: {fileID: 0}
     - target: {fileID: 8100247690444745145, guid: 2ab74a6f35a0f48c9a00c04462b12921, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 177.38019
+      value: -0.619812
       objectReference: {fileID: 0}
     - target: {fileID: 8100247690444745145, guid: 2ab74a6f35a0f48c9a00c04462b12921, type: 3}
       propertyPath: m_LocalPosition.x

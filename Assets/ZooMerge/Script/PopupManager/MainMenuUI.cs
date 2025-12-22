@@ -29,6 +29,9 @@ public class MainMenuUI : MonoBehaviour
         // Centralized session begin
         PopupManager.Instance?.BeginSession(isNewLevel);
 
+        // Initialize the progress bar on the PopupManager's slider
+        PopupManager.Instance?.InitializeProgressBarNow();
+
         Destroy(gameObject);
     }
 }

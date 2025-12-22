@@ -24,7 +24,7 @@ public static class PopupMessageCenter
 
         if (reason == GameOverReason.Won)
         {
-            MergeLevelManager.AdvanceLevel();
+            popup.ApplyProgressAdvance(toLevelEnd: true);
         }
     }
 
@@ -35,5 +35,8 @@ public static class PopupMessageCenter
         popup.SetMessage("Enemy Defeated!");
         popup.SetLevelMessage(MergeLevelManager.CurrentLevelNumber, GameOverReason.Won);
         popup.SetTemporaryMessage();
+
+        // 🔔 apply the visual progress update on the popup’s bar
+        popup.ApplyProgressAdvance(toLevelEnd: false);
     }
 }

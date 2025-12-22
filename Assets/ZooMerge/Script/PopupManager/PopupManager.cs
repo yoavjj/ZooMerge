@@ -12,6 +12,7 @@ public class PopupManager : MonoBehaviour
     [SerializeField] private GameObject winLosePopupPrefab;
     [SerializeField] private GameObject pauseRestartPopupPrefab;
     [SerializeField] private BallSpawner ballSpawner;
+    [SerializeField] LevelProgressBarSlider levelProgressBarSlider;
 
     [Header("Timing")]
     [SerializeField, Min(0f)] private float winLosePopupDelay = 0.5f;
@@ -21,7 +22,6 @@ public class PopupManager : MonoBehaviour
     private GameObject pauseRestartPopupInstance;
     private GameObject mainMenuPopupInstance;
     private GameObject gameUIPopupInstance;
-    private WinLosePopup winLosePopupScript;
 
     private void Awake()
     {
@@ -150,8 +150,22 @@ public class PopupManager : MonoBehaviour
         BallEventManager.RaiseResetCounters();    // Resets UI counters
         EnemySpawner.Instance?.ClearEnemy();      // Clears current enemy
         AdManager.Instance?.HideBanner();         // Hide ads
+        levelProgressBarSlider?.RestartVisuals(); // Reset progress bar visuals
 
-        ShowMainMenu();                           // Show the actual main menu
+        ShowMainMenu(); // Then show main menu
+    }
+
+    public void InitializeProgressBarNow()
+    {
+        if (levelProgressBarSlider == null)
+        {
+            Debug.LogError("⚠️ PopupManager: LevelProgressBarSlider reference is missing.");
+            return;
+        }
+
+        levelProgressBarSlider.InitializeCurrentLevel();
+        // Grey-out all enemies already defeated (up to CurrentEnemyIndex - 1)
+        levelProgressBarSlider.SyncIconsToCurrentProgress(includeCurrent: false);
     }
 
     private void OnApplicationPause(bool pause)

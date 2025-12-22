@@ -43,6 +43,9 @@ public class BallSet : ScriptableObject
     {
         public string id;
         public AssetReferenceGameObject prefab;
+
+        [Header("UI")]
+        public GameObject iconPrefab;
     }
 
     public List<Entry> entries = new List<Entry>();
@@ -55,6 +58,12 @@ public class BallSet : ScriptableObject
     {
         var entry = enemyPrefabs.Find(e => e != null && e.id == id);
         return entry != null ? entry.prefab : null;
+    }
+
+    public GameObject GetEnemyIconPrefabById(string id)
+    {
+        var entry = enemyPrefabs.Find(e => e != null && e.id == id);
+        return entry != null ? entry.iconPrefab : null;
     }
 
 #if UNITY_EDITOR
