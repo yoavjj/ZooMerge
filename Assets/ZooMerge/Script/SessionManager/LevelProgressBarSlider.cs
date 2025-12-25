@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 
 public class LevelProgressBarSlider : MonoBehaviour
 {
@@ -9,6 +10,9 @@ public class LevelProgressBarSlider : MonoBehaviour
     [SerializeField] private Slider slider;                // LvlProgress_Slider
     [SerializeField] private RectTransform widthTarget;    // usually the slider's RectTransform
     [SerializeField] private BallSet ballSet;              // for enemy icons
+
+    [Header("Level Info")]
+    [SerializeField] private TextMeshProUGUI levelNameText;
 
     [Header("Icon Strip")]
     [SerializeField] private RectTransform iconsContainer; // parent for EnemyLvl_Image / Line_Image
@@ -90,6 +94,11 @@ public class LevelProgressBarSlider : MonoBehaviour
             {
                 Debug.LogWarning("[ProgressBar] GetCurrentLevel() returned null. Skipping strip build.");
                 return;
+            }
+
+            if (levelNameText != null)
+            {
+                levelNameText.text = level.name;
             }
 
             if (stripBuilder == null)

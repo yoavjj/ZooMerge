@@ -552,7 +552,13 @@ public class CircleDropController : MonoBehaviour
 
     private void HandleGameOverAnimation()
     {
-        StartCoroutine(PlayOutAnimationAfterDelay(gameOverDelay));
+        float delay = Random.Range(0.05f, 0.35f);
+        StartCoroutine(PlayOutAnimationAfterDelay(delay));
+    }
+
+    private void HandleSessionWonAnimation()
+    {
+        StartCoroutine(PlayOutAnimationAfterDelay(gameOverDelay)); // ✅ delay 0 as requested
     }
 
     public IEnumerator PlayOutAnimationAfterDelay(float delay)
@@ -567,11 +573,6 @@ public class CircleDropController : MonoBehaviour
     private void HandleReturnToMainMenu()
     {
         Destroy(gameObject); // Clean up this ball
-    }
-
-    private void HandleSessionWonAnimation()
-    {
-        StartCoroutine(PlayOutAnimationAfterDelay(0f)); // ✅ delay 0 as requested
     }
 
     private void CacheAnimNamesIfNeeded()
