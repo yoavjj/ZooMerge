@@ -52,6 +52,10 @@ public class CircleDragInput : MonoBehaviour,
     private float cachedMaxX;
     private bool hasCachedBounds;
 
+    // Cached buffer zone for quick lookup
+    private Rect cachedBufferZone;
+    private bool hasCachedBufferZone = false;
+
     // Next spawn position memory
     private float lastDropX;
     private bool hasLastDropX;
@@ -77,6 +81,7 @@ public class CircleDragInput : MonoBehaviour,
     {
         cam = Camera.main;
         CacheBounds();
+        CacheBufferZone();
     }
 
     public bool HasActiveBall() => activeBall != null;
@@ -125,7 +130,8 @@ public class CircleDragInput : MonoBehaviour,
         if (entryAnchor == null || currentPrefabRoot == null) return;
 
         // Try get the collider
-        var circle = currentPrefabRoot.GetComponentInChildren<CircleCollider2D>(true);
+        var controller = activeBall;
+        var circle = controller != null ? controller.Collider : null;
         if (circle == null) return;
 
         float targetTopY = entryAnchor.position.y + entryGap;
@@ -136,20 +142,6 @@ public class CircleDragInput : MonoBehaviour,
 
         float dy = targetTopY - ballTopY;
         currentPrefabRoot.position += new Vector3(0f, dy, 0f);
-    }
-
-    private static bool TryGetWorldBounds(Transform root, out Bounds bounds)
-    {
-        // Prefer 2D colliders (accurate for circles)
-        var col2d = root.GetComponentInChildren<Collider2D>(true);
-        if (col2d != null) { bounds = col2d.bounds; return true; }
-
-        // Fallback to renderers if no collider
-        var rend = root.GetComponentInChildren<Renderer>(true);
-        if (rend != null) { bounds = rend.bounds; return true; }
-
-        bounds = new Bounds(root.position, Vector3.zero);
-        return false;
     }
 
     /// <summary>Clears the active ball if it matches.</summary>
@@ -165,6 +157,18 @@ public class CircleDragInput : MonoBehaviour,
     public void OnPointerDown(PointerEventData eventData)
     {
         if (isSpawnCooldown) return;
+
+        // 🔹 Check if pointer is inside buffer zone (optional early return)
+        if (hasCachedBufferZone)
+        {
+            Vector3 worldPos = cam.ScreenToWorldPoint(eventData.position);
+            Vector2 worldPoint = new Vector2(worldPos.x, worldPos.y);
+            if (cachedBufferZone.Contains(worldPoint))
+            {
+                Debug.Log("👋 Touch is inside buffer zone. Ignoring.");
+                return;
+            }
+        }
 
         spawnedAfterThisPress = false;
         activePointerId = eventData.pointerId;
@@ -346,11 +350,29 @@ public class CircleDragInput : MonoBehaviour,
 
     #region Helpers
 
+    public void ClearSpawnContainer()
+    {
+        if (spawnContainer == null) return;
+
+        for (int i = spawnContainer.childCount - 1; i >= 0; i--)
+        {
+            var child = spawnContainer.GetChild(i);
+            if (child == exemptSpawnChild) continue;
+
+            Object.Destroy(child.gameObject);
+        }
+
+        activePointerId = int.MinValue;
+        activeBall = null;
+        currentPrefabRoot = null;
+    }
+
     private float GetActiveBallWorldRadius()
     {
         if (currentPrefabRoot == null) return 0f;
 
-        var circle = currentPrefabRoot.GetComponentInChildren<CircleCollider2D>(true);
+        var controller = activeBall;
+        var circle = controller != null ? controller.Collider : null;
         if (circle == null) return 0f;
 
         float radius = circle.radius;
@@ -396,6 +418,19 @@ public class CircleDragInput : MonoBehaviour,
             cachedMaxX = maxX;
         }
         hasCachedBounds = true;
+    }
+
+    private void CacheBufferZone()
+    {
+        if (dragBounds != null)
+        {
+            cachedBufferZone = dragBounds.BufferZoneWorldRect;
+            hasCachedBufferZone = true;
+        }
+        else
+        {
+            hasCachedBufferZone = false;
+        }
     }
 
     private Transform GetMoveTarget() => spawnContainer;

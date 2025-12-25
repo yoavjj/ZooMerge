@@ -103,6 +103,13 @@ public class BallCollisionMerge : MonoBehaviour
             //Debug.Log($"✅ Merge succeeded: {self.name} + {other.name}");
             BallRegistry.Unregister(self);
             BallRegistry.Unregister(other);
+
+            // 🔁 Recycle their sorting orders
+            if (self.DropController != null)
+                SpineSortingOrderManager.ReleaseOrder(self.DropController.GetAssignedOrder());
+
+            if (other.DropController != null)
+                SpineSortingOrderManager.ReleaseOrder(other.DropController.GetAssignedOrder());
         }
     }
 

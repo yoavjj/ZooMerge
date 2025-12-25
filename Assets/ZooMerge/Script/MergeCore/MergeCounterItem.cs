@@ -17,7 +17,7 @@ public class MergeCounterItem : MonoBehaviour
         if (iconImage != null)
             iconImage.sprite = icon;
 
-        SetCount(1);
+        SetCount(0);
         lastAddTime = Time.time;
     }
 
@@ -33,7 +33,7 @@ public class MergeCounterItem : MonoBehaviour
         }
     }
 
-    private void SetCount(int newCount)
+    public void SetCount(int newCount)
     {
         count = newCount;
         if (countText != null)

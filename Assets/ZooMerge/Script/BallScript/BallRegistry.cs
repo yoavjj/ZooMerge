@@ -29,6 +29,7 @@ public static class BallRegistry
     public static void Clear()
     {
         activeBalls.Clear();
+        SpineSortingOrderManager.ResetAll();
     }
 
     public static void SaveState(IEnumerable<BallInfo> balls)
@@ -57,7 +58,8 @@ public static class BallRegistry
     {
         foreach (var snapshot in savedBalls)
         {
-            var info = BallFactoryAddressables.Instance.SpawnLevel(snapshot.type, snapshot.level, snapshot.position, parent);
+            var spawned = BallFactoryAddressables.Instance.SpawnLevelWithRefs(snapshot.type, snapshot.level, snapshot.position, parent);
+            var info = spawned.info;
             if (info != null)
             {
                 info.transform.rotation = snapshot.rotation;

@@ -26,8 +26,11 @@ public class MainMenuUI : MonoBehaviour
         // Determine if we are starting from the beginning of the level
         bool isNewLevel = MergeLevelManager.CurrentEnemyIndex == 0;
 
-        // Pass this state to the popup
-        PopupManager.Instance?.OnPlayButtonPressed(isNewLevel);
+        // Centralized session begin
+        PopupManager.Instance?.BeginSession(isNewLevel);
+
+        // Initialize the progress bar on the PopupManager's slider
+        PopupManager.Instance?.InitializeProgressBarNow();
 
         Destroy(gameObject);
     }

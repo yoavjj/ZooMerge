@@ -17,6 +17,7 @@ public class MergeLevelData
 public class MergeLevel
 {
     public int level;
+    public string name;
     public List<EnemyData> enemy_data;
     public List<MergeScoreEntry> scores;
     internal object enemies;

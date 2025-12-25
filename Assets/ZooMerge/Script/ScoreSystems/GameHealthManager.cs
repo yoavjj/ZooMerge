@@ -10,6 +10,10 @@ public class GameHealthManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private AnimationCurve sliderEase = AnimationCurve.Linear(0, 0, 1, 1);
 
+    [SerializeField] private GameObject missZonePrefab;  // assign in Inspector
+    [SerializeField] private Transform missZonePrefabContainer;
+    private GameObject activeMissZoneInstance;
+
     private HealthTween healthTween;
     private int currentHealth;
     private bool sessionEnded = false;
@@ -38,8 +42,8 @@ public class GameHealthManager : MonoBehaviour
         UpdateHealthText();
 
         BallEventManager.OnEnemyHitWithScore += OnEnemyHitWithScore;
-        BallEventManager.OnSessionStarted += ResetHealth;
-        BallEventManager.OnEnemyAdvanced += () => StartCoroutine(DelayedResetHealth(10f)); // or however many seconds you want
+        OnSessionStarted += ResetHealth;
+        OnEnemyAdvanced += ResetHealth;
 
         Debug.Log($"❤️ Initialized with {currentHealth} HP for Level {currentLevel.level}");
     }
@@ -47,7 +51,8 @@ public class GameHealthManager : MonoBehaviour
     private void OnDestroy()
     {
         BallEventManager.OnEnemyHitWithScore -= OnEnemyHitWithScore;
-        BallEventManager.OnSessionStarted -= ResetHealth;
+        OnSessionStarted -= ResetHealth;
+        OnEnemyAdvanced -= ResetHealth;
         //BallEventManager.OnEnemyAdvanced -= () => StartCoroutine(DelayedResetHealth(10f)); // or however many seconds you want
 
     }
@@ -90,6 +95,14 @@ public class GameHealthManager : MonoBehaviour
                     sessionEnded = true;
                     isAnimatingToZero = false;
 
+                    // ✅ Spawn miss zone only AFTER slider is fully zeroed
+                    if (missZonePrefab != null && activeMissZoneInstance == null)
+                    {
+                        Transform parent = missZonePrefabContainer != null ? missZonePrefabContainer : transform;
+                        activeMissZoneInstance = Instantiate(missZonePrefab, parent);
+                        Debug.Log($"[GameHealthManager] MissZone spawned under: {parent.name}");
+                    }
+
                     if (MergeLevelManager.TryAdvanceEnemy())
                     {
                         Debug.Log("✅ Enemy defeated! Preparing next enemy...");
@@ -98,6 +111,8 @@ public class GameHealthManager : MonoBehaviour
                     else
                     {
                         Debug.Log("🏁 All enemies defeated! Level complete.");
+                        BallEventManager.RaiseEnemySessionEnded();
+
                         BallEventManager.RaiseGameOver(null, GameOverReason.Won);
                         BallEventManager.RaiseSessionWonAnimation();
                         BallEventManager.RaiseResetCounters();
@@ -110,7 +125,7 @@ public class GameHealthManager : MonoBehaviour
 
     private void ShowEnemyTransitionMessage()
     {
-        // 1. ensure old enemy destroyed
+        // 1. ONLY tracked enemy destroys
         BallEventManager.RaiseEnemySessionEnded();
 
         // 2. show popup
@@ -126,7 +141,6 @@ public class GameHealthManager : MonoBehaviour
         CancelInvoke(nameof(StartNextEnemy));  // just in case
 
         int nextEnemyId = MergeLevelManager.GetCurrentEnemyId();
-        EnemySpawner.Instance?.ClearEnemy();
     }
 
     private void UpdateHealthText()
@@ -152,7 +166,7 @@ public class GameHealthManager : MonoBehaviour
         currentHealth = MergeLevelManager.GetCurrentEnemyHealth();
 
         // ✅ Hardcode the slider to always animate from 0.2 to 1
-        float fromSlider = 0.2f;
+        float fromSlider = 0f;
         int fromHealth = Mathf.RoundToInt(currentHealth * fromSlider); // optional, could be 0
 
         float toSlider = 1f; // always fill to full
@@ -165,7 +179,17 @@ public class GameHealthManager : MonoBehaviour
             fromHealth,
             currentHealth,
             sliderEase,
-            1.5f // 👈 slower refill animation
+            1.2f, // 👈 slower refill animation
+                onComplete: () =>
+    {
+        // ✅ Destroy miss zone once slider finishes animating back to full
+        if (activeMissZoneInstance != null)
+        {
+            Destroy(activeMissZoneInstance);
+            activeMissZoneInstance = null;
+            //Debug.Log("[GameHealthManager] MissZone prefab destroyed after health reset.");
+        }
+    }
         );
 
         Debug.Log($"🔄 Health reset for Level {currentLevel.level} ({currentHealth} HP)");

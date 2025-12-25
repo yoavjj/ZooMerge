@@ -1,3 +1,4 @@
+using Solo.MOST_IN_ONE;
 using UnityEngine;
 
 /// <summary>
@@ -8,6 +9,9 @@ public class MergeCore
 {
     private readonly IBallFactory factory;
     public MergeCore(IBallFactory factory) => this.factory = factory;
+
+    private static float lastHapticTime = -1f;
+    private const float hapticCooldown = 0.15f; // 150ms cooldown
 
     public bool TryMerge(BallInfo a, BallInfo b)
     {
@@ -24,21 +28,14 @@ public class MergeCore
     public bool TryMergeAt(BallInfo a, BallInfo b, Vector3 spawnPos)
     {
         if (MergeAttemptTracker.HasAlreadyFailed(a, b))
-        {
             return false;
-        }
 
         if (!CanMerge(a, b, out string reason))
         {
-            //Debug.LogWarning($"❌ Merge failed at position {spawnPos}: {reason}\n→ A: {FormatBall(a)}\n→ B: {FormatBall(b)}");
-
-            // 🔴 Record this failure to avoid retrying
             MergeAttemptTracker.MarkFailed(a, b);
             return false;
         }
 
-        // ✅ Clear past failures for these balls since merge is succeeding
-        // No need to track anymore
         a.BeginMerge();
         b.BeginMerge();
 
@@ -51,33 +48,64 @@ public class MergeCore
         factory.Despawn(rootA);
         factory.Despawn(rootB);
 
-        var merged = factory.SpawnLevel(type, nextLevel, spawnPos);
+        var spawned = BallFactoryAddressables.Instance.SpawnLevelWithRefs(type, nextLevel, spawnPos);
+        var merged = spawned.info;
 
         if (merged != null)
         {
-            // ✅ Play intro animation
-            merged.Controller?.PlayIntroMerged();
+            var anim = BallFactoryAddressables.Instance.BallSet.GetAnimationForLevel(nextLevel);
 
-            // ✅ Raise event
+            bool hasSpine = merged.Controller != null &&
+                            merged.Controller.Spine != null &&
+                            anim != null &&
+                            !string.IsNullOrEmpty(anim.mergeAnimation);
+
+            if (hasSpine)
+            {
+                // STEP A: Play intro / pop effect if you have one.
+                merged.Controller.PlayIntroMerged();
+
+                // STEP B: Play the merge animation (non‑looping).
+                merged.Controller.PlaySpine(anim.mergeAnimation, false);
+
+                // STEP C: Subscribe to completion to then play idle.
+                merged.Controller.Spine.AnimationState.Complete += OnComplete;
+
+                void OnComplete(Spine.TrackEntry entry)
+                {
+                    if (entry.Animation != null && entry.Animation.Name == anim.mergeAnimation)
+                    {
+                        // Play idle with loop = true
+                        merged.Controller.PlaySpine(anim.idleAnimation, true);
+
+                        // Unsubscribe
+                        merged.Controller.Spine.AnimationState.Complete -= OnComplete;
+                    }
+                }
+            }
+            else
+            {
+                // Fallback path if no spine animation exists.
+                merged.Controller?.PlayIntroMerged();
+            }
+
+            // Raise events, scoring, etc
             BallEventManager.RaiseBallMerged(merged);
 
-            // ✅ Register with registry
-            BallRegistry.Register(merged);
+            // ✅ Trigger subtle haptic with cooldown
+            TryHapticOnMerge();
 
-            // ✅ Scoring logic
-            var currentLevel = MergeLevelManager.GetCurrentLevel();
-            int mergedLevel = a.Level;
-            int score = currentLevel.scores?.Find(s => s.level == mergedLevel)?.score
-                        ?? FirebaseInitializer.BaseMergeScore;
+            int score = MergeLevelManager.GetCurrentLevel().scores
+                ?.Find(s => s.level == a.Level)?.score
+                ?? FirebaseInitializer.BaseMergeScore;
 
-            BallEventManager.RaiseMergeScore(spawnPos, score, level: mergedLevel);
+            BallEventManager.RaiseMergeScore(spawnPos, score, level: a.Level);
             ParticleEvents.Request("merge", spawnPos);
-
-            //Debug.Log($"✅ Merged level {a.Level} '{a.Type}' → level {nextLevel} at {spawnPos} → +{score} points");
         }
 
         return true;
     }
+
 
     private static bool CanMerge(BallInfo a, BallInfo b, out string reason)
     {
@@ -124,14 +152,20 @@ public class MergeCore
 
     private static GameObject GetInstanceRoot(BallInfo info)
     {
-        var cdc = info.GetComponentInParent<CircleDropController>(true);
-        return cdc != null ? cdc.gameObject : info.gameObject;
+        return info.Controller != null ? info.Controller.gameObject : info.gameObject;
     }
 
-    private static string FormatBall(BallInfo b)
+    private static void TryHapticOnMerge()
     {
-        if (b == null) return "null";
+        if (!MOST_HapticFeedback.HapticsEnabled)
+            return;
 
-        return $"[{b.Type} | Lvl {b.Level} | Pos {b.transform.position} | Merging: {b.IsMerging} | Ready: {b.IsMergeReady}]";
+        float time = Time.unscaledTime;
+
+        if (time - lastHapticTime >= hapticCooldown)
+        {
+            MOST_HapticFeedback.Generate(MOST_HapticFeedback.HapticTypes.LightImpact);
+            lastHapticTime = time;
+        }
     }
 }

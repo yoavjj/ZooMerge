@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using static BallFactoryAddressables;
 
 public class BallSpawner : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class BallSpawner : MonoBehaviour
 
     [SerializeField] private float previewScale = 1.0f; // constant scale for all previews
 
+    private SpawnedBall previewBall;
 
     private GameObject previewGo;
     private BallSet.Entry queuedEntry;
@@ -21,6 +23,7 @@ public class BallSpawner : MonoBehaviour
     {
         PrepareNextPreview();
         PromotePreviewToActive(null);
+        PrepareNextPreview();
     }
 
 
@@ -33,7 +36,11 @@ public class BallSpawner : MonoBehaviour
     private void PrepareNextPreview()
     {
         // clear leftover preview
-        if (previewGo != null) { BallFactoryAddressables.Instance.Despawn(previewGo); previewGo = null; }
+        if (previewGo != null)
+        {
+            BallFactoryAddressables.Instance.Despawn(previewGo);
+            previewGo = null;
+        }
 
         if (picker != null && picker.TryPickRandomEntry(out var entry, out lastPickWhy))
             queuedEntry = entry;
@@ -42,24 +49,19 @@ public class BallSpawner : MonoBehaviour
 
         if (queuedEntry == null || previewContainer == null) return;
 
-        // spawn under preview container
         var pos = previewContainer.position;
-        var info = BallFactoryAddressables.Instance.SpawnEntry(queuedEntry, pos, previewContainer);
-        previewGo = info != null ? info.gameObject : null;
+
+        // 🔁 Use SpawnEntryWithRefs
+        previewBall = BallFactoryAddressables.Instance.SpawnEntryWithRefs(queuedEntry, pos, previewContainer);
+        previewGo = previewBall.root;
 
         if (previewGo != null)
         {
-            SetPreviewMode(previewGo, true);
-
-            // 🔹 override to preview scale
+            SetPreviewMode(previewBall, true);
             previewGo.transform.localScale = Vector3.one * previewScale;
 
-            // 🔹 play the non-merge intro on the preview
-            var anim = previewGo.GetComponentInChildren<Animator>(true);
-            if (anim != null)
-            {
-                anim.SetTrigger("New");
-            }
+            // 🔁 Trigger "New" using cached animator
+            previewBall.animator?.SetTrigger("New");
         }
     }
 
@@ -74,71 +76,93 @@ public class BallSpawner : MonoBehaviour
         if (!CanSpawnActiveBall())
             return;
 
-        // fallback if preview missing
-        if (previewGo == null || queuedEntry == null)
+        if (!previewBall.IsValid || queuedEntry == null)
         {
-            Debug.LogWarning("PromotePreviewToActive: Missing previewGo or queuedEntry. Using fallback.");
-            SpawnCircleInternal(overrideX); // legacy path
+            Debug.LogWarning("PromotePreviewToActive: Invalid preview. Using fallback.");
+            SpawnCircleInternal(overrideX);
             return;
         }
 
-        var ballInfo = previewGo.GetComponentInChildren<BallInfo>(true);
-        if (ballInfo != null)
-        {
-            // Reapply full-scale setup
-            float scale = picker.GetScaleForEntry(queuedEntry);
-            previewGo.transform.localScale = Vector3.one * scale;
-        }
-        else
-        {
-            Debug.LogWarning("[PromotePreviewToActive] No BallInfo found in previewGo.");
-        }
+        // 🔁 Scale correctly
+        float scale = picker.GetScaleForEntry(queuedEntry);
+        previewGo.transform.localScale = Vector3.one * scale;
 
-        // wake preview to become the active, draggable ball
-        SetPreviewMode(previewGo, false);
+        SetPreviewMode(previewBall, false);
 
-        // move to spawn position and parent under the actual spawn container
+        // Move to active spawn position
         var pos = spawnPoint != null ? spawnPoint.position : transform.position;
         if (overrideX.HasValue) pos.x = overrideX.Value;
-
         previewGo.transform.position = pos;
 
+        // Set as active under input
         var spawnContainer = CircleDragInput.Instance?.spawnContainer;
         if (spawnContainer != null)
             previewGo.transform.SetParent(spawnContainer, worldPositionStays: true);
 
-        // 🔹 Play Hover animation on transition to active
-        var hoverAnim = previewGo.GetComponentInChildren<Animator>(true);
-        if (hoverAnim != null)
+        // 🔁 Use cached animator
+        var anim = previewBall.animator;
+        if (anim != null)
         {
-            hoverAnim.ResetTrigger("Merged");
-            hoverAnim.ResetTrigger("New");
-            hoverAnim.SetTrigger("Hover");
+            anim.ResetTrigger("Merged");
+            anim.ResetTrigger("New");
+            anim.SetTrigger("Hover");
         }
 
-        // register with input + play intro
-        var controller = previewGo.GetComponentInChildren<CircleDropController>();
+        // 🔁 Use cached controller
+        var controller = previewBall.controller;
         if (controller != null)
         {
-            controller.PrepareForDrag();                   // ensure kinematic for drag
+            controller.PrepareForDrag();
             CircleDragInput.Instance?.SetActiveBall(controller);
             controller.PlayIntroNew();
         }
 
-        // consume this preview
+        // Clear references
         previewGo = null;
+        previewBall = default;
         queuedEntry = null;
     }
 
-    private void SetPreviewMode(GameObject go, bool on)
+    private void SetPreviewMode(SpawnedBall ball, bool on)
     {
-        // Disable physics + collisions for preview
-        foreach (var rb2 in go.GetComponentsInChildren<Rigidbody2D>(true))
-            rb2.simulated = !on;
+        // Unity Physics
+        if (ball.allRigidbodies != null)
+        {
+            foreach (var rb2 in ball.allRigidbodies)
+                rb2.simulated = !on;
+        }
 
-        foreach (var col in go.GetComponentsInChildren<Collider2D>(true))
-            col.enabled = !on;
+        if (ball.allColliders != null)
+        {
+            foreach (var col in ball.allColliders)
+                col.enabled = !on;
+        }
 
+        // ✅ Spine Physics Constraints
+        if (ball.controller != null && ball.controller.Spine != null)
+        {
+            var skeleton = ball.controller.Spine.Skeleton;
+
+            if (skeleton != null && skeleton.PhysicsConstraints != null)
+            {
+                for (int i = 0; i < skeleton.PhysicsConstraints.Count; i++)
+                {
+                    var constraint = skeleton.PhysicsConstraints.Items[i];
+
+                    // Save original mix maybe?
+                    if (on)
+                    {
+                        // entering preview mode → freeze
+                        constraint.Mix = 0f;
+                    }
+                    else
+                    {
+                        // leaving preview → restore full physics
+                        constraint.Mix = 1f;
+                    }
+                }
+            }
+        }
     }
 
     // ---------- legacy spawn (used as fallback) ----------
@@ -149,36 +173,39 @@ public class BallSpawner : MonoBehaviour
     private void SpawnCircleInternal(float? overrideX)
     {
         if (!CanSpawnActiveBall()) return;
-        if (instantiator == null) { Debug.LogError("BallSpawner: No AddressableInstantiator assigned!"); return; }
+        if (instantiator == null)
+        {
+            Debug.LogError("BallSpawner: No AddressableInstantiator assigned!");
+            return;
+        }
 
         var pos = spawnPoint != null ? spawnPoint.position : transform.position;
         if (overrideX.HasValue) pos.x = overrideX.Value;
 
-        BallInfo info = null;
+        SpawnedBall spawned;
 
         if (picker != null && picker.TryPickRandomEntry(out var entry, out lastPickWhy))
-            info = BallFactoryAddressables.Instance.SpawnEntry(entry, pos, CircleDragInput.Instance?.spawnContainer);
+        {
+            spawned = BallFactoryAddressables.Instance.SpawnEntryWithRefs(entry, pos, CircleDragInput.Instance?.spawnContainer);
+        }
         else
-            info = BallFactoryAddressables.Instance.SpawnLevel(BallType.Bug, 0, pos, CircleDragInput.Instance?.spawnContainer);
-
-        GameObject go = info != null ? info.gameObject : null;
+        {
+            spawned = BallFactoryAddressables.Instance.SpawnEntryWithRefs(
+                new BallSet.Entry { type = BallType.Bug, level = 0 }, pos, CircleDragInput.Instance?.spawnContainer);
+        }
 
 #if UNITY_EDITOR
-        if (go == null)
+        if (!spawned.IsValid)
         {
             var msg = string.IsNullOrEmpty(lastPickWhy) ? "Picker returned null." : lastPickWhy;
             Debug.LogWarning($"BallSpawner: {msg} Falling back to default _ballPrefab.");
         }
 #endif
 
-        if (go != null)
+        if (spawned.IsValid && spawned.controller != null)
         {
-            var controller = go.GetComponentInChildren<CircleDropController>();
-            if (controller != null)
-            {
-                CircleDragInput.Instance?.SetActiveBall(controller);
-                controller.PlayIntroNew();
-            }
+            CircleDragInput.Instance?.SetActiveBall(spawned.controller);
+            spawned.controller.PlayIntroNew();
         }
     }
 
