@@ -24,7 +24,12 @@ public static class PopupMessageCenter
 
         if (reason == GameOverReason.Won)
         {
-            popup.ApplyProgressAdvance(toLevelEnd: true);
+            popup.ApplyProgressAdvance(toLevelEnd: true); // ✅ animate forward
+        }
+        else if (reason == GameOverReason.Lost)
+        {
+            // ✅ Reset the bar to current state without animation
+            popup.ResetProgressBarVisuals(); // <-- we'll create this method
         }
     }
 

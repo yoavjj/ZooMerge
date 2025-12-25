@@ -9,6 +9,8 @@ public class AdManager : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log($"[DeviceID] {SystemInfo.deviceUniqueIdentifier}"); // 👈 Add this here
+
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -23,6 +25,10 @@ public class AdManager : MonoBehaviour
     private void InitAds()
     {
         Debug.Log("[AdManager] Initializing LevelPlay...");
+
+        // 🧪 Force test ads
+        LevelPlay.SetMetaData("is_test_suite", "enable");
+
         LevelPlay.OnInitSuccess += OnInitSuccess;
         LevelPlay.OnInitFailed += OnInitFailed;
         LevelPlay.Init(RemoteAdConfig.AppKey);

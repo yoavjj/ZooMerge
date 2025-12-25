@@ -110,6 +110,9 @@ public class PopupManager : MonoBehaviour
     {
         AdManager.Instance?.LoadBanner();
 
+        // ✅ Ensure no duplicate enemy exists
+        EnemySpawner.Instance?.ClearEnemy();
+
         // Clean up any hanging preview or active ball
         CircleDragInput.Instance?.ClearSpawnContainer();
 
@@ -122,11 +125,6 @@ public class PopupManager : MonoBehaviour
         if (!isNewLevel)
         {
             BallEventManager.RaiseEnemyAdvanced();
-        }
-
-        if (restartmidlevel)
-        {
-            EnemySpawner.Instance?.ClearEnemy();
         }
 
         // ✅ Save state immediately after new session starts
@@ -146,11 +144,17 @@ public class PopupManager : MonoBehaviour
         BallStateSaver.Instance.Clear();
 
         CircleDragInput.Instance?.ClearSpawnContainer(); // Clear active ball
-        BallEventManager.RaiseReturnToMainMenu(); // Destroys all balls
-        BallEventManager.RaiseResetCounters();    // Resets UI counters
-        EnemySpawner.Instance?.ClearEnemy();      // Clears current enemy
-        AdManager.Instance?.HideBanner();         // Hide ads
-        levelProgressBarSlider?.RestartVisuals(); // Reset progress bar visuals
+        BallEventManager.RaiseReturnToMainMenu();        // Destroys all balls
+        BallEventManager.RaiseResetCounters();           // Resets UI counters
+        EnemySpawner.Instance?.ClearEnemy();             // Clears current enemy
+        AdManager.Instance?.HideBanner();                // Hide ads
+
+        // ✅ Reset level progress (clears grey icons & layout)
+        if (levelProgressBarSlider != null)
+        {
+            levelProgressBarSlider.RestartVisuals();             // Reset icon animation triggers
+            MergeLevelManager.SetLevel(MergeLevelManager.CurrentLevelNumber); // Reset enemy index to 0
+        }
 
         ShowMainMenu(); // Then show main menu
     }

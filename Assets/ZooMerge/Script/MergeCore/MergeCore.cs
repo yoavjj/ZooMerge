@@ -1,3 +1,4 @@
+using Solo.MOST_IN_ONE;
 using UnityEngine;
 
 /// <summary>
@@ -8,6 +9,9 @@ public class MergeCore
 {
     private readonly IBallFactory factory;
     public MergeCore(IBallFactory factory) => this.factory = factory;
+
+    private static float lastHapticTime = -1f;
+    private const float hapticCooldown = 0.15f; // 150ms cooldown
 
     public bool TryMerge(BallInfo a, BallInfo b)
     {
@@ -88,9 +92,12 @@ public class MergeCore
             // Raise events, scoring, etc
             BallEventManager.RaiseBallMerged(merged);
 
+            // ✅ Trigger subtle haptic with cooldown
+            TryHapticOnMerge();
+
             int score = MergeLevelManager.GetCurrentLevel().scores
-                            ?.Find(s => s.level == a.Level)?.score
-                         ?? FirebaseInitializer.BaseMergeScore;
+                ?.Find(s => s.level == a.Level)?.score
+                ?? FirebaseInitializer.BaseMergeScore;
 
             BallEventManager.RaiseMergeScore(spawnPos, score, level: a.Level);
             ParticleEvents.Request("merge", spawnPos);
@@ -148,10 +155,17 @@ public class MergeCore
         return info.Controller != null ? info.Controller.gameObject : info.gameObject;
     }
 
-    private static string FormatBall(BallInfo b)
+    private static void TryHapticOnMerge()
     {
-        if (b == null) return "null";
+        if (!MOST_HapticFeedback.HapticsEnabled)
+            return;
 
-        return $"[{b.Type} | Lvl {b.Level} | Pos {b.transform.position} | Merging: {b.IsMerging} | Ready: {b.IsMergeReady}]";
+        float time = Time.unscaledTime;
+
+        if (time - lastHapticTime >= hapticCooldown)
+        {
+            MOST_HapticFeedback.Generate(MOST_HapticFeedback.HapticTypes.LightImpact);
+            lastHapticTime = time;
+        }
     }
 }

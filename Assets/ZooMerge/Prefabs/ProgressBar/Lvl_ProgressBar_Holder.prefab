@@ -223,7 +223,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -170, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 320, y: 56.9746}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &7131687515535511315
@@ -286,6 +286,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8197322402153554781}
+  - component: {fileID: 6928345418577892522}
   - component: {fileID: 6544268970517356063}
   m_Layer: 5
   m_Name: Lvl_ProgressBar_Holder
@@ -314,6 +315,25 @@ RectTransform:
   m_AnchoredPosition: {x: 260, y: 985}
   m_SizeDelta: {x: 255.6826, y: 212.9663}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &6928345418577892522
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3609232673209814969}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83ce5ec079573409db29f95f9c7d318e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIFloorAnchor
+  floor: 1
+  target: {fileID: 1812000576634822814}
+  padding: 0
+  gizmoColor: {r: 1, g: 0, b: 1, a: 1}
+  gizmoLength: 100
+  gizmoOffset: {x: -5.6, y: -40.85, z: 0}
+  gizmoRotationAngle: 90
 --- !u!114 &6544268970517356063
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -331,8 +351,7 @@ MonoBehaviour:
   ballSet: {fileID: 11400000, guid: b8da19f47f5e74b9d81a2e2d9019beff, type: 2}
   iconsContainer: {fileID: 1889656723932966484}
   lineImagePrefab: {fileID: 224739743793143532, guid: ad70f4f443f0e425a85c42a93a57f579, type: 3}
-  minWidth: 200
-  maxWidth: 600
+  iconIntroDelay: 0.1
   sliderFillArea: {fileID: 1889656723932966484}
   widthByEnemyCount:
   - enemyCount: 1
@@ -355,8 +374,11 @@ MonoBehaviour:
     width: 480
     leftPaddingOverride: 85
     rightPaddingOverride: 25
+  minWidth: 200
+  maxWidth: 600
   leftPadding: 100
   rightPadding: 25
+  floorAnchor: {fileID: 6928345418577892522}
 --- !u!1 &3806711494534200943
 GameObject:
   m_ObjectHideFlags: 0

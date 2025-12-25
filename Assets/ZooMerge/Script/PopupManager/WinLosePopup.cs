@@ -165,4 +165,12 @@ public class WinLosePopup : MonoBehaviour
             sliderAdvanceCurve
         );
     }
+
+    public void ResetProgressBarVisuals()
+    {
+        if (levelProgressBarSlider == null) return;
+
+        levelProgressBarSlider.InitializeCurrentLevel(); // rebuild visuals
+        levelProgressBarSlider.SyncIconsToCurrentProgress(includeCurrent: false); // keep grey state as-is
+    }
 }

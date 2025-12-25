@@ -306,7 +306,7 @@ public class CircleDropController : MonoBehaviour
 
     private IEnumerator WaitToTriggerGameOver()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(gameOverDelay);
         // ✅ Animator: Trigger "Touching"
         if (animator != null) animator.SetTrigger("Touching");
 
@@ -552,8 +552,7 @@ public class CircleDropController : MonoBehaviour
 
     private void HandleGameOverAnimation()
     {
-        float delay = Random.Range(0.05f, 0.35f);
-        StartCoroutine(PlayOutAnimationAfterDelay(delay));
+        StartCoroutine(PlayOutAnimationAfterDelay(gameOverDelay));
     }
 
     public IEnumerator PlayOutAnimationAfterDelay(float delay)

@@ -3,15 +3,6 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
-[System.Serializable]
-public struct CountWidth
-{
-    public int enemyCount;
-    public float width;
-    public float leftPaddingOverride;  // Set to -1 to use default
-    public float rightPaddingOverride; // Set to -1 to use default
-}
-
 public class LevelProgressBarSlider : MonoBehaviour
 {
     [Header("Refs")]
@@ -24,45 +15,53 @@ public class LevelProgressBarSlider : MonoBehaviour
     [SerializeField] private GameObject lineImagePrefab;   // tick line prefab (between enemies)
 
     [Header("Sizing")]
-    [SerializeField] private float minWidth = 200f;
-    [SerializeField] private float maxWidth = 600f;
     [SerializeField] private RectTransform sliderFillArea; // Assign in inspector (Slider > Fill Area)
     private float finalLineXPos = 0f; // dynamically calculated
-
-    // Optional: override width per enemy count (exact control per count)
-    [Header("Width per enemy count (optional)")]
-    [SerializeField]
-    private CountWidth[] widthByEnemyCount = new CountWidth[] {
-    new CountWidth{ enemyCount = 1, width = 300, leftPaddingOverride = 48f, rightPaddingOverride = 48f },
-    new CountWidth{ enemyCount = 2, width = 360, leftPaddingOverride = 40f, rightPaddingOverride = 40f },
-    new CountWidth{ enemyCount = 3, width = 420, leftPaddingOverride = -1, rightPaddingOverride = -1 }, // uses default
-    new CountWidth{ enemyCount = 4, width = 480, leftPaddingOverride = 20f, rightPaddingOverride = 20f },
-};
-
-    [Header("Layout")]
+    [SerializeField] private CountWidth[] widthByEnemyCount;
+    [SerializeField] private float minWidth = 200f;
+    [SerializeField] private float maxWidth = 600f;
     [SerializeField] private float leftPadding = 24f;
     [SerializeField] private float rightPadding = 24f;
+
+    [Header("Layout")]
+    [SerializeField] UIFloorAnchor floorAnchor;
 
     // Static global list (order = instantiation order across all bars)
     public static readonly List<EnemyIconNode> GlobalIcons = new List<EnemyIconNode>();
 
-    // Per-instance ordered icons for THIS bar
-    private readonly List<EnemyIconNode> _icons = new List<EnemyIconNode>();
-
     // Build-time static context so icons can self-register without GetComponent
     private static LevelProgressBarSlider _buildingOwner;
     private static int _buildingIndex;
-    private Coroutine sliderAnimRoutine;
     private Coroutine advanceRoutine;
 
     private int _lastLevelNumber = -1;
     private int _lastEnemyCount = -1;
 
+    private EnemyProgressConfig config;
+    private EnemyIconController iconController = new();
+    private SliderAnimator sliderAnimator;
+    private EnemyStripBuilder stripBuilder;
+
+
     [ContextMenu("Initialize Current Level")]
-    public void InitializeCurrentLevel()
+
+    private void Start()
+    {
+        config = new EnemyProgressConfig(widthByEnemyCount, minWidth, maxWidth, leftPadding, rightPadding);
+        stripBuilder = new EnemyStripBuilder(iconsContainer, lineImagePrefab, ballSet);
+        sliderAnimator = new SliderAnimator(slider, this);
+    }
+
+    public void InitializeCurrentLevel(bool skipSliderSet = false)
     {
         if (slider == null) slider = GetComponent<Slider>();
         if (widthTarget == null) widthTarget = GetComponent<RectTransform>();
+        if (config == null)
+            config = new EnemyProgressConfig(widthByEnemyCount, minWidth, maxWidth, leftPadding, rightPadding);
+        if (stripBuilder == null)
+            stripBuilder = new EnemyStripBuilder(iconsContainer, lineImagePrefab, ballSet);
+        if (sliderAnimator == null)
+            sliderAnimator = new SliderAnimator(slider, this);
         if (slider == null || widthTarget == null) return;
 
         int currentLevel = MergeLevelManager.CurrentLevelNumber;
@@ -74,15 +73,51 @@ public class LevelProgressBarSlider : MonoBehaviour
         slider.wholeNumbers = false;
         slider.minValue = 0f;
         slider.maxValue = Mathf.Max(1, totalEnemies);
-        slider.value = Mathf.Clamp(currentIndex, slider.minValue, slider.maxValue);
+        if (!skipSliderSet)
+        {
+            slider.value = Mathf.Clamp(currentIndex, slider.minValue, slider.maxValue);
+        }
 
-        float targetW = GetWidthForCount(totalEnemies);
+        float targetW = config.GetWidth(totalEnemies);
         widthTarget.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, targetW);
 
         if (needsRebuild)
         {
             Debug.Log($"[ProgressBar] Rebuilding layout for Level {currentLevel} with {totalEnemies} enemies.");
-            BuildEnemyStrip();
+            var level = MergeLevelManager.GetCurrentLevel();
+
+            if (level == null)
+            {
+                Debug.LogWarning("[ProgressBar] GetCurrentLevel() returned null. Skipping strip build.");
+                return;
+            }
+
+            if (stripBuilder == null)
+                stripBuilder = new EnemyStripBuilder(iconsContainer, lineImagePrefab, ballSet);
+
+            // ✅ Clear all existing child GameObjects before building
+            foreach (Transform child in iconsContainer)
+            {
+                Destroy(child.gameObject);
+            }
+
+            RestartVisuals(); // Reset visuals like checkmarks if needed
+
+            stripBuilder.Build(
+                iconController.GetRawList(),
+                config,
+                widthTarget.rect.width,
+                level.enemy_data,
+                i =>
+                {
+                    _buildingOwner = this;
+                    _buildingIndex = i;
+                },
+                out finalLineXPos
+            );
+
+            _buildingOwner = null;
+            _buildingIndex = -1;
             StartCoroutine(AdjustFillAfterLayout());
 
             _lastLevelNumber = currentLevel;
@@ -111,101 +146,10 @@ public class LevelProgressBarSlider : MonoBehaviour
         sliderFillArea.anchorMax = new Vector2(normalizedFillX, 1f);
         sliderFillArea.offsetMin = Vector2.zero;
         sliderFillArea.offsetMax = Vector2.zero;
-    }
 
-    private float GetWidthForCount(int count)
-    {
-        // if mapping provided, use it
-        for (int i = 0; i < widthByEnemyCount.Length; i++)
-            if (widthByEnemyCount[i].enemyCount == count)
-                return Mathf.Clamp(widthByEnemyCount[i].width, minWidth, maxWidth);
-
-        // fallback: spread nicely between min/max
-        if (count <= 1) return Mathf.Clamp((minWidth + maxWidth) * 0.5f, minWidth, maxWidth);
-        float t = Mathf.InverseLerp(2, 6, Mathf.Clamp(count, 2, 6)); // tweakable range
-        float w = Mathf.Lerp(minWidth, maxWidth, t);
-        return Mathf.Clamp(w, minWidth, maxWidth);
-    }
-
-    private void BuildEnemyStrip()
-    {
-        if (iconsContainer == null)
-        {
-            Debug.LogWarning("[LevelProgressBarSlider] Missing iconsContainer.");
-            return;
-        }
-
-        // clear old children
-        for (int i = iconsContainer.childCount - 1; i >= 0; i--)
-        {
-            var child = iconsContainer.GetChild(i);
-#if UNITY_EDITOR
-            if (!Application.isPlaying) DestroyImmediate(child.gameObject);
-            else
-#endif
-                Destroy(child.gameObject);
-        }
-        _icons.Clear();
-
-        var level = MergeLevelManager.GetCurrentLevel();
-        var enemyList = level.enemy_data;
-        if (enemyList == null || enemyList.Count == 0) return;
-
-        int total = enemyList.Count;
-
-        // make sure widths line up
-        iconsContainer.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, widthTarget.rect.width);
-
-        // (optional) rebuild so rects have valid sizes this frame
-        // LayoutRebuilder.ForceRebuildLayoutImmediate(widthTarget);
-
-        GetPaddingForCount(total, out float effectiveLeftPadding, out float effectiveRightPadding);
-
-        float containerWidth = widthTarget.rect.width;
-        float usableW = Mathf.Max(0f, containerWidth - effectiveLeftPadding - effectiveRightPadding);
-
-        // allow EnemyIconNode self-register
-        _buildingOwner = this;
-
-        float spacing = usableW / (enemyList.Count * 2 - 1);
-
-        for (int i = 0; i < enemyList.Count; i++)
-        {
-            int enemyId = enemyList[i].id;
-            var iconPrefab = ballSet != null ? ballSet.GetEnemyIconPrefabById(enemyId.ToString()) : null;
-
-            if (iconPrefab != null)
-            {
-                _buildingIndex = i;
-                var iconGO = Instantiate(iconPrefab, iconsContainer);
-                float xIcon = effectiveLeftPadding + spacing * (i * 2);
-                Place((RectTransform)iconGO.transform, xIcon);
-            }
-
-            // place line AFTER the icon, if not the last
-            bool hasNext = (i < enemyList.Count - 1);
-            if (hasNext && lineImagePrefab != null)
-            {
-                var lineGO = Instantiate(lineImagePrefab, iconsContainer);
-                float xLine = effectiveLeftPadding + spacing * (i * 2 + 1);
-                Place((RectTransform)lineGO.transform, xLine);
-
-                if (i == enemyList.Count - 2) // This is the final line
-                {
-                    finalLineXPos = xLine;
-                }
-            }
-        }
-
-        _buildingOwner = null;
-        _buildingIndex = -1;
-    }
-
-    private static void Place(RectTransform rt, float x)
-    {
-        rt.anchorMin = rt.anchorMax = new Vector2(0f, 0.5f);
-        rt.pivot = new Vector2(0.5f, 0.5f);
-        rt.anchoredPosition = new Vector2(x, 0f);
+        // ✅ Align after layout is done
+        if (floorAnchor != null)
+            floorAnchor.AlignNow();
     }
 
     // === EnemyIcon registry (no GetComponent) ===
@@ -213,108 +157,23 @@ public class LevelProgressBarSlider : MonoBehaviour
     {
         if (_buildingOwner == null || node == null) return;
 
-        var list = _buildingOwner._icons;
-        int index = Mathf.Clamp(_buildingIndex, 0, list.Count);
-        if (index == list.Count) list.Add(node);
-        else list.Insert(index, node);
-
+        _buildingOwner.iconController.Add(node);
         GlobalIcons.Add(node);
-    }
-
-    public void MarkEnemyDone(int index)
-    {
-        if (index < 0 || index >= _icons.Count)
-        {
-            Debug.LogWarning($"[MarkEnemyDone] Invalid index {index}");
-            return;
-        }
-
-        //Debug.Log($"[MarkEnemyDone] Calling TriggerGrey on index {index} at {Time.time:F2}");
-        _icons[index]?.TriggerGrey();
-    }
-
-    private void OnGameOver(BallInfo info, BallEventManager.GameOverReason reason)
-    {
-        if (reason == BallEventManager.GameOverReason.Won)
-        {
-            for (int i = 0; i < _icons.Count; i++)
-                _icons[i]?.TriggerGrey();
-            slider.value = slider.maxValue;
-        }
-    }
-
-    public void AnimateSliderTo(float targetValue, float duration, AnimationCurve curve = null)
-    {
-        if (slider == null) return;
-        if (sliderAnimRoutine != null) StopCoroutine(sliderAnimRoutine);
-        sliderAnimRoutine = StartCoroutine(AnimateSliderRoutine(targetValue, duration, curve));
-    }
-
-    private IEnumerator AnimateSliderRoutine(float target, float duration, AnimationCurve curve)
-    {
-        float start = slider.value;
-
-        if (duration <= 0f)
-        {
-            slider.value = target;
-            sliderAnimRoutine = null;
-            yield break;
-        }
-
-        var ease = curve ?? AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-        float t = 0f;
-
-        while (t < 1f)
-        {
-            t += Time.deltaTime / duration;
-            float k = ease.Evaluate(Mathf.Clamp01(t));
-            slider.value = Mathf.Lerp(start, target, k);
-            yield return null;
-        }
-
-        slider.value = target;
-        sliderAnimRoutine = null;
-    }
-
-    public void PrepareMidLevelAnimationStartAtPrevIndex()
-    {
-        int total = MergeLevelManager.TotalEnemiesInLevel;
-        int nextIndex = Mathf.Clamp(MergeLevelManager.CurrentEnemyIndex, 0, total);
-        float startIndex = Mathf.Clamp(nextIndex - 1f, slider.minValue, slider.maxValue);
-        slider.value = startIndex;
     }
 
     public void SyncIconsToCurrentProgress(bool includeCurrent = false)
     {
-        int totalIcons = _icons.Count;
-        int current = Mathf.Clamp(MergeLevelManager.CurrentEnemyIndex, 0, totalIcons);
-
-        int lastToGrey = includeCurrent ? current : current - 1;
-        for (int i = 0; i <= lastToGrey; i++)
-        {
-            if (i >= 0 && i < totalIcons)
-                _icons[i]?.TriggerGrey();
-        }
-
-        // Ensure slider shows the current progress tick
-        if (slider != null)
-            slider.value = Mathf.Clamp(current, slider.minValue, slider.maxValue);
+        int current = Mathf.Clamp(MergeLevelManager.CurrentEnemyIndex, 0, iconController.Icons.Count);
+        iconController.SyncToIndex(current, includeCurrent);
+        sliderAnimator?.SetInstant(current);
     }
 
     public void SetSliderInstant(float value)
     {
-        if (slider == null) return;
-        slider.value = Mathf.Clamp(value, slider.minValue, slider.maxValue);
+        sliderAnimator?.SetInstant(value);
     }
-    public void MarkRangeDoneInclusive(int from, int to)
-    {
-        if (_icons.Count == 0) return;
-        if (from > to) return;
-        int a = Mathf.Clamp(from, 0, _icons.Count - 1);
-        int b = Mathf.Clamp(to, 0, _icons.Count - 1);
-        for (int i = a; i <= b; i++)
-            _icons[i]?.TriggerDone();
-    }
+
+    public void MarkRangeDoneInclusive(int from, int to) => iconController.MarkRangeDoneInclusive(from, to);
 
     public void PlayAdvanceAnimationFromPopup(bool toLevelEnd, float delay, float duration, AnimationCurve curve)
     {
@@ -322,7 +181,6 @@ public class LevelProgressBarSlider : MonoBehaviour
         advanceRoutine = StartCoroutine(AdvanceRoutine(toLevelEnd, delay, duration, curve));
     }
 
-    // ADD this routine (moved logic from WinLosePopup)
     private IEnumerator AdvanceRoutine(bool toLevelEnd, float delay, float duration, AnimationCurve curve)
     {
         // 1) Build bar for current state
@@ -350,57 +208,37 @@ public class LevelProgressBarSlider : MonoBehaviour
         }
         else
         {
-            // --- MID-LEVEL ADVANCE ---
-            PrepareMidLevelAnimationStartAtPrevIndex();
+            // MID-LEVEL ADVANCE
 
-            if (delay > 0f) yield return new WaitForSeconds(delay);
+            int nextIndex = Mathf.Clamp(MergeLevelManager.CurrentEnemyIndex, 0, total);
+            int previousIndex = Mathf.Max(0, nextIndex - 1);
 
-            int nextIndex = Mathf.Clamp(current, 0, total);
+            // 1️⃣ Upgrade ALL previous greys to DONE (no delay)
+            iconController.UpgradePreviousToDone(previousIndex);
 
-            //Debug.Log($"[AdvanceRoutine] Waiting for delay {delay} before TriggerGrey + Animate, time = {Time.time:F2}");
-            if (delay > 0f) yield return new WaitForSeconds(delay);
+            // 2️⃣ Slider starts at previous index
+            SetSliderInstant(previousIndex);
 
-            // Trigger grey
-            int defeatedIndex = Mathf.Clamp(nextIndex - 1, 0, _icons.Count - 1);
-            MarkEnemyDone(defeatedIndex);
+            // 3️⃣ Wait for delay
+            if (delay > 0f)
+                yield return new WaitForSeconds(delay);
 
-            // Animate slider
+            // 4️⃣ Newly defeated enemy becomes GREY
+            MarkEnemyDone(previousIndex);
+
+            // 5️⃣ Animate slider forward
             AnimateSliderTo(nextIndex, duration, curve);
         }
 
         advanceRoutine = null;
     }
 
-    private void GetPaddingForCount(int count, out float left, out float right)
-    {
-        // Default to current serialized values
-        left = leftPadding;
-        right = rightPadding;
+    public void MarkEnemyDone(int index) => iconController.MarkEnemyDone(index);
 
-        foreach (var entry in widthByEnemyCount)
-        {
-            if (entry.enemyCount == count)
-            {
-                if (entry.leftPaddingOverride >= 0f)
-                    left = entry.leftPaddingOverride;
-                if (entry.rightPaddingOverride >= 0f)
-                    right = entry.rightPaddingOverride;
-                return;
-            }
-        }
+    public void AnimateSliderTo(float value, float duration, AnimationCurve curve = null)
+    {
+        sliderAnimator?.AnimateTo(value, duration, curve);
     }
 
-    public void RestartVisuals()
-    {
-        Debug.Log("[LevelProgressBarSlider] RestartVisuals called");
-
-        // Restart each icon (animator trigger)
-        foreach (var icon in _icons)
-        {
-            icon?.TriggerRestart();
-        }
-
-        // Reset slider to beginning
-        slider.value = slider.minValue;
-    }
+    public void RestartVisuals() => iconController.TriggerRestartAll();
 }

@@ -42,8 +42,8 @@ public class GameHealthManager : MonoBehaviour
         UpdateHealthText();
 
         BallEventManager.OnEnemyHitWithScore += OnEnemyHitWithScore;
-        BallEventManager.OnSessionStarted += ResetHealth;
-        BallEventManager.OnEnemyAdvanced += ResetHealth;
+        OnSessionStarted += ResetHealth;
+        OnEnemyAdvanced += ResetHealth;
 
         Debug.Log($"❤️ Initialized with {currentHealth} HP for Level {currentLevel.level}");
     }
@@ -51,8 +51,8 @@ public class GameHealthManager : MonoBehaviour
     private void OnDestroy()
     {
         BallEventManager.OnEnemyHitWithScore -= OnEnemyHitWithScore;
-        BallEventManager.OnSessionStarted -= ResetHealth;
-        BallEventManager.OnEnemyAdvanced -= ResetHealth;
+        OnSessionStarted -= ResetHealth;
+        OnEnemyAdvanced -= ResetHealth;
         //BallEventManager.OnEnemyAdvanced -= () => StartCoroutine(DelayedResetHealth(10f)); // or however many seconds you want
 
     }

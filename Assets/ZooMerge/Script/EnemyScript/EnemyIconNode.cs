@@ -25,8 +25,15 @@ public class EnemyIconNode : MonoBehaviour
 
     internal void TriggerRestart()
     {
-        if (animator != null)
-            animator.SetTrigger(restartTrigger);
+        if (animator == null) return;
+
+        // Reset any pending triggers to avoid state conflicts
+        animator.ResetTrigger(doneTrigger);
+        animator.ResetTrigger(greyTrigger);
+        animator.ResetTrigger(restartTrigger); // Just in case it's still queued
+
+        // Now safely set the restart trigger
+        animator.SetTrigger(restartTrigger);
     }
 
     // Self-register with whichever LevelProgressBarSlider is currently building.
