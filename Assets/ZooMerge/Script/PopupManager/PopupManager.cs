@@ -2,6 +2,7 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 using static BallEventManager;
+using UnityEngine.iOS;
 
 public class PopupManager : MonoBehaviour
 {

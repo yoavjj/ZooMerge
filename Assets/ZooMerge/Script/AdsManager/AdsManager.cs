@@ -9,7 +9,7 @@ public class AdManager : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log($"[DeviceID] {SystemInfo.deviceUniqueIdentifier}"); // 👈 Add this here
+        //Debug.Log($"[DeviceID] {SystemInfo.deviceUniqueIdentifier}");
 
         if (Instance != null && Instance != this)
         {
@@ -19,7 +19,17 @@ public class AdManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        FirebaseInitializer.WaitForFirebase(
+    onReady: () =>
+    {
+        //Debug.Log("[AdManager] Firebase ready → init ads");
         InitAds();
+    },
+    onError: error =>
+    {
+        Debug.LogError($"[AdManager] Firebase failed: {error}");
+    }
+);
     }
 
     private void InitAds()
