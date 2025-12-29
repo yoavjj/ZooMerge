@@ -57,10 +57,28 @@ public class AdManager : MonoBehaviour
 
     private void SetupBanner()
     {
-        bannerAd = new LevelPlayBannerAd(RemoteAdConfig.BannerAdUnitId);
-        bannerAd.OnAdLoaded += (info) => Debug.Log("[AdManager] Banner Loaded");
-        bannerAd.OnAdLoadFailed += (error) => Debug.LogError($"[AdManager] Banner Load Failed: {error}");
+        var config = new LevelPlayBannerAd.Config.Builder()
+            .SetPosition(LevelPlayBannerPosition.BottomCenter)
+            .SetRespectSafeArea(false)   // 🔥 THIS moves it lower
+            .SetDisplayOnLoad(true)
+            .Build();
+
+        bannerAd = new LevelPlayBannerAd(
+            RemoteAdConfig.BannerAdUnitId,
+            config
+        );
+
+        bannerAd.OnAdLoaded += info =>
+        {
+            Debug.Log("[AdManager] Banner Loaded");
+        };
+
+        bannerAd.OnAdLoadFailed += error =>
+        {
+            Debug.LogError($"[AdManager] Banner Load Failed: {error}");
+        };
     }
+
 
     public void LoadBanner()
     {
