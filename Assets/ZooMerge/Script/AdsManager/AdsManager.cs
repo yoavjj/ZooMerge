@@ -59,7 +59,7 @@ public class AdManager : MonoBehaviour
     {
         var config = new LevelPlayBannerAd.Config.Builder()
             .SetPosition(LevelPlayBannerPosition.BottomCenter)
-            .SetRespectSafeArea(false)   // 🔥 THIS moves it lower
+            .SetRespectSafeArea(true)
             .SetDisplayOnLoad(true)
             .Build();
 
