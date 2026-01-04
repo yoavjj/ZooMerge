@@ -3,9 +3,22 @@ using TMPro;
 using UnityEngine;
 using static BallEventManager;
 
+public interface IWinLoseContent
+{
+    Animator Animator { get; }
+    void OnShown();
+}
+
 public class WinLosePopup : MonoBehaviour
 {
     public static WinLosePopup Instance { get; private set; }
+
+    [Header("Content Variants")]
+    [SerializeField] private Transform contentRoot;
+    [SerializeField] private GameObject winContentPrefab;
+    [SerializeField] private GameObject loseContentPrefab;
+
+    private IWinLoseContent activeContent;
 
     [Header("UI Refs")]
     [SerializeField] private TextMeshProUGUI messageText;
@@ -50,6 +63,13 @@ public class WinLosePopup : MonoBehaviour
 
         currentReason = reason;
 
+        BuildContent(reason);
+
+        if (animator != null)
+        {
+            animator.SetTrigger(reason == GameOverReason.Won ? "Win" : "Lose");
+        }
+
         switch (reason)
         {
             case GameOverReason.Won:
@@ -59,7 +79,7 @@ public class WinLosePopup : MonoBehaviour
 
             case GameOverReason.Lost:
                 levelMessageText.text = $"Try Again: Level {currentLevel}";
-                playButtonText.text = $"Restart Level {currentLevel}";
+                playButtonText.text = "Retry";
                 break;
 
             default:
@@ -67,6 +87,27 @@ public class WinLosePopup : MonoBehaviour
                 playButtonText.text = $"Play Level {currentLevel}";
                 break;
         }
+    }
+
+    private void BuildContent(GameOverReason reason)
+    {
+        // Clear previous content
+        if (contentRoot.childCount > 0)
+        {
+            for (int i = contentRoot.childCount - 1; i >= 0; i--)
+                Destroy(contentRoot.GetChild(i).gameObject);
+        }
+
+        GameObject prefabToSpawn = reason == GameOverReason.Won
+            ? winContentPrefab
+            : loseContentPrefab;
+
+        var instance = Instantiate(prefabToSpawn, contentRoot);
+
+        // IMPORTANT: no GetComponent
+        activeContent = instance.GetComponent<IWinLoseContent>();
+
+        activeContent?.OnShown();
     }
 
     public void ShowContinueOption()
@@ -107,8 +148,22 @@ public class WinLosePopup : MonoBehaviour
         // Initialize the progress bar on the PopupManager's slider
         PopupManager.Instance?.InitializeProgressBarNow();
 
+        PlayContentOut();
+
         animator.SetTrigger("Out");
         Destroy(gameObject, 1.5f);
+    }
+
+    public void PlayContentOut()
+    {
+        if (activeContent == null)
+            return;
+
+        var anim = activeContent.Animator;
+        if (anim != null)
+        {
+            anim.SetTrigger("Out");
+        }
     }
 
     public void SetTemporaryMessage()
@@ -129,7 +184,7 @@ public class WinLosePopup : MonoBehaviour
     private void SetContinueMessageAfterFailure()
     {
         if (playButtonText != null)
-            playButtonText.text = "Continue";
+            playButtonText.text = "Retry";
 
         if (levelMessageText != null)
         {
