@@ -18,6 +18,9 @@ public class WinLosePopup : MonoBehaviour
     [SerializeField] private GameObject winContentPrefab;
     [SerializeField] private GameObject loseContentPrefab;
 
+    [Header("Merge Summary")]
+    [SerializeField] private MergeSummaryPanel mergeSummaryPanel;
+
     private IWinLoseContent activeContent;
 
     [Header("UI Refs")]
@@ -70,11 +73,18 @@ public class WinLosePopup : MonoBehaviour
             animator.SetTrigger(reason == GameOverReason.Won ? "Win" : "Lose");
         }
 
+        // Build merge summary
+        if (mergeSummaryPanel != null && MergeSessionTracker.Instance != null)
+        {
+            var snapshot = MergeSessionTracker.Instance.GetCurrentSnapshot();
+            mergeSummaryPanel.Build(snapshot);
+        }
+
         switch (reason)
         {
             case GameOverReason.Won:
                 levelMessageText.text = $"Level {currentLevel} Complete!\nNext: Level {currentLevel + 1}";
-                playButtonText.text = $"Next Level {currentLevel + 1}";
+                playButtonText.text = $"Level {currentLevel + 1}";
                 break;
 
             case GameOverReason.Lost:
@@ -84,7 +94,7 @@ public class WinLosePopup : MonoBehaviour
 
             default:
                 levelMessageText.text = $"Level {currentLevel}";
-                playButtonText.text = $"Play Level {currentLevel}";
+                playButtonText.text = $"Level {currentLevel}";
                 break;
         }
     }

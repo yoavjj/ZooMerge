@@ -109,6 +109,9 @@ public class PopupManager : MonoBehaviour
 
     public void BeginSession(bool isNewLevel, bool restartmidlevel = false)
     {
+        // 🔒 LOCK INPUT during session setup
+        CircleDragInput.Instance?.DisableInput();
+
         AdManager.Instance?.LoadBanner();
 
         // ✅ Ensure no duplicate enemy exists
@@ -138,6 +141,9 @@ public class PopupManager : MonoBehaviour
     {
         yield return null; // wait one frame (UI, layout, etc.)
         CircleDragInput.Instance?.spawner?.PromoteFromPreview();
+
+        // 🔓 SAFE TO ENABLE INPUT NOW
+        CircleDragInput.Instance?.EnableInput();
     }
 
     public void ConfirmReturnToMainMenu()

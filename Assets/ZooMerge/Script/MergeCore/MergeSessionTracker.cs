@@ -136,6 +136,17 @@ public class MergeSessionTracker : MonoBehaviour
                   string.Join(", ", snapshots.ConvertAll(s => $"{s.type}={s.count}")));
     }
 
+    public List<MergeCounterSnapshot> GetCurrentSnapshot()
+    {
+        return SaveCounterState();
+    }
+
+    public Sprite GetIconForType(BallType type)
+    {
+        var config = typeConfigs.Find(c => c.type == type);
+        return config != null ? config.icon : null;
+    }
+
     public void ResetCounters()
     {
         foreach (var item in counters.Values)

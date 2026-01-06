@@ -28,6 +28,9 @@ public class CircleDragInput : MonoBehaviour,
     [SerializeField] private float minPressTimeBeforeDrop = 0.05f; // seconds
     private DragSmoother dragSmoother = new DragSmoother(0.05f);
 
+    private bool hasMovedSincePointerDown;
+    private float pointerDownX;
+
     [Header("Spawn Settings")]
     [SerializeField] private float spawnDelay = 0.5f; // seconds between drop and next spawn
     [SerializeField] private Transform entryAnchor;   // move this up/down in Scene view
@@ -46,6 +49,7 @@ public class CircleDragInput : MonoBehaviour,
     private int pointerDownFrame;
     private int activePointerId = int.MinValue;
     private bool spawnedAfterThisPress;
+    private bool inputEnabled = true;
 
     // Bounds cache
     private float cachedMinX;
@@ -156,6 +160,7 @@ public class CircleDragInput : MonoBehaviour,
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (!inputEnabled) return;
         if (isSpawnCooldown) return;
 
         // 🔹 Check if pointer is inside buffer zone (optional early return)
@@ -177,19 +182,26 @@ public class CircleDragInput : MonoBehaviour,
         pointerDownTime = Time.unscaledTime;
         pointerDownFrame = Time.frameCount;
 
+        // ✅ NEW — reset movement tracking
+        hasMovedSincePointerDown = false;
+        pointerDownX = spawnContainer.position.x;
+
         if (!hasCachedBounds) CacheBounds();
+
+        // This may already move the container → must be tracked later
         MoveActiveBallTo(eventData.position, instant: true);
 
         // 🛸 Try casting ray from ShipRayMarker
         if (shipRayMarker != null && shipRayMarker.TryGetBallHit(out var hit))
         {
-            //Debug.Log($"🛸 Ray hit: {hit.name}");
-            // 👇 Add any visual cue or logic for ball highlight here if needed
+            // optional visuals
         }
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        if (!inputEnabled) return;
+
         if (eventData.pointerId != activePointerId) return;
 
         if (shipRayMarker != null)
@@ -200,6 +212,7 @@ public class CircleDragInput : MonoBehaviour,
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (!inputEnabled) return;
         if (isSpawnCooldown) return;
         if (eventData.pointerId != activePointerId) return;
         if (activeBall == null || !activeBall.IsDraggable()) return;
@@ -215,6 +228,11 @@ public class CircleDragInput : MonoBehaviour,
         var pos = t.position;
         pos.x = Mathf.Clamp(worldPos.x, min, max);
         t.position = new Vector3(pos.x, pos.y, t.position.z);
+
+        if (Mathf.Abs(spawnContainer.position.x - pointerDownX) > 0.01f)
+        {
+            hasMovedSincePointerDown = true;
+        }
 
         if (shipRayMarker != null)
         {
@@ -235,21 +253,34 @@ public class CircleDragInput : MonoBehaviour,
 
     public void OnPointerUp(PointerEventData eventData)
     {
+        if (!inputEnabled) return;
         if (isSpawnCooldown) return;
         if (eventData.pointerId != activePointerId) return;
 
         // Ignore if released outside the window
-        if (!IsWithinScreen(eventData.position)) { activePointerId = int.MinValue; return; }
-
-        // Ignore click-through/focus glitches
-        if (Time.frameCount == pointerDownFrame) return;
-        if (Time.unscaledTime - pointerDownTime < minPressTimeBeforeDrop) return;
+        if (!IsWithinScreen(eventData.position))
+        {
+            activePointerId = int.MinValue;
+            return;
+        }
 
         // ✨ Fade out the spotlight on release
         if (shipRayMarker != null)
         {
             shipRayMarker.DisableHighlight();           // 👈 Trigger spotlight fade-out
         }
+
+        // 🚨 FORCE DROP if movement happened
+        if (hasMovedSincePointerDown)
+        {
+            dragSmoother.Reset();
+            DropAndSpawn();
+            return;
+        }
+
+        // fallback logic (pure taps)
+        if (Time.frameCount == pointerDownFrame) return;
+        if (Time.unscaledTime - pointerDownTime < minPressTimeBeforeDrop) return;
 
         dragSmoother.Reset();
         DropAndSpawn();
@@ -282,6 +313,11 @@ public class CircleDragInput : MonoBehaviour,
         float finalX = instant ? targetX : dragSmoother.Smooth(t.position.x, targetX);
 
         t.position = new Vector3(finalX, t.position.y, t.position.z);
+
+        if (Mathf.Abs(t.position.x - pointerDownX) > 0.01f)
+        {
+            hasMovedSincePointerDown = true;
+        }
     }
 
     /// <summary>
@@ -349,6 +385,19 @@ public class CircleDragInput : MonoBehaviour,
     #endregion
 
     #region Helpers
+
+    public void DisableInput()
+    {
+        inputEnabled = false;
+        activePointerId = int.MinValue;
+        spawnedAfterThisPress = false;
+        hasMovedSincePointerDown = false;
+    }
+
+    public void EnableInput()
+    {
+        inputEnabled = true;
+    }
 
     public void ClearSpawnContainer()
     {
