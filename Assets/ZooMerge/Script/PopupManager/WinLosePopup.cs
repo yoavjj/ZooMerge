@@ -64,6 +64,13 @@ public class WinLosePopup : MonoBehaviour
     {
         if (levelMessageText == null || playButtonText == null) return;
 
+        // Build merge summary
+        if (mergeSummaryPanel != null && MergeSessionTracker.Instance != null)
+        {
+            var snapshot = MergeSessionTracker.Instance.GetCurrentSnapshot();
+            mergeSummaryPanel.Build(snapshot);
+        }
+
         currentReason = reason;
 
         BuildContent(reason);
@@ -71,13 +78,6 @@ public class WinLosePopup : MonoBehaviour
         if (animator != null)
         {
             animator.SetTrigger(reason == GameOverReason.Won ? "Win" : "Lose");
-        }
-
-        // Build merge summary
-        if (mergeSummaryPanel != null && MergeSessionTracker.Instance != null)
-        {
-            var snapshot = MergeSessionTracker.Instance.GetCurrentSnapshot();
-            mergeSummaryPanel.Build(snapshot);
         }
 
         switch (reason)

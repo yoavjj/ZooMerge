@@ -35,7 +35,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -52.35505, y: 0}
+  m_AnchoredPosition: {x: -67.1, y: 0}
   m_SizeDelta: {x: 104.7101, y: 104.71}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &3599849078736159451
@@ -110,7 +110,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 126, y: 0}
+  m_AnchoredPosition: {x: 140.7, y: 0}
   m_SizeDelta: {x: 27.138699, y: 36.615402}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3799165554334103208
@@ -143,8 +143,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 99K
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 89737338fb89a4f498b3b2b1af67f381, type: 2}
-  m_sharedMaterial: {fileID: -2801119217316714177, guid: 89737338fb89a4f498b3b2b1af67f381, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9b3d29b8e00824792bafa5fd39d85ca5, type: 2}
+  m_sharedMaterial: {fileID: 5901858186569893335, guid: 9b3d29b8e00824792bafa5fd39d85ca5, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -221,8 +221,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6994849374566267276}
+  - component: {fileID: 3083348101256583791}
   m_Layer: 5
-  m_Name: mainmenu_coin
+  m_Name: TopBarMergeItem_Prefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -245,6 +246,21 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -128, y: -109.8}
-  m_SizeDelta: {x: 26.2033, y: 53.8291}
+  m_AnchoredPosition: {x: -122.218445, y: -109.8}
+  m_SizeDelta: {x: 135, y: 53.8291}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &3083348101256583791
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7676886677413217522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c374810f09a07445dad8ec394bd1124f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TopBarItemUI
+  iconImage: {fileID: 7546218591326540690}
+  countText: {fileID: 4964547906318718153}
+  flyTarget: {fileID: 1080062009025904678}

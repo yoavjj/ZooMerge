@@ -111,7 +111,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: coins_Holder_frame/Lvl_ProgressBar_Holder
+    path: coins_Holder_frame/MergeCoin_Holder
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -127,7 +127,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: coins_Holder_frame/MergeCoin_Holder
+    path: Lvl_ProgressBar_Holder
   m_FloatCurves:
   - serializedVersion: 2
     curve:
@@ -177,7 +177,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 540
+        value: -125
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -188,7 +188,28 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_AnchoredPosition.y
-    path: coins_Holder_frame/Lvl_ProgressBar_Holder
+    path: Lvl_ProgressBar_Holder
+    classID: 224
+    script: {fileID: 0}
+    flags: 0
+  - serializedVersion: 2
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: -145
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: m_AnchoredPosition.y
+    path: CollectMergeBar_Continer
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -255,7 +276,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 3662769115
+      path: 1298411167
       attribute: 3
       script: {fileID: 0}
       typeID: 4
@@ -264,7 +285,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 1298411167
+      path: 1410399748
       attribute: 3
       script: {fileID: 0}
       typeID: 4
@@ -282,7 +303,16 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 3662769115
+      path: 1410399748
+      attribute: 538195251
+      script: {fileID: 0}
+      typeID: 224
+      customType: 28
+      isPPtrCurve: 0
+      isIntCurve: 0
+      isSerializeReferenceCurve: 0
+    - serializedVersion: 2
+      path: 1571570601
       attribute: 538195251
       script: {fileID: 0}
       typeID: 224
@@ -686,7 +716,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.x
-    path: coins_Holder_frame/Lvl_ProgressBar_Holder
+    path: coins_Holder_frame/MergeCoin_Holder
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -707,7 +737,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.y
-    path: coins_Holder_frame/Lvl_ProgressBar_Holder
+    path: coins_Holder_frame/MergeCoin_Holder
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -728,7 +758,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.z
-    path: coins_Holder_frame/Lvl_ProgressBar_Holder
+    path: coins_Holder_frame/MergeCoin_Holder
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -738,7 +768,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 540
+        value: -125
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -749,7 +779,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_AnchoredPosition.y
-    path: coins_Holder_frame/Lvl_ProgressBar_Holder
+    path: Lvl_ProgressBar_Holder
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -770,7 +800,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.x
-    path: coins_Holder_frame/MergeCoin_Holder
+    path: Lvl_ProgressBar_Holder
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -791,7 +821,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.y
-    path: coins_Holder_frame/MergeCoin_Holder
+    path: Lvl_ProgressBar_Holder
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -812,7 +842,28 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.z
-    path: coins_Holder_frame/MergeCoin_Holder
+    path: Lvl_ProgressBar_Holder
+    classID: 224
+    script: {fileID: 0}
+    flags: 0
+  - serializedVersion: 2
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: -145
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: m_AnchoredPosition.y
+    path: CollectMergeBar_Continer
     classID: 224
     script: {fileID: 0}
     flags: 0

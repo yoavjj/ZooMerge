@@ -11,8 +11,13 @@ public class MergeCounterItem : MonoBehaviour
     [SerializeField] private int minCountToAnimate = 5;
 
 
+    public BallType Type { get; private set; }
     // 👇 Stored animation request
     private int targetCount;
+    public int TargetCount => targetCount;
+    public System.Action<MergeCounterItem> OnCountAnimationFinished;
+
+
     private float countAnimDuration;
     private MonoBehaviour runner;
 
@@ -54,8 +59,12 @@ public class MergeCounterItem : MonoBehaviour
     // Called from Animation Event
     public void PlayCountAnimation()
     {
+        // ❗ If we don't animate the count, we STILL finish immediately
         if (!shouldAnimateCount)
+        {
+            OnCountAnimationFinished?.Invoke(this);
             return;
+        }
 
         if (runner == null)
         {
@@ -102,5 +111,12 @@ public class MergeCounterItem : MonoBehaviour
         }
 
         SetCount(target);
+        OnCountAnimationFinished?.Invoke(this);
+
+    }
+
+    public void SetType(BallType type)
+    {
+        Type = type;
     }
 }

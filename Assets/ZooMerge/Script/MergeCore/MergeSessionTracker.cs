@@ -84,6 +84,9 @@ public class MergeSessionTracker : MonoBehaviour
         if (!savedCounters.ContainsKey(type))
             savedCounters[type] = 0;
 
+        if (!savedCounters.ContainsKey(type))
+            savedCounters[type] = 0;
+
         savedCounters[type]++;
     }
 
@@ -177,5 +180,15 @@ public class MergeSessionTracker : MonoBehaviour
             Destroy(instance);
             return null;
         }
+    }
+
+    public List<MergeCounterUI> GetTypeConfigs()
+    {
+        return typeConfigs;
+    }
+
+    public int GetCurrentCount(BallType type)
+    {
+        return savedCounters.TryGetValue(type, out var value) ? value : 0;
     }
 }
