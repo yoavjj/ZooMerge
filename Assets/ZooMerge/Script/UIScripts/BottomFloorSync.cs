@@ -1,12 +1,25 @@
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.IMGUI.Controls;
+#endif
+
 public class BottomFloorSync : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField] private RectTransform bottomFloorUI;
 
     [Header("World")]
-    [SerializeField] private Transform worldFloor; // sprite with BoxCollider2D
+    [SerializeField] private Transform worldFloor;
+
+    [Header("Placement Settings")]
+    [Range(0f, 1f)]
+    [SerializeField] private float screenHeightPercentage = 0.1f;
+    [SerializeField] private float worldYOffset = 0f;
+
+    [Header("Debug Gizmos")]
+    [SerializeField] private bool showGizmoDebug = true;
 
     private Camera cam;
     private BoxCollider2D floorCollider;
@@ -14,7 +27,7 @@ public class BottomFloorSync : MonoBehaviour
     private void Awake()
     {
         cam = Camera.main;
-        floorCollider = worldFloor.GetComponent<BoxCollider2D>();
+        floorCollider = worldFloor?.GetComponent<BoxCollider2D>();
     }
 
     private void Start()
@@ -24,33 +37,48 @@ public class BottomFloorSync : MonoBehaviour
 
     public void Align()
     {
-        if (!bottomFloorUI || !worldFloor || !floorCollider) return;
+        if (!cam || !worldFloor || !floorCollider) return;
 
-        // 1️⃣ Get UI bottom edge in screen space
-        Vector3[] corners = new Vector3[4];
-        bottomFloorUI.GetWorldCorners(corners);
-
-        // corners[0] = bottom-left
-        // corners[3] = bottom-right
-        float uiBottomScreenY = corners[0].y;
-
-        // 2️⃣ Convert screen Y → viewport Y (0–1)
-        float viewportY = uiBottomScreenY / Screen.height;
-
-        // 3️⃣ Convert viewport Y → world Y
-        Vector3 worldPoint = cam.ViewportToWorldPoint(new Vector3(
-            0.5f,        // X doesn't matter
-            viewportY,
-            cam.nearClipPlane
-        ));
-
-        // 4️⃣ Move world floor so its TOP matches UI bottom
+        Vector3 worldPoint = cam.ViewportToWorldPoint(new Vector3(0.5f, screenHeightPercentage, cam.nearClipPlane));
         float floorTopOffset = floorCollider.bounds.extents.y;
 
         worldFloor.position = new Vector3(
             worldFloor.position.x,
-            worldPoint.y - floorTopOffset,
+            worldPoint.y - floorTopOffset + worldYOffset,
             worldFloor.position.z
         );
     }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (!showGizmoDebug) return;
+
+        if (!cam) cam = Camera.main;
+        if (!cam || !worldFloor) return;
+
+        Vector3 worldPoint = cam.ViewportToWorldPoint(new Vector3(0.5f, screenHeightPercentage, cam.nearClipPlane));
+        float y = worldPoint.y + worldYOffset;
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawLine(
+            new Vector3(worldFloor.position.x - 10f, y, 0),
+            new Vector3(worldFloor.position.x + 10f, y, 0)
+        );
+
+        Handles.color = Color.green;
+        Handles.Label(
+            new Vector3(worldFloor.position.x, y + 0.2f, 0),
+            $"Floor Y @ {(screenHeightPercentage * 100f):0}% + {worldYOffset:0.00}"
+        );
+    }
+
+    private void OnValidate()
+    {
+        if (Application.isPlaying)
+        {
+            Align();
+        }
+    }
+#endif
 }

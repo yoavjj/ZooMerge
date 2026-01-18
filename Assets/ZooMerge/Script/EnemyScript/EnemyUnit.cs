@@ -61,6 +61,8 @@ public class EnemyUnit : MonoBehaviour
             var entry = spineGraphic.AnimationState.SetAnimation(0, dieAnimation, false);
             entry.Complete += _ =>
             {
+                BallEventManager.RaiseEnemyDefeatedMidLevel(); // 🆕 Trigger session end
+
                 EnemySessionTracker.Unregister(root);
                 EnemySpawner.Instance?.NotifyEnemyDestroyed(root);
                 Destroy(this.gameObject);
@@ -68,6 +70,8 @@ public class EnemyUnit : MonoBehaviour
         }
         else
         {
+            BallEventManager.RaiseEnemyDefeatedMidLevel(); // 🆕 Trigger session end
+
             EnemySessionTracker.Unregister(root);
             EnemySpawner.Instance?.NotifyEnemyDestroyed(root);
             Destroy(this.gameObject);

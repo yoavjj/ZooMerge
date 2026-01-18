@@ -45,15 +45,14 @@ public class MergeSessionTracker : MonoBehaviour
     private void OnEnable()
     {
         BallEventManager.OnBallMerged += HandleBallMerged;
-        BallEventManager.OnResetCounters += ResetCounters;
+        BallEventManager.OnResetCounters += HandleResetCounters;
     }
 
     private void OnDisable()
     {
         BallEventManager.OnBallMerged -= HandleBallMerged;
-        BallEventManager.OnResetCounters -= ResetCounters;
+        BallEventManager.OnResetCounters -= HandleResetCounters;
     }
-
 
     private void HandleBallMerged(BallInfo merged)
     {
@@ -112,7 +111,7 @@ public class MergeSessionTracker : MonoBehaviour
     {
         isRestoring = true;     // ⛔ stop listening to merge events
 
-        ResetCounters();
+        ResetCounters(false);
         savedCounters.Clear();
 
         foreach (var snap in snapshots)
@@ -150,12 +149,27 @@ public class MergeSessionTracker : MonoBehaviour
         return config != null ? config.icon : null;
     }
 
-    public void ResetCounters()
+    private void HandleResetCounters(bool keepUI = false)
     {
-        foreach (var item in counters.Values)
-            Destroy(item.gameObject);
+        ResetCounters(keepUI);
+    }
 
-        counters.Clear();
+    public void ResetCounters(bool keepUI)
+    {
+        if (!keepUI)
+        {
+            foreach (var item in counters.Values)
+                Destroy(item.gameObject);
+
+            counters.Clear();
+        }
+        else
+        {
+            // 🔄 Keep UI, reset values only
+            foreach (var item in counters.Values)
+                item.SetCount(0);
+        }
+
         savedCounters.Clear();
     }
 

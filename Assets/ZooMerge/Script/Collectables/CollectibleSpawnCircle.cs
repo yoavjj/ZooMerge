@@ -1,34 +1,53 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 [ExecuteAlways]
 public class CollectibleSpawnCircle : MonoBehaviour
 {
     [Header("Spawn Circle")]
     public float radius = 100f;
-    public int previewPointCount = 8;
+    public int spawnPointCount = 5;
     public Color gizmoColor = new Color(0f, 1f, 0f, 0.5f);
+    public bool previewInScene = true;
 
-    public Vector2 GetPointOnCircle()
+    private List<Vector2> fixedPoints = new();
+
+    /// <summary>
+    /// Call this before spawning to generate fixed, spaced points on the circle.
+    /// </summary>
+    public List<Vector2> GetFixedSpawnPoints()
     {
-        float angle = Random.Range(0f, Mathf.PI * 2f);
-        return new Vector2(
-            Mathf.Cos(angle) * radius,
-            Mathf.Sin(angle) * radius
-        );
+        fixedPoints.Clear();
+
+        float angleStep = 360f / spawnPointCount;
+
+        for (int i = 0; i < spawnPointCount; i++)
+        {
+            float angleRad = Mathf.Deg2Rad * (i * angleStep);
+            Vector2 point = new Vector2(
+                Mathf.Cos(angleRad),
+                Mathf.Sin(angleRad)
+            ) * radius;
+
+            fixedPoints.Add(point);
+        }
+
+        return fixedPoints;
     }
 
     private void OnDrawGizmos()
     {
+        if (!previewInScene) return;
+
         Gizmos.color = gizmoColor;
         Vector3 center = transform.position;
 
-        Vector3 prev = center + new Vector3(radius, 0, 0);
-        for (int i = 1; i <= previewPointCount; i++)
+        Gizmos.DrawWireSphere(center, radius);
+
+        var points = GetFixedSpawnPoints();
+        foreach (var point in points)
         {
-            float angle = i / (float)previewPointCount * Mathf.PI * 2f;
-            Vector3 next = center + new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * radius;
-            Gizmos.DrawLine(prev, next);
-            prev = next;
+            Gizmos.DrawSphere(center + (Vector3)point, 5f);
         }
     }
 }

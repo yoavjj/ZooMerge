@@ -9,6 +9,11 @@ public class MergeCounterItem : MonoBehaviour
     [SerializeField] private TextMeshProUGUI countText;
     [SerializeField] private Animator animator;
     [SerializeField] private int minCountToAnimate = 5;
+    public int MinCountToAnimate => minCountToAnimate;
+
+    [Header("Spawn Circle")]
+    [SerializeField] private CollectibleSpawnCircle spawnCircle;
+    public CollectibleSpawnCircle SpawnCircle => spawnCircle;
 
 
     public BallType Type { get; private set; }
@@ -26,6 +31,16 @@ public class MergeCounterItem : MonoBehaviour
     private float addCooldown = 1f; // seconds between "Add" animation triggers
 
     private bool shouldAnimateCount;
+
+    private bool hasTriggeredCollectibles;
+    public bool HasTriggeredCollectibles => hasTriggeredCollectibles;
+
+    public void MarkCollectiblesTriggered()
+    {
+        hasTriggeredCollectibles = true;
+    }
+
+    public Sprite GetIcon() => iconImage?.sprite;
 
     public void Initialize(Sprite icon)
     {
@@ -59,39 +74,31 @@ public class MergeCounterItem : MonoBehaviour
     // Called from Animation Event
     public void PlayCountAnimation()
     {
-        // ❗ If we don't animate the count, we STILL finish immediately
-        if (!shouldAnimateCount)
+        if (runner == null)
         {
+            SetCount(targetCount);
             OnCountAnimationFinished?.Invoke(this);
             return;
         }
 
-        if (runner == null)
+        if (shouldAnimateCount)
         {
-            SetCount(targetCount);
-            return;
+            runner.StartCoroutine(AnimateRoutine(targetCount, countAnimDuration));
         }
-
-        runner.StartCoroutine(AnimateRoutine(targetCount, countAnimDuration));
-    }
-
-    public void Increment()
-    {
-        count++;
-        SetCount(count);
-
-        if (Time.time - lastAddTime > addCooldown)
+        else
         {
-            animator?.SetTrigger("Add");
-            lastAddTime = Time.time;
+            // ⏱️ Wait the SAME duration, but without animating
+            runner.StartCoroutine(FinishAfterDelay(countAnimDuration));
         }
     }
 
-    public void SetCount(int newCount)
+    private IEnumerator FinishAfterDelay(float duration)
     {
-        count = newCount;
-        if (countText != null)
-            countText.text = count.ToString();
+        // No per-frame work, just timing
+        yield return new WaitForSeconds(duration);
+
+        SetCount(targetCount);
+        OnCountAnimationFinished?.Invoke(this);
     }
 
     private IEnumerator AnimateRoutine(int target, float duration)
@@ -113,6 +120,25 @@ public class MergeCounterItem : MonoBehaviour
         SetCount(target);
         OnCountAnimationFinished?.Invoke(this);
 
+    }
+
+    public void Increment()
+    {
+        count++;
+        SetCount(count);
+
+        if (Time.time - lastAddTime > addCooldown)
+        {
+            animator?.SetTrigger("Add");
+            lastAddTime = Time.time;
+        }
+    }
+
+    public void SetCount(int newCount)
+    {
+        count = newCount;
+        if (countText != null)
+            countText.text = count.ToString();
     }
 
     public void SetType(BallType type)

@@ -20,19 +20,29 @@ public class MergeSummaryPanel : MonoBehaviour
     private readonly List<MergeCounterItem> spawnedItems = new();
     private Coroutine buildRoutine;
 
+    private int totalCollectiblesPending = 0;
+    private System.Action onAllCollectiblesFinished;
+
     public void Build(List<MergeSessionTracker.MergeCounterSnapshot> snapshot)
     {
         Clear();
 
-        // 🆕 1. Prepare types so TopBar has placeholders immediately
-        List<BallType> typesToShow = new();
-        foreach (var snap in snapshot)
-        {
-            if (!typesToShow.Contains(snap.type))
-                typesToShow.Add(snap.type);
-        }
+        // // 🆕 1. Prepare types so TopBar has placeholders immediately
+        // List<BallType> typesToShow = new();
+        // foreach (var snap in snapshot)
+        // {
+        //     if (!typesToShow.Contains(snap.type))
+        //         typesToShow.Add(snap.type);
+        // }
 
-        topBarMenu.PrepareTypes(typesToShow);
+        // topBarMenu.PrepareTypes(typesToShow);
+
+        // ✅ Show ALL configured types, not just the ones in the snapshot
+        List<BallType> allTypes = MergeSessionTracker.Instance
+            .GetTypeConfigs()
+            .ConvertAll(config => config.type);
+
+        topBarMenu.PrepareTypes(allTypes);
 
         // (Optional) If you want to also show current values instantly:
         // topBarMenu.Build(); // ← Only if you want to rebuild from inventory snapshot
@@ -90,27 +100,59 @@ public class MergeSummaryPanel : MonoBehaviour
 
     private void HandleSummaryCountFinished(MergeCounterItem item)
     {
-        // ✅ Make sure the TopBar item exists (even if inventory is 0)
+        // 🔒 Prevent duplicate spawning
+        if (item.HasTriggeredCollectibles)
+            return;
+
+        item.MarkCollectiblesTriggered();
+
+        // ✅ Make sure the TopBar item exists
         if (!topBarMenu.TryGetOrCreateItem(item.Type, out TopBarItemUI itemUI))
             return;
 
         Vector2 targetScreen = itemUI.GetFlyTargetScreenPoint();
 
-        flyController.Spawn(
-            amount: item.TargetCount,
-            startUI: item.transform as RectTransform,
-            targetScreenPoint: targetScreen,
-            onEachArrive: () =>
-            {
-                // ✅ Inventory is truth
-                GameInventory.Instance.Add(item.Type, 1);
+        int totalCount = item.TargetCount;
+        int minToAnimate = item.MinCountToAnimate;
 
-                // ✅ UI reflects truth (and creates item if ever missing)
+        // 🔑 Decide how many collectibles to spawn
+        int collectibleCount = totalCount > minToAnimate
+            ? minToAnimate
+            : totalCount;
+
+        // 🔑 Only distribute if total is larger than spawned amount
+        int valueToDistribute = totalCount > collectibleCount
+            ? totalCount
+            : 0;
+
+        var flightData = flyController.PrepareFlightData(
+            circle: item.SpawnCircle,
+            amount: collectibleCount,
+            targetScreenPoint: targetScreen,
+            icon: item.GetIcon(),
+            totalCountToDistribute: valueToDistribute
+        );
+
+        // 👇 Track how many collectibles are about to fly
+        totalCollectiblesPending += collectibleCount;
+
+        flyController.SpawnFromPreparedData(
+            flightData,
+            onEachArriveWithCount: (count) =>
+            {
+                GameInventory.Instance.Add(item.Type, count);
                 topBarMenu.RefreshValue(item.Type);
+
+                // 👇 Count down and detect when all collectibles are done
+                totalCollectiblesPending--;
+                if (totalCollectiblesPending <= 0)
+                {
+                    //Debug.Log("✅ All collectibles finished flying.");
+                    onAllCollectiblesFinished?.Invoke();
+                }
             }
         );
     }
-
 
     private void Clear()
     {
@@ -125,4 +167,6 @@ public class MergeSummaryPanel : MonoBehaviour
 
         spawnedItems.Clear();
     }
+
+    public bool AreCollectiblesFlying => totalCollectiblesPending > 0;
 }

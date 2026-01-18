@@ -152,7 +152,7 @@ public class PopupManager : MonoBehaviour
 
         CircleDragInput.Instance?.ClearSpawnContainer(); // Clear active ball
         BallEventManager.RaiseReturnToMainMenu();        // Destroys all balls
-        BallEventManager.RaiseResetCounters();           // Resets UI counters
+        BallEventManager.RaiseResetCounters(false);           // Resets UI counters
         EnemySpawner.Instance?.ClearEnemy();             // Clears current enemy
         AdManager.Instance?.HideBanner();                // Hide ads
 

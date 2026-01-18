@@ -115,7 +115,6 @@ public class GameHealthManager : MonoBehaviour
 
                         BallEventManager.RaiseGameOver(null, GameOverReason.Won);
                         BallEventManager.RaiseSessionWonAnimation();
-                        BallEventManager.RaiseResetCounters();
                         MergeAttemptTracker.ClearAll();
                         BallRegistry.Clear();
                     }

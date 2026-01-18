@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3049357684070178438, guid: 65f9e52b021354934936e531b2cc7516, type: 3}
+      propertyPath: spawnCircle
+      value: 
+      objectReference: {fileID: 6892043159467790893}
     - target: {fileID: 3453958451476706271, guid: 65f9e52b021354934936e531b2cc7516, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -112,5 +116,29 @@ PrefabInstance:
     - {fileID: 6304835122625344943, guid: 65f9e52b021354934936e531b2cc7516, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5854514345030862937, guid: 65f9e52b021354934936e531b2cc7516, type: 3}
+      insertIndex: 2
+      addedObject: {fileID: 6892043159467790893}
   m_SourcePrefab: {fileID: 100100000, guid: 65f9e52b021354934936e531b2cc7516, type: 3}
+--- !u!1 &2483041198319177930 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5854514345030862937, guid: 65f9e52b021354934936e531b2cc7516, type: 3}
+  m_PrefabInstance: {fileID: 8307699953007319187}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6892043159467790893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2483041198319177930}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73e0deadf141445b080cdf95b15281fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CollectibleSpawnCircle
+  radius: 85
+  spawnPointCount: 5
+  gizmoColor: {r: 0, g: 1, b: 0, a: 0.5}
+  previewInScene: 1

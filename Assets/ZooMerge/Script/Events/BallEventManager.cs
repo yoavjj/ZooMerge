@@ -19,11 +19,14 @@ public static class BallEventManager
     // 📌 Session lifecycle
     public static event System.Action OnSessionStarted;
     public static event System.Action OnSessionWonAnimation;
-    public static event System.Action OnResetCounters;
+    public static event System.Action<bool> OnResetCounters;
 
     public static void RaiseSessionStarted() => OnSessionStarted?.Invoke();
     public static void RaiseSessionWonAnimation() => OnSessionWonAnimation?.Invoke();
-    public static void RaiseResetCounters() => OnResetCounters?.Invoke();
+    public static void RaiseResetCounters(bool keepUI)
+    {
+        OnResetCounters?.Invoke(keepUI);
+    }
 
 
     // 📌 Merge Events
@@ -49,6 +52,11 @@ public static class BallEventManager
 
     /// <summary>Fired when an enemy session ends (e.g. on defeat, before transition).</summary>
     public static event System.Action OnEnemySessionEnded;
+
+
+    // Enemy defeated (but not final one in level)
+    public static event System.Action OnEnemyDefeatedMidLevel;
+    public static void RaiseEnemyDefeatedMidLevel() => OnEnemyDefeatedMidLevel?.Invoke();
 
     public static void RaiseEnemyHitWithDamage(GameObject enemy, int damage)
     {

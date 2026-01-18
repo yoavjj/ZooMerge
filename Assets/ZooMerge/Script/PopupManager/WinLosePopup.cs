@@ -137,6 +137,12 @@ public class WinLosePopup : MonoBehaviour
 
     public void OnPlayPressed()
     {
+        if (mergeSummaryPanel != null && mergeSummaryPanel.AreCollectiblesFlying)
+        {
+            Debug.Log("⏳ Wait! Collectibles still flying.");
+            return;
+        }
+
         bool isNewLevel = levelCompleteContext; // true only when popup showed a real level win
 
         if (isContinue)
@@ -151,6 +157,12 @@ public class WinLosePopup : MonoBehaviour
         if (isNewLevel)
         {
             MergeLevelManager.AdvanceLevel();
+            BallEventManager.RaiseResetCounters(keepUI: false);
+        }
+        else
+        {
+            // Retry current level
+            BallEventManager.RaiseResetCounters(keepUI: true);
         }
 
         PopupManager.Instance?.BeginSession(isNewLevel);

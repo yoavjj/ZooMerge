@@ -1,8 +1,32 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class FlyingCollectible : MonoBehaviour
 {
+    [SerializeField] private Image iconImage;
+    bool triggeredArrival = false;
+    [SerializeField] private float earlyArrivalDistance = 20f;
+
+    [Header("Momentum Anticipation")]
+    [SerializeField, Tooltip("How far it dips down before launch (in Y)")]
+    private float anticipationOffsetY = -20f;
+
+    [SerializeField, Tooltip("How much it rotates in Z during anticipation")]
+    private float anticipationZRotation = 15f;
+
+    [SerializeField, Tooltip("How long the anticipation animation takes (seconds)")]
+    private float anticipationDuration = 0.12f;
+
+    [SerializeField, Tooltip("How long the stretch animation takes (seconds)")]
+    private float stretchDuration = 0.12f;
+
+    [SerializeField, Tooltip("Should rotation be randomized (positive/negative)?")]
+    private bool randomizeRotationDirection = true;
+
+    [SerializeField, Tooltip("Easing curve for anticipation effect")]
+    private AnimationCurve anticipationCurve = null;
+
     private RectTransform rect;
     private Coroutine flyRoutine;
 
@@ -12,6 +36,20 @@ public class FlyingCollectible : MonoBehaviour
     }
 
     public RectTransform Rect => rect;
+
+    /// <summary>
+    /// Assign the icon sprite (call this right after Instantiate)
+    /// </summary>
+    public void SetIcon(Sprite sprite)
+    {
+        if (iconImage != null)
+            iconImage.sprite = sprite;
+    }
+
+    public Sprite GetIcon()
+    {
+        return iconImage != null ? iconImage.sprite : null;
+    }
 
     public void LaunchToLocalPoint(
         Vector2 targetLocalPosition,
@@ -49,6 +87,44 @@ public class FlyingCollectible : MonoBehaviour
         // ⏸️ Step 1: Hold in place before moving
         yield return new WaitForSecondsRealtime(holdDuration);
 
+        // 🎯 Step 1.1: Momentum anticipation (sling-like effect)
+
+        // 🎯 Step 1.1: Momentum anticipation (slingshot-like easing IN)
+
+        float anticipationTime = anticipationDuration;
+        float anticipationZ = anticipationZRotation;
+        if (randomizeRotationDirection)
+            anticipationZ *= Random.value < 0.5f ? -1f : 1f;
+
+        Vector2 originalPos = rect.anchoredPosition;
+        Quaternion originalRot = rect.localRotation;
+
+        Vector2 targetAnticipationPos = originalPos + Vector2.up * anticipationOffsetY;
+        Quaternion targetAnticipationRot = Quaternion.Euler(0f, 0f, anticipationZ);
+
+        float tA = 0f;
+        while (tA < anticipationTime)
+        {
+            tA += Time.unscaledDeltaTime;
+            float p = Mathf.Clamp01(tA / anticipationTime);
+
+            float eased = anticipationCurve != null
+                ? anticipationCurve.Evaluate(p)
+                : Mathf.Sin(p * Mathf.PI * 0.5f); // default: sine-out
+
+            rect.anchoredPosition = Vector2.Lerp(originalPos, targetAnticipationPos, eased);
+            rect.localRotation = Quaternion.Lerp(originalRot, targetAnticipationRot, eased);
+
+            yield return null;
+        }
+
+        // ⏸ Hold in anticipation pose until flight starts
+        yield return new WaitForSecondsRealtime(stretchDuration);
+
+        // 🔁 Snap back before flight
+        rect.anchoredPosition = originalPos;
+        rect.localRotation = originalRot;
+
         // ⏱️ Step 2: Calculate available time for the flight phase
         float flightDuration = totalDuration - holdDuration;
         if (flightDuration <= 0f)
@@ -69,11 +145,8 @@ public class FlyingCollectible : MonoBehaviour
             t += Time.unscaledDeltaTime;
             float progress = Mathf.Clamp01(t / flightDuration);
 
-            // Ease-in at beginning, ease-out at end
             float easeInValue = easeIn?.Evaluate(progress) ?? progress;
             float easeOutValue = easeOut?.Evaluate(progress) ?? progress;
-
-            // Blend both curves (ease in, ease out) – stronger start & smooth end
             float easeValue = Mathf.Lerp(easeInValue, easeOutValue, progress);
 
             // Bezier curve
@@ -82,6 +155,21 @@ public class FlyingCollectible : MonoBehaviour
             Vector2 pos = Vector2.Lerp(a, b, easeValue);
 
             rect.anchoredPosition = pos;
+
+            // ✅ Early arrival trigger
+            float distanceToTarget = Vector2.Distance(pos, targetLocal);
+            if (!triggeredArrival && distanceToTarget <= earlyArrivalDistance)
+            {
+                triggeredArrival = true;
+
+                // Immediately notify that it "arrived"
+                onArrive?.Invoke();
+
+                // Destroy early to avoid that awkward pause
+                Destroy(gameObject);
+                yield break;
+            }
+
             yield return null;
         }
 
