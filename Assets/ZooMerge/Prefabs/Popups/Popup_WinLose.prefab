@@ -600,8 +600,8 @@ MonoBehaviour:
   collectiblePrefab: {fileID: 8476614625740034723, guid: b57cec9e6e2c547829048a76386903b1, type: 3}
   container: {fileID: 4455459870013118988}
   rootCanvas: {fileID: 0}
-  shortFlyDuration: 1.2
-  longFlyDuration: 1.65
+  shortFlyDuration: 1
+  longFlyDuration: 1.55
   holdDuration: 0.3
   arcHeight: 100
   arrivalStaggerDelay: 0.35
@@ -978,6 +978,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4455459870013118988}
+  - component: {fileID: 2259884484610654264}
   m_Layer: 0
   m_Name: Collectibale_Continer
   m_TagString: Untagged
@@ -1004,6 +1005,29 @@ RectTransform:
   m_AnchoredPosition: {x: -2.8767166, y: 0.0018158}
   m_SizeDelta: {x: 1080, y: 508.08}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!223 &2259884484610654264
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6299928251266278644}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 32
+  m_TargetDisplay: 0
 --- !u!1 &6346598940844722667
 GameObject:
   m_ObjectHideFlags: 0

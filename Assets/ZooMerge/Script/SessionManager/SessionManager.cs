@@ -30,15 +30,17 @@ public class SessionManager : MonoBehaviour
     private void OnEnable()
     {
         OnSessionStarted += TriggerSessionStart;
-        OnGameOver += HandleGameOver;
         OnEnemyDefeatedMidLevel += TriggerSessionEnd;
+        OnSessionPaused += TriggerSessionEnd;    // 🆕 Pause disables session UI
+        OnSessionResumed += TriggerSessionStart; // 🆕 Resume re-enables session UI
     }
 
     private void OnDisable()
     {
         OnSessionStarted -= TriggerSessionStart;
-        OnGameOver -= HandleGameOver;
         OnEnemyDefeatedMidLevel -= TriggerSessionEnd;
+        OnSessionPaused -= TriggerSessionEnd;
+        OnSessionResumed -= TriggerSessionStart;
     }
 
     private void HandleGameOver(BallInfo info, GameOverReason reason)

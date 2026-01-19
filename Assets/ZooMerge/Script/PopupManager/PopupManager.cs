@@ -62,6 +62,8 @@ public class PopupManager : MonoBehaviour
         }
 
         pauseRestartPopupInstance.SetActive(true);
+
+        BallEventManager.RaiseSessionPaused(); // 🆕 Trigger pause animation/UI logic
     }
 
     public void ClearPausePopupReference()

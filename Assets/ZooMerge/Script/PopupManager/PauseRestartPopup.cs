@@ -30,6 +30,8 @@ public class PauseRestartPopup : MonoBehaviour
 
     public void OnResumeButtonPressed()
     {
+        BallEventManager.RaiseSessionResumed();
+
         animator.SetTrigger("Out");
         Destroy(gameObject, 1f);
         PopupManager.Instance.ClearPausePopupReference();
@@ -51,10 +53,13 @@ public class PauseRestartPopup : MonoBehaviour
             BallStateSaver.Instance.RestoreState(dropped);
         }
 
+        BallEventManager.RaiseSessionResumed(); // 🆕 Treat restart as a resume
+
         PopupManager.Instance?.BeginSession(isNewLevel: false, restartmidlevel: true);
 
         animator.SetTrigger("Out");
         Destroy(gameObject, 1.5f);
         PopupManager.Instance?.ClearPausePopupReference();
     }
+
 }

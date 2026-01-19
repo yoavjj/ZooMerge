@@ -87,4 +87,11 @@ public static class BallEventManager
 
     public static event Action OnReturnToMainMenu;
     public static void RaiseReturnToMainMenu() => OnReturnToMainMenu?.Invoke();
+
+    // 📌 Pause / Resume
+    public static event System.Action OnSessionPaused;
+    public static event System.Action OnSessionResumed;
+
+    public static void RaiseSessionPaused() => OnSessionPaused?.Invoke();
+    public static void RaiseSessionResumed() => OnSessionResumed?.Invoke();
 }

@@ -47,6 +47,8 @@ public class CollectibleFlyController : MonoBehaviour
     [SerializeField] private AnimationCurve easeInCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
     [SerializeField] private AnimationCurve easeOutCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
+    private List<CollectibleFlightData> lastFlightData;
+
 #if UNITY_EDITOR
     [Header("🧪 Debug Replay (Play Mode Only)")]
     [SerializeField] private bool debugReplay;
@@ -79,6 +81,7 @@ public class CollectibleFlyController : MonoBehaviour
         System.Action<int> onEachArriveWithCount
     )
     {
+        lastFlightData = flightData;
         StartCoroutine(SpawnWithDelayRoutine(flightData, onEachArriveWithCount));
     }
 
@@ -233,30 +236,24 @@ public class CollectibleFlyController : MonoBehaviour
 #if UNITY_EDITOR
     private IEnumerator DebugReplayRoutine()
     {
-        if (lastUsedCircle == null || lastUsedIcon == null)
+        if (lastFlightData == null || lastFlightData.Count == 0)
         {
-            Debug.LogWarning("⚠️ No saved spawn data from gameplay. Play a real animation first.");
+            Debug.LogWarning("⚠️ No collectible flight data cached. Play the game and trigger a real flight first.");
             ResetDebugToggle();
             yield break;
         }
 
-        var flightData = PrepareFlightData(
-            circle: lastUsedCircle,
-            amount: lastUsedAmount,
-            targetScreenPoint: lastUsedTargetScreenPoint,
-            icon: lastUsedIcon,
-            totalCountToDistribute: lastUsedAmount
-        );
+        Debug.Log($"🧪 Replaying last collectible flight with {lastFlightData.Count} items...");
 
         SpawnFromPreparedData(
-            flightData,
+            lastFlightData,
             onEachArriveWithCount: (count) =>
             {
                 Debug.Log($"🧪 Debug collectible arrived with count {count}");
             }
         );
 
-        yield return new WaitForSecondsRealtime(longFlyDuration + holdDuration + 0.2f);
+        yield return new WaitForSecondsRealtime(longFlyDuration + holdDuration + 0.5f);
         ResetDebugToggle();
     }
 
