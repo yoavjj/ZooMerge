@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class FlyingCollectible : MonoBehaviour
+public class FlyingCollectible : BaseFlyingCollectible
 {
     [SerializeField] private Image iconImage;
     bool triggeredArrival = false;
@@ -35,12 +35,12 @@ public class FlyingCollectible : MonoBehaviour
         rect = GetComponent<RectTransform>();
     }
 
-    public RectTransform Rect => rect;
+    public override RectTransform Rect => rect;
 
     /// <summary>
     /// Assign the icon sprite (call this right after Instantiate)
     /// </summary>
-    public void SetIcon(Sprite sprite)
+    public override void SetIcon(Sprite sprite)
     {
         if (iconImage != null)
             iconImage.sprite = sprite;

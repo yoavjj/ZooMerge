@@ -549,7 +549,7 @@ MonoBehaviour:
   levelMessageText: {fileID: 560395247051497555}
   playButtonText: {fileID: 1514866493803711364}
   animator: {fileID: 6237865180941691055}
-  enemyDoneDelay: 0.9
+  enemyDoneDelay: 0.8
   sliderAdvanceDuration: 1
   sliderAdvanceCurve:
     serializedVersion: 2
@@ -597,71 +597,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89242819f2ad944f4a766b36d8bd3571, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleFlyController
-  collectiblePrefab: {fileID: 8476614625740034723, guid: b57cec9e6e2c547829048a76386903b1, type: 3}
-  container: {fileID: 4455459870013118988}
+  mergeCollectiblePrefab: {fileID: 8476614625740034723, guid: b57cec9e6e2c547829048a76386903b1, type: 3}
+  mergePrefabContainer: {fileID: 4455459870013118988}
+  MergeSettings: {fileID: 11400000, guid: 115df028f635643fdaa58b28d9b7f583, type: 2}
+  coinCollectiblePrefab: {fileID: 8476614625740034723, guid: 19d9c9f99b984494699df458124da559, type: 3}
+  coinPrefabContainer: {fileID: 0}
+  coinSettings: {fileID: 0}
   rootCanvas: {fileID: 0}
-  shortFlyDuration: 1
-  longFlyDuration: 1.55
-  holdDuration: 0.3
-  arcHeight: 100
-  arrivalStaggerDelay: 0.35
-  easeInCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 0.32840148
-      value: 0.6897984
-      inSlope: 1.4665318
-      outSlope: 1.4665318
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  easeOutCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
   debugReplay: 0
 --- !u!114 &1213392798309310528
 MonoBehaviour:
@@ -980,7 +922,7 @@ GameObject:
   - component: {fileID: 4455459870013118988}
   - component: {fileID: 2259884484610654264}
   m_Layer: 0
-  m_Name: Collectibale_Continer
+  m_Name: MergeCollectibale_Continer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2495,6 +2437,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -87.808
       objectReference: {fileID: 0}
+    - target: {fileID: 6614523386371976910, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -938020959, guid: 37231eba180cb47a28400b8086acb727, type: 3}
     - target: {fileID: 8502626649123180813, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
       propertyPath: m_IsActive
       value: 0

@@ -1,10 +1,14 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Collections;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+
+/* ---------------------------------------------------
+   Supporting Types
+--------------------------------------------------- */
 
 [System.Serializable]
 public class UICanvasContext
@@ -26,48 +30,66 @@ public struct CollectibleFlightData
     public float flyDuration;
 }
 
+/* ---------------------------------------------------
+   CollectibleFlyController
+--------------------------------------------------- */
+
 public class CollectibleFlyController : MonoBehaviour
 {
-    [Header("UI")]
-    [SerializeField] private FlyingCollectible collectiblePrefab;
-    [SerializeField] private RectTransform container;
+    /* ---------------------------
+       Inspector References
+    --------------------------- */
+
+    [Header("Merge Collectible Prefab")]
+    [SerializeField] private FlyingCollectible mergeCollectiblePrefab;
+
+    [SerializeField, Tooltip("UI container for collectibles")]
+    private RectTransform mergePrefabContainer;
+
+    [SerializeField, Tooltip("Flight settings for Merge collectibles")]
+    private CollectibleFlightSettings MergeSettings;
+
+    [Header("Coin Collectible Prefab")]
+    [SerializeField] private BaseFlyingCollectible coinCollectiblePrefab;
+
+    [SerializeField, Tooltip("UI container for collectibles")]
+    private RectTransform coinPrefabContainer;
+    [SerializeField, Tooltip("Flight settings for Coin collectibles")]
+    private CollectibleFlightSettings coinSettings;
 
     [Header("Canvas Context")]
     [SerializeField] private Canvas rootCanvas;
 
-    [Header("Flight Settings")]
-    [SerializeField, Min(0.1f)] private float shortFlyDuration = 1.2f;  // For 3 or fewer
-    [SerializeField, Min(0.1f)] private float longFlyDuration = 1.7f;  // For 4 or more
-    [SerializeField, Min(0f)] private float holdDuration = 0.2f;
-    [SerializeField] private float arcHeight = 100f;
-    [SerializeField, Tooltip("Delay between each collectible's arrival callback (seconds)")]
-    private float arrivalStaggerDelay = 0.1f;
+    /* ---------------------------
+       Runtime
+    --------------------------- */
 
-    [Header("Easing")]
-    [SerializeField] private AnimationCurve easeInCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-    [SerializeField] private AnimationCurve easeOutCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-
+    private Camera uiCam;
     private List<CollectibleFlightData> lastFlightData;
 
 #if UNITY_EDITOR
+    /* ---------------------------
+       Debug Replay
+    --------------------------- */
+
     [Header("🧪 Debug Replay (Play Mode Only)")]
     [SerializeField] private bool debugReplay;
 
-    private CollectibleSpawnCircle lastUsedCircle;
-    private int lastUsedAmount;
-    private Vector2 lastUsedTargetScreenPoint;
-    private Sprite lastUsedIcon;
     private bool debugRunning;
 
     private void OnValidate()
     {
-        if (!Application.isPlaying || !debugReplay || debugRunning) return;
+        if (!Application.isPlaying || !debugReplay || debugRunning)
+            return;
+
         debugRunning = true;
         StartCoroutine(DebugReplayRoutine());
     }
 #endif
 
-    private Camera uiCam;
+    /* ---------------------------------------------------
+       Unity Lifecycle
+    --------------------------------------------------- */
 
     private void Awake()
     {
@@ -76,136 +98,119 @@ public class CollectibleFlyController : MonoBehaviour
             : null;
     }
 
+    /* ---------------------------------------------------
+       Public API
+    --------------------------------------------------- */
+
+    /// <summary>
+    /// Main entry for spawning collectibles.
+    /// </summary>
     public void SpawnFromPreparedData(
         List<CollectibleFlightData> flightData,
-        System.Action<int> onEachArriveWithCount
-    )
+        System.Action<int> onEachArriveWithCount)
     {
         lastFlightData = flightData;
-        StartCoroutine(SpawnWithDelayRoutine(flightData, onEachArriveWithCount));
+        StartCoroutine(SpawnRoutine(flightData, onEachArriveWithCount));
     }
 
-    private IEnumerator SpawnWithDelayRoutine(
-        List<CollectibleFlightData> flightData,
-        System.Action<int> onEachArriveWithCount
-    )
-    {
-        foreach (var data in flightData)
-        {
-            var item = Instantiate(collectiblePrefab, container);
-            item.Rect.anchoredPosition = data.spawnPosition;
-            item.SetIcon(data.icon);
-
-            item.LaunchToLocalPoint(
-                data.targetPosition,
-                data.flyDuration,
-                () => onEachArriveWithCount?.Invoke(data.count),
-                delay: 0f,
-                arcHeight,
-                holdDuration,
-                easeInCurve,
-                easeOutCurve
-            );
-
-            // 🔁 Add a short random delay before the next one spawns
-            float delay = Random.Range(0.015f, 0.05f); // tweak as needed
-            yield return new WaitForSecondsRealtime(delay);
-        }
-    }
-
+    /// <summary>
+    /// Prepares flight data but does not spawn.
+    /// </summary>
     public List<CollectibleFlightData> PrepareFlightData(
-    CollectibleSpawnCircle circle,
-    int amount,
-    Vector2 targetScreenPoint,
-    Sprite icon,
-    int totalCountToDistribute = 0
-)
+        CollectibleSpawnCircle circle,
+        int amount,
+        Vector2 targetScreenPoint,
+        Sprite icon,
+        int totalCountToDistribute = 0)
     {
         List<CollectibleFlightData> result = new(amount);
 
-        if (circle == null || container == null)
+        if (circle == null || mergePrefabContainer == null)
         {
-            Debug.LogError("Missing references for flight preparation.");
+            Debug.LogError("CollectibleFlyController: Missing references.");
             return result;
         }
 
+        // Convert target to local UI space
         Vector2 targetLocal = ScreenToContainerLocal(targetScreenPoint);
-        Vector2 circleCenter = (Vector2)container.InverseTransformPoint(circle.transform.position);
-        List<Vector2> fixedPoints = circle.GetFixedSpawnPoints();
-        List<int> availableIndices = GetShuffledIndices(fixedPoints.Count);
+
+        // Convert circle to local UI space
+        Vector2 circleCenter = mergePrefabContainer.InverseTransformPoint(circle.transform.position);
+
+        List<Vector2> spawnOffsets = circle.GetFixedSpawnPoints();
+        List<int> shuffled = GetShuffledIndices(spawnOffsets.Count);
         List<int> counts = CalculateCountsPerCollectible(totalCountToDistribute, amount);
 
-        float baseFlyDuration = amount <= 3 ? shortFlyDuration : longFlyDuration;
-        float totalStaggerTime = (amount - 1) * arrivalStaggerDelay;
+        // Determine duration based on amount
+        float baseFlyDuration = amount <= 3
+            ? MergeSettings.shortFlyDuration
+            : MergeSettings.longFlyDuration;
+
+        float totalStaggerTime = (amount - 1) * MergeSettings.arrivalStaggerDelay;
         float safeFlyDuration = Mathf.Max(baseFlyDuration + totalStaggerTime, baseFlyDuration);
 
+        // Build flight data list
         for (int i = 0; i < amount; i++)
         {
-            int index = (i < availableIndices.Count) ? availableIndices[i] : i % fixedPoints.Count;
-            Vector2 spawn = circleCenter + fixedPoints[index];
+            int spawnIndex = (i < shuffled.Count) ? shuffled[i] : i % spawnOffsets.Count;
+            Vector2 spawnPos = circleCenter + spawnOffsets[spawnIndex];
 
-            float adjustedFlyDuration = safeFlyDuration - ((amount - 1 - i) * arrivalStaggerDelay);
+            float adjustedDuration = safeFlyDuration - ((amount - 1 - i) * MergeSettings.arrivalStaggerDelay);
 
             result.Add(new CollectibleFlightData
             {
-                spawnPosition = spawn,
+                spawnPosition = spawnPos,
                 targetPosition = targetLocal,
                 icon = icon,
                 count = counts[i],
-                flyDuration = adjustedFlyDuration
+                flyDuration = adjustedDuration
             });
         }
 
         return result;
     }
 
-    private List<int> CalculateCountsPerCollectible(int total, int amount)
+    /* ---------------------------------------------------
+       Spawn Routine
+    --------------------------------------------------- */
+
+    private IEnumerator SpawnRoutine(
+        List<CollectibleFlightData> flightData,
+        System.Action<int> arrivalCallback)
     {
-        List<int> result = new(amount);
-
-        if (total <= amount || total <= 0)
+        foreach (var data in flightData)
         {
-            for (int i = 0; i < amount; i++) result.Add(1);
-        }
-        else
-        {
-            int baseAmount = total / amount;
-            int remainder = total % amount;
+            FlyingCollectible item = Instantiate(mergeCollectiblePrefab, mergePrefabContainer);
 
-            for (int i = 0; i < amount; i++)
-            {
-                int value = baseAmount;
-                if (i == amount - 1) value += remainder;
-                result.Add(value);
-            }
-        }
+            item.Rect.anchoredPosition = data.spawnPosition;
+            item.SetIcon(data.icon);
 
-        return result;
+            item.LaunchToLocalPoint(
+                targetLocalPosition: data.targetPosition,
+                totalDuration: data.flyDuration,
+                onArrive: () => arrivalCallback?.Invoke(data.count),
+                delay: 0f,
+                MergeSettings.arcHeight,
+                MergeSettings.holdDuration,
+                MergeSettings.easeInCurve,
+                MergeSettings.easeOutCurve
+            );
+
+            // Small random delay before next spawn
+            yield return new WaitForSecondsRealtime(Random.Range(0.015f, 0.05f));
+        }
     }
 
-    private void SpawnOneCollectible(
-        Vector2 spawnLocal,
-        Vector2 targetLocal,
-        Sprite icon,
-        int count,
-        float flyTime,
-        System.Action<int> onArrive
-    )
-    {
-        var item = Instantiate(collectiblePrefab, container);
-        item.Rect.anchoredPosition = spawnLocal;
-        item.SetIcon(icon);
+    /* ---------------------------------------------------
+       Helpers
+    --------------------------------------------------- */
 
-        item.LaunchToLocalPoint(
-            targetLocal,
-            flyTime,
-            () => onArrive?.Invoke(count),
-            delay: 0f,
-            arcHeight,
-            holdDuration,
-            easeInCurve,
-            easeOutCurve
-        );
+    private Vector2 ScreenToContainerLocal(Vector2 screenPoint)
+    {
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            mergePrefabContainer, screenPoint, uiCam, out Vector2 local);
+
+        return local;
     }
 
     private List<int> GetShuffledIndices(int count)
@@ -222,23 +227,42 @@ public class CollectibleFlyController : MonoBehaviour
         return list;
     }
 
-    private Vector2 ScreenToContainerLocal(Vector2 screenPoint)
+    private List<int> CalculateCountsPerCollectible(int total, int amount)
     {
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            container,
-            screenPoint,
-            uiCam,
-            out Vector2 local
-        );
-        return local;
+        List<int> result = new(amount);
+
+        if (total <= amount || total <= 0)
+        {
+            for (int i = 0; i < amount; i++)
+                result.Add(1);
+
+            return result;
+        }
+
+        int baseAmount = total / amount;
+        int remainder = total % amount;
+
+        for (int i = 0; i < amount; i++)
+        {
+            int value = baseAmount;
+            if (i == amount - 1) value += remainder;
+
+            result.Add(value);
+        }
+
+        return result;
     }
 
 #if UNITY_EDITOR
+    /* ---------------------------------------------------
+       Debug Replay
+    --------------------------------------------------- */
+
     private IEnumerator DebugReplayRoutine()
     {
         if (lastFlightData == null || lastFlightData.Count == 0)
         {
-            Debug.LogWarning("⚠️ No collectible flight data cached. Play the game and trigger a real flight first.");
+            Debug.LogWarning("⚠️ Cannot replay collectibles: No previous flight data.");
             ResetDebugToggle();
             yield break;
         }
@@ -247,13 +271,11 @@ public class CollectibleFlyController : MonoBehaviour
 
         SpawnFromPreparedData(
             lastFlightData,
-            onEachArriveWithCount: (count) =>
-            {
-                Debug.Log($"🧪 Debug collectible arrived with count {count}");
-            }
+            count => Debug.Log($"🧪 Debug collectible arrived with count {count}")
         );
 
-        yield return new WaitForSecondsRealtime(longFlyDuration + holdDuration + 0.5f);
+        yield return new WaitForSecondsRealtime(MergeSettings.longFlyDuration + MergeSettings.holdDuration + 0.5f);
+
         ResetDebugToggle();
     }
 
