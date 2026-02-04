@@ -39,15 +39,40 @@ public class CollectibleSpawnCircle : MonoBehaviour
     {
         if (!previewInScene) return;
 
+        RectTransform rect = transform as RectTransform;
+        if (rect == null) return;
+
         Gizmos.color = gizmoColor;
-        Vector3 center = transform.position;
 
-        Gizmos.DrawWireSphere(center, radius);
+        // 🔑 VERY IMPORTANT: draw in RectTransform local space
+        Gizmos.matrix = rect.localToWorldMatrix;
 
+        // Draw circle
+        const int segments = 32;
+        Vector3 prevPoint = Vector3.right * radius;
+
+        for (int i = 1; i <= segments; i++)
+        {
+            float angle = (i / (float)segments) * Mathf.PI * 2f;
+            Vector3 nextPoint = new Vector3(
+                Mathf.Cos(angle),
+                Mathf.Sin(angle),
+                0f
+            ) * radius;
+
+            Gizmos.DrawLine(prevPoint, nextPoint);
+            prevPoint = nextPoint;
+        }
+
+        // Draw spawn points
         var points = GetFixedSpawnPoints();
         foreach (var point in points)
         {
-            Gizmos.DrawSphere(center + (Vector3)point, 5f);
+            Gizmos.DrawSphere((Vector3)point, 6f);
         }
+
+        // Reset matrix so we don’t break other gizmos
+        Gizmos.matrix = Matrix4x4.identity;
     }
+
 }

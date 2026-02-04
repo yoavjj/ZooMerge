@@ -34,6 +34,7 @@ public class WinLosePopup : MonoBehaviour
     [SerializeField, Min(0f)] private float sliderAdvanceDuration = 0.35f;  // how long the slider anim takes
     [SerializeField] private AnimationCurve sliderAdvanceCurve;
     [SerializeField] LevelProgressBarSlider levelProgressBarSlider;
+    [SerializeField] private CollectibleFlyController collectibleFlyController;
 
     private bool isContinue = false;
     private bool levelCompleteContext = false;
@@ -80,6 +81,15 @@ public class WinLosePopup : MonoBehaviour
             animator.SetTrigger(reason == GameOverReason.Won ? "Win" : "Lose");
         }
 
+        if (levelProgressBarSlider != null)
+        {
+            var fly = collectibleFlyController;
+            if (levelProgressBarSlider != null && collectibleFlyController != null)
+            {
+                levelProgressBarSlider.OnEnemyMarkedDone += HandleEnemyDone;
+            }
+        }
+
         switch (reason)
         {
             case GameOverReason.Won:
@@ -97,6 +107,21 @@ public class WinLosePopup : MonoBehaviour
                 playButtonText.text = $"Level {currentLevel}";
                 break;
         }
+    }
+
+    public void SpawnWinCoins()
+    {
+        if (collectibleFlyController == null)
+        {
+            Debug.LogWarning("⚠️ WinLosePopup: CollectibleFlyController missing.");
+            return;
+        }
+
+        collectibleFlyController.SpawnCoinsToTopBar();
+    }
+    private void HandleEnemyDone(int index)
+    {
+        collectibleFlyController.PositionCoinContainerToIndex(index);
     }
 
     private void BuildContent(GameOverReason reason)
@@ -137,9 +162,9 @@ public class WinLosePopup : MonoBehaviour
 
     public void OnPlayPressed()
     {
-        if (mergeSummaryPanel != null && mergeSummaryPanel.AreCollectiblesFlying)
+        if (mergeSummaryPanel != null && mergeSummaryPanel.IsBusy)
         {
-            Debug.Log("⏳ Wait! Collectibles still flying.");
+            Debug.Log("⏳ Wait! Merge summary still running.");
             return;
         }
 
@@ -249,5 +274,6 @@ public class WinLosePopup : MonoBehaviour
 
         levelProgressBarSlider.InitializeCurrentLevel(); // rebuild visuals
         levelProgressBarSlider.SyncIconsToCurrentProgress(includeCurrent: false); // keep grey state as-is
+        //collectibleFlyController.PositionCoinContainerToCurrentIcon(); // reposition coin container
     }
 }

@@ -1,11 +1,13 @@
 using System;
 using UnityEngine;
+using static Inventory;
 
 public static class MergeLevelManager
 {
     private static MergeLevelData levelData;
     private static int currentLevelIndex = 0;
     private static int currentEnemyIndex = 0;
+    private static int pendingEnemyCoins = 0;
 
     public static void Initialize(MergeLevelData data)
     {
@@ -42,6 +44,8 @@ public static class MergeLevelManager
 
     public static void AdvanceLevel()
     {
+        var current = GetCurrentLevel();
+
         currentLevelIndex = Mathf.Min(currentLevelIndex + 1, levelData.levels.Count - 1);
         currentEnemyIndex = 0;
     }
@@ -76,6 +80,12 @@ public static class MergeLevelManager
         if (level.enemy_data == null || level.enemy_data.Count == 0)
             return false;
 
+        if (currentEnemyIndex < 0 || currentEnemyIndex >= level.enemy_data.Count)
+            return false;
+
+        // 🔐 Capture coins BEFORE advancing
+        pendingEnemyCoins = level.enemy_data[currentEnemyIndex].coins;
+
         if (currentEnemyIndex + 1 < level.enemy_data.Count)
         {
             currentEnemyIndex++;
@@ -85,6 +95,26 @@ public static class MergeLevelManager
 
         Debug.Log($"[MergeLevelManager] All enemies defeated for Level {level.level}");
         return false;
+    }
+
+    public static int ConsumePendingEnemyCoins()
+    {
+        int coins = pendingEnemyCoins;
+        pendingEnemyCoins = 0; // prevent double-claim
+        return coins;
+    }
+
+    public static int GetCurrentEnemyCoins()
+    {
+        var level = GetCurrentLevel();
+
+        if (level.enemy_data == null || level.enemy_data.Count == 0)
+            return 0;
+
+        if (currentEnemyIndex < 0 || currentEnemyIndex >= level.enemy_data.Count)
+            return 0;
+
+        return level.enemy_data[currentEnemyIndex].coins;
     }
 
     public static int GetCurrentEnemyHealth()

@@ -53,4 +53,12 @@ public class EnemyIconController
                 _icons[i]?.TriggerGrey();
         }
     }
+
+    // ⭐ Added: Sort icons by X position (left → right)
+    public void SortByPosition()
+    {
+        _icons.Sort((a, b) =>
+            a.RectTransform.anchoredPosition.x.CompareTo(b.RectTransform.anchoredPosition.x)
+        );
+    }
 }

@@ -46,6 +46,8 @@ public class LevelProgressBarSlider : MonoBehaviour
     private SliderAnimator sliderAnimator;
     private EnemyStripBuilder stripBuilder;
 
+    public System.Action<int> OnEnemyMarkedDone;
+
 
     [ContextMenu("Initialize Current Level")]
 
@@ -107,6 +109,9 @@ public class LevelProgressBarSlider : MonoBehaviour
             // ✅ Clear all existing child GameObjects before building
             foreach (Transform child in iconsContainer)
             {
+                if (child.GetComponent<DoNotDestroyOnRebuild>() != null)
+                    continue; // skip coinPrefabContainer (or any other protected UI)
+
                 Destroy(child.gameObject);
             }
 
@@ -127,6 +132,11 @@ public class LevelProgressBarSlider : MonoBehaviour
 
             _buildingOwner = null;
             _buildingIndex = -1;
+
+
+            /* ⭐️ ADD THIS HERE ⭐️ */
+            iconController.SortByPosition();
+
             StartCoroutine(AdjustFillAfterLayout());
 
             _lastLevelNumber = currentLevel;
@@ -242,7 +252,11 @@ public class LevelProgressBarSlider : MonoBehaviour
         advanceRoutine = null;
     }
 
-    public void MarkEnemyDone(int index) => iconController.MarkEnemyDone(index);
+    public void MarkEnemyDone(int index)
+    {
+        iconController.MarkEnemyDone(index); // triggers grey visual
+        OnEnemyMarkedDone?.Invoke(index); // notify listeners which icon was marked
+    }
 
     public void AnimateSliderTo(float value, float duration, AnimationCurve curve = null)
     {
@@ -250,4 +264,29 @@ public class LevelProgressBarSlider : MonoBehaviour
     }
 
     public void RestartVisuals() => iconController.TriggerRestartAll();
+
+    public RectTransform GetCurrentEnemyIconRect()
+    {
+        int current = Mathf.Clamp(MergeLevelManager.CurrentEnemyIndex, 0, iconController.Icons.Count - 1);
+
+        if (current < 0 || current >= iconController.Icons.Count)
+            return null;
+
+        return iconController.Icons[current].RectTransform;
+    }
+
+    public RectTransform GetFinalEnemyIconRect()
+    {
+        int last = iconController.Icons.Count - 1;
+        if (last < 0) return null;
+        return iconController.Icons[last].RectTransform;
+    }
+
+    public RectTransform GetEnemyIconRect(int index)
+    {
+        if (index < 0 || index >= iconController.Icons.Count)
+            return null;
+
+        return iconController.Icons[index].RectTransform;
+    }
 }

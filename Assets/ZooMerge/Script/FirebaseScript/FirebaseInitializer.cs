@@ -28,6 +28,7 @@ public class EnemyData
 {
     public int id;
     public int health;
+    public int coins;
 }
 
 [Serializable]

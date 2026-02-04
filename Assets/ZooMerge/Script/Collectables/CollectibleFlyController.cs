@@ -50,12 +50,16 @@ public class CollectibleFlyController : MonoBehaviour
     private CollectibleFlightSettings MergeSettings;
 
     [Header("Coin Collectible Prefab")]
-    [SerializeField] private BaseFlyingCollectible coinCollectiblePrefab;
+    [SerializeField] private FlyingCoinCollectible coinCollectiblePrefab;
 
     [SerializeField, Tooltip("UI container for collectibles")]
     private RectTransform coinPrefabContainer;
     [SerializeField, Tooltip("Flight settings for Coin collectibles")]
     private CollectibleFlightSettings coinSettings;
+
+    [Header("UI references")]
+    [SerializeField] private LevelProgressBarSlider progressBar;
+    [SerializeField] private TopBarMenu topBarMenu;
 
     [Header("Canvas Context")]
     [SerializeField] private Canvas rootCanvas;
@@ -182,7 +186,7 @@ public class CollectibleFlyController : MonoBehaviour
         {
             FlyingCollectible item = Instantiate(mergeCollectiblePrefab, mergePrefabContainer);
 
-            item.Rect.anchoredPosition = data.spawnPosition;
+            item.Rect.anchoredPosition = data.spawnPosition + MergeSettings.spawnOffset;
             item.SetIcon(data.icon);
 
             item.LaunchToLocalPoint(
@@ -199,6 +203,85 @@ public class CollectibleFlyController : MonoBehaviour
             // Small random delay before next spawn
             yield return new WaitForSecondsRealtime(Random.Range(0.015f, 0.05f));
         }
+    }
+
+    public void SpawnCoinsToTopBar()
+    {
+        int totalCoins = MergeLevelManager.ConsumePendingEnemyCoins();
+        if (totalCoins <= 0)
+            return;
+
+        if (coinCollectiblePrefab == null || coinPrefabContainer == null)
+        {
+            Debug.LogWarning("⚠️ Coin prefab or container not set.");
+            return;
+        }
+
+        if (topBarMenu == null || !topBarMenu.TryGetOrCreateCoinItem(out TopBarCoinItemUI coinUI))
+        {
+            Debug.LogWarning("⚠️ Could not find TopBarCoinItemUI to fly coins to.");
+            return;
+        }
+
+        Sprite coinIcon = coinUI.GetIcon();
+        if (coinIcon == null)
+        {
+            Debug.LogWarning("⚠️ Coin icon not found on TopBarCoinItemUI.");
+            return;
+        }
+
+        Vector2 targetScreenPoint = coinUI.GetFlyTargetScreenPoint();
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            coinPrefabContainer,
+            targetScreenPoint,
+            uiCam,
+            out Vector2 targetLocalPoint
+        );
+
+        StartCoroutine(
+            SpawnCoinRoutine(
+                totalCoins,
+                coinIcon,
+                targetLocalPoint,
+                coinSettings.holdDuration,
+                coinSettings.shortFlyDuration,
+                coinUI
+            )
+        );
+    }
+
+    private IEnumerator SpawnCoinRoutine(
+        int totalCoins,
+        Sprite icon,
+        Vector2 targetLocal,
+        float holdDuration,
+        float flyDuration,
+        TopBarCoinItemUI coinUI)
+    {
+        var collectible = Instantiate(coinCollectiblePrefab, coinPrefabContainer);
+
+        collectible.Rect.anchoredPosition = coinSettings.spawnOffset;
+        collectible.SetIcon(icon);
+
+        yield return new WaitForSecondsRealtime(holdDuration);
+
+        collectible.LaunchToLocalPoint(
+            targetLocalPosition: targetLocal,
+            totalDuration: flyDuration,
+            onArrive: () =>
+            {
+                // 1️⃣ Update inventory (source of truth)
+                GameInventory.Instance.Add(CurrencyType.Coins, totalCoins);
+
+                // 2️⃣ Animate UI delta (this updates countText correctly)
+                coinUI.AddCoins(totalCoins);
+            },
+            delay: 0f,
+            arcHeight: coinSettings.arcHeight,
+            holdDuration: 0f,
+            easeInCurve: coinSettings.easeInCurve,
+            easeOutCurve: coinSettings.easeOutCurve
+        );
     }
 
     /* ---------------------------------------------------
@@ -252,6 +335,34 @@ public class CollectibleFlyController : MonoBehaviour
 
         return result;
     }
+
+    public void PositionCoinContainerToIndex(int index)
+    {
+        RectTransform target = progressBar.GetEnemyIconRect(index);
+        if (target == null)
+            return;
+
+        PositionCoinContainerToIcon(target); // your existing helper
+    }
+
+    public void PositionCoinContainerToIcon(RectTransform target)
+    {
+        if (target == null || coinPrefabContainer == null)
+            return;
+
+        // Copy anchors/pivot
+        coinPrefabContainer.anchorMin = target.anchorMin;
+        coinPrefabContainer.anchorMax = target.anchorMax;
+        coinPrefabContainer.pivot = target.pivot;
+
+        // Copy size
+        coinPrefabContainer.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, target.rect.width);
+        coinPrefabContainer.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, target.rect.height);
+
+        // Copy position
+        coinPrefabContainer.anchoredPosition = target.anchoredPosition;
+    }
+
 
 #if UNITY_EDITOR
     /* ---------------------------------------------------
