@@ -1,6 +1,7 @@
+using System.Collections;
 using UnityEngine;
 using Spine;
-using Spine.Unity; // SkeletonGraphic
+using Spine.Unity;
 
 public class EnemyUnit : MonoBehaviour
 {
@@ -16,8 +17,16 @@ public class EnemyUnit : MonoBehaviour
     [SpineAnimation] public string hitAnimation = "Enemy_hit";
     [SpineAnimation] public string dieAnimation = "Enemy_die";
 
+    [Header("Death Timing")]
+    [SerializeField, Min(0f)] private float dieDelay = 0.25f;
+
+    [Header("Spine Death Event")]
+    [SerializeField] private string deathEndEventName = "AnimEnd"; // ✅ Spine event name
+
     private bool isDying;
-    private GameObject root; // cached top-level object
+    private bool deathCleanupTriggered; // ✅ prevents double-cleanup
+    private GameObject root;
+    private Coroutine dieRoutine;
 
     void Awake()
     {
@@ -34,11 +43,17 @@ public class EnemyUnit : MonoBehaviour
     {
         BallEventManager.OnEnemyHit -= HandleHit;
         BallEventManager.OnEnemySessionEnded -= HandleSessionEnd;
+
+        if (dieRoutine != null)
+        {
+            StopCoroutine(dieRoutine);
+            dieRoutine = null;
+        }
     }
 
     private void HandleHit(GameObject hitObject)
     {
-        if (isDying || hitObject != gameObject) return;
+        if (isDying) return;
 
         if (UseSpine())
         {
@@ -55,27 +70,65 @@ public class EnemyUnit : MonoBehaviour
     {
         if (isDying) return;
         isDying = true;
+        deathCleanupTriggered = false;
 
+        if (dieRoutine != null) StopCoroutine(dieRoutine);
+        dieRoutine = StartCoroutine(DieAfterDelay());
+    }
+
+    private IEnumerator DieAfterDelay()
+    {
+        if (dieDelay > 0f)
+            yield return new WaitForSeconds(dieDelay);
+
+        // Spine die
         if (UseSpine() && HasClip(dieAnimation))
         {
             var entry = spineGraphic.AnimationState.SetAnimation(0, dieAnimation, false);
+
+            // ✅ Listen only to THIS die entry's events
+            entry.Event += OnDieEntryEvent;
+
+            // ✅ Safety fallback: if AnimEnd is missing, still cleanup on complete
             entry.Complete += _ =>
             {
-                BallEventManager.RaiseEnemyDefeatedMidLevel(); // 🆕 Trigger session end
-
-                EnemySessionTracker.Unregister(root);
-                EnemySpawner.Instance?.NotifyEnemyDestroyed(root);
-                Destroy(this.gameObject);
+                if (!deathCleanupTriggered)
+                    CleanupAfterDeath();
             };
         }
         else
         {
-            BallEventManager.RaiseEnemyDefeatedMidLevel(); // 🆕 Trigger session end
-
-            EnemySessionTracker.Unregister(root);
-            EnemySpawner.Instance?.NotifyEnemyDestroyed(root);
-            Destroy(this.gameObject);
+            // No die clip -> just cleanup
+            CleanupAfterDeath();
         }
+
+        dieRoutine = null;
+    }
+
+    private void OnDieEntryEvent(TrackEntry entry, Spine.Event e)
+    {
+        if (deathCleanupTriggered) return;
+
+        if (e != null && e.Data != null && e.Data.Name == deathEndEventName)
+        {
+            deathCleanupTriggered = true;
+
+            // Optional: stop further events from triggering anything
+            entry.Event -= OnDieEntryEvent;
+
+            CleanupAfterDeath();
+        }
+    }
+
+    private void CleanupAfterDeath()
+    {
+        if (deathCleanupTriggered == false)
+            deathCleanupTriggered = true;
+
+        BallEventManager.RaiseEnemyDeathSpineEvent(root);
+
+        EnemySessionTracker.Unregister(root);
+        EnemySpawner.Instance?.NotifyEnemyDestroyed(root);
     }
 
     public void PlayEnter()

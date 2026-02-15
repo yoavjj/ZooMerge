@@ -71,6 +71,7 @@ public static class BallEventManager
     // 📌 Game Over
     /// <summary>Fired when the game ends (won or lost).</summary>
 
+    public static bool IsGameOver { get; private set; } = false;
     public static bool WasMidLevelLoss { get; private set; }
     public static event System.Action<BallInfo, GameOverReason> OnGameOver;
 
@@ -87,6 +88,16 @@ public static class BallEventManager
 
     public static event Action OnReturnToMainMenu;
     public static void RaiseReturnToMainMenu() => OnReturnToMainMenu?.Invoke();
+
+    /// <summary>
+    /// Fired when Spine die animation reached its end event.
+    /// </summary>
+    public static event System.Action<GameObject> OnEnemyDeathSpineEvent;
+
+    public static void RaiseEnemyDeathSpineEvent(GameObject enemyRoot)
+    {
+        OnEnemyDeathSpineEvent?.Invoke(enemyRoot);
+    }
 
     // 📌 Pause / Resume
     public static event System.Action OnSessionPaused;

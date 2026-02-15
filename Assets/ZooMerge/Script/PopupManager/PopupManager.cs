@@ -15,6 +15,8 @@ public class PopupManager : MonoBehaviour
     [SerializeField] private BallSpawner ballSpawner;
     [SerializeField] LevelProgressBarSlider levelProgressBarSlider;
 
+    [SerializeField] private GameObject ensureActivePanelOnStart;
+
     [Header("Timing")]
     [SerializeField, Min(0f)] private float winLosePopupDelay = 0.5f;
 
@@ -36,6 +38,9 @@ public class PopupManager : MonoBehaviour
 
     private void Start()
     {
+        if (ensureActivePanelOnStart != null && !ensureActivePanelOnStart.activeSelf)
+            ensureActivePanelOnStart.SetActive(true);
+
         if (mainMenuPopupPrefab != null)
         {
             mainMenuPopupInstance = Instantiate(mainMenuPopupPrefab, transform);
@@ -45,12 +50,12 @@ public class PopupManager : MonoBehaviour
 
     private void OnEnable()
     {
-        BallEventManager.OnGameOver += ShowEndPopup;
+        //BallEventManager.OnGameOver += ShowEndPopup;
     }
 
     private void OnDisable()
     {
-        BallEventManager.OnGameOver -= ShowEndPopup;
+        //BallEventManager.OnGameOver -= ShowEndPopup;
         if (winLosePopupRoutine != null) { StopCoroutine(winLosePopupRoutine); winLosePopupRoutine = null; }
     }
 

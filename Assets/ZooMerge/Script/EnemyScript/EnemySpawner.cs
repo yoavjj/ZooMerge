@@ -45,7 +45,7 @@ public class EnemySpawner : MonoBehaviour
         if (currentEnemy.root != null)
         {
             EnemySessionTracker.Unregister(currentEnemy.root);
-            Destroy(currentEnemy.root);
+            Destroy(currentEnemy.root, 2f);
         }
         currentEnemy = default;
     }

@@ -100,8 +100,17 @@ public class MergeSummaryPanel : MonoBehaviour
     }
 
     private IEnumerator AnimateItemsRoutine_Part2(
-    List<MergeSessionTracker.MergeCounterSnapshot> snapshot)
+        List<MergeSessionTracker.MergeCounterSnapshot> snapshot)
     {
+        // ✅ If there are no items to animate, we're done immediately
+        if (spawnedItems.Count == 0)
+        {
+            isSummaryBusy = false;
+            onAllCollectiblesFinished?.Invoke();
+            buildRoutine = null;
+            yield break;
+        }
+
         for (int i = 0; i < spawnedItems.Count; i++)
         {
             var item = spawnedItems[i];
@@ -116,6 +125,7 @@ public class MergeSummaryPanel : MonoBehaviour
 
         buildRoutine = null;
     }
+
 
     // 🎬 CALLED BY POPUP OPEN ANIMATION EVENT
     public void OnPopupOpenAnimationFinished()
@@ -180,7 +190,6 @@ public class MergeSummaryPanel : MonoBehaviour
                 }
             }
         );
-
     }
 
     private void Clear()

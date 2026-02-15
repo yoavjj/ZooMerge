@@ -11,7 +11,6 @@ public class GameHealthManager : MonoBehaviour
     [SerializeField] private AnimationCurve sliderEase = AnimationCurve.Linear(0, 0, 1, 1);
 
     [SerializeField] private GameObject missZonePrefab;  // assign in Inspector
-    [SerializeField] private Transform missZonePrefabContainer;
     private GameObject activeMissZoneInstance;
 
     private HealthTween healthTween;
@@ -95,14 +94,6 @@ public class GameHealthManager : MonoBehaviour
                     sessionEnded = true;
                     isAnimatingToZero = false;
 
-                    // ✅ Spawn miss zone only AFTER slider is fully zeroed
-                    if (missZonePrefab != null && activeMissZoneInstance == null)
-                    {
-                        Transform parent = missZonePrefabContainer != null ? missZonePrefabContainer : transform;
-                        activeMissZoneInstance = Instantiate(missZonePrefab, parent);
-                        Debug.Log($"[GameHealthManager] MissZone spawned under: {parent.name}");
-                    }
-
                     if (MergeLevelManager.TryAdvanceEnemy())
                     {
                         Debug.Log("✅ Enemy defeated! Preparing next enemy...");
@@ -128,7 +119,7 @@ public class GameHealthManager : MonoBehaviour
         BallEventManager.RaiseEnemySessionEnded();
 
         // 2. show popup
-        PopupManager.Instance?.ShowEnemyDefeatedMessage();
+        //PopupManager.Instance?.ShowEnemyDefeatedMessage();
 
         // 3. delay then spawn next
         Invoke(nameof(StartNextEnemy), 1.5f);
