@@ -10,7 +10,6 @@ public class GameHealthManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private AnimationCurve sliderEase = AnimationCurve.Linear(0, 0, 1, 1);
 
-    [SerializeField] private GameObject missZonePrefab;  // assign in Inspector
     private GameObject activeMissZoneInstance;
 
     private HealthTween healthTween;
@@ -102,12 +101,11 @@ public class GameHealthManager : MonoBehaviour
                     else
                     {
                         Debug.Log("🏁 All enemies defeated! Level complete.");
+                        MergeLevelManager.MarkLevelCompletePending(); // flag to indicate level completion
                         BallEventManager.RaiseEnemySessionEnded();
 
                         BallEventManager.RaiseGameOver(null, GameOverReason.Won);
                         BallEventManager.RaiseSessionWonAnimation();
-                        MergeAttemptTracker.ClearAll();
-                        BallRegistry.Clear();
                     }
                 }
             });

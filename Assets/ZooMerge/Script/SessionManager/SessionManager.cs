@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using static BallEventManager;
@@ -5,6 +6,10 @@ using static BallEventManager;
 public class SessionManager : MonoBehaviour
 {
     public static SessionManager Instance { get; private set; }
+
+    [Header ("Session Control")]
+    [SerializeField, Min(0f)] private float mergeUnblockDelay = 0.35f;
+    private Coroutine mergeUnblockRoutine;
 
     [Header("UI Animators")]
     [SerializeField] private Animator topUIAnimator;
@@ -37,45 +42,75 @@ public class SessionManager : MonoBehaviour
     private void OnEnable()
     {
         OnSessionStarted += TriggerSessionStart;
-
         OnSessionPaused += TriggerSessionEnd;
-
-        OnEnemyDeathSpineEvent += (enemy) => TriggerEnemyDieFx();
-
-        // ✅ This is the important one:
-        // When enemy session ends, EnemyUnit starts Enemy_die and we also fire our extra animator trigger.
-        OnEnemySessionEnded += () => HandleGameOver(default, default);
-
-
         OnSessionResumed += TriggerSessionStart;
+
+        OnSessionStarted += HandleSessionStartedForMerges;   // add this
+        BallEventManager.OnEnemySessionEnded += HandleSessionEndedForMerges;
+
+        BallEventManager.OnEnemySessionEnded += OnEnemySessionEnded;
+        BallEventManager.OnEnemyDeathSpineEvent += OnEnemyDeathSpineEvent;
     }
 
     private void OnDisable()
     {
         OnSessionStarted -= TriggerSessionStart;
-
         OnSessionPaused -= TriggerSessionEnd;
-
-        OnEnemySessionEnded -= () => HandleGameOver(default, default);
-
         OnSessionResumed -= TriggerSessionStart;
-        OnEnemyDeathSpineEvent -= (enemy) => TriggerEnemyDieFx();
+
+        OnSessionStarted -= HandleSessionStartedForMerges;   // add this
+        BallEventManager.OnEnemySessionEnded -= HandleSessionEndedForMerges;
+
+        BallEventManager.OnEnemySessionEnded -= OnEnemySessionEnded;
+        BallEventManager.OnEnemyDeathSpineEvent -= OnEnemyDeathSpineEvent;
     }
 
-    private void HandleGameOver(BallInfo info, GameOverReason reason)
+    private void HandleSessionStartedForMerges()
     {
-        // Prevent double triggers if RaiseEnemySessionEnded happens twice by mistake
-        if (dieFxTriggeredThisEnemy) return;
-        dieFxTriggeredThisEnemy = true;
+        BallEventManager.SetMergesBlocked(true);
 
-        if (enemyDieAnimator != null && !string.IsNullOrEmpty(enemyDieTriggerName))
+        if (mergeUnblockRoutine != null) StopCoroutine(mergeUnblockRoutine);
+        mergeUnblockRoutine = StartCoroutine(UnblockMergesAfterDelay());
+    }
+
+    // ✅ ADDED
+    private void HandleSessionEndedForMerges()
+    {
+        BallEventManager.SetMergesBlocked(true);
+
+        if (mergeUnblockRoutine != null)
         {
-            enemyDieAnimator.ResetTrigger(enemyDieTriggerName);
-            enemyDieAnimator.SetTrigger(enemyDieTriggerName);
+            StopCoroutine(mergeUnblockRoutine);
+            mergeUnblockRoutine = null;
         }
     }
 
-    private void TriggerEnemyDieFx()
+    // ✅ ADDED
+    private IEnumerator UnblockMergesAfterDelay()
+    {
+        if (mergeUnblockDelay > 0f)
+            yield return new WaitForSeconds(mergeUnblockDelay);
+
+        BallEventManager.SetMergesBlocked(false);
+        mergeUnblockRoutine = null;
+    }
+
+    private void OnEnemySessionEnded()
+    {
+        // Start the "Die" FX when the death sequence begins
+        if (!dieFxTriggeredThisEnemy)
+        {
+            dieFxTriggeredThisEnemy = true;
+
+            if (enemyDieAnimator != null && !string.IsNullOrEmpty(enemyDieTriggerName))
+            {
+                enemyDieAnimator.ResetTrigger(enemyDieTriggerName);
+                enemyDieAnimator.SetTrigger(enemyDieTriggerName);
+            }
+        }
+    }
+
+    private void OnEnemyDeathSpineEvent(GameObject enemyRoot)
     {
         TriggerSessionEnd();
     }
@@ -121,8 +156,24 @@ public class SessionManager : MonoBehaviour
 
     public void HandleEnemyDieAnimationEvent()
     {
-        BallEventManager.RaiseEnemyDefeatedMidLevel();
+        // End-of-level case (final enemy)
+        if (MergeLevelManager.LevelCompletePending)
+        {
+            MergeLevelManager.ClearLevelCompletePending();
 
+            // ✅ now we end the run for real
+            BallEventManager.RaiseGameOver(null, GameOverReason.Won);
+
+            // now safe to clear
+            MergeAttemptTracker.ClearAll();
+            BallRegistry.Clear();
+
+            PopupManager.Instance?.ShowEndLvlPopup(GameOverReason.Won);
+            return;
+        }
+
+        // Mid-level enemy defeated case
+        BallEventManager.RaiseEnemyDefeatedMidLevel();
         PopupManager.Instance?.ShowEnemyDefeatedMessage();
     }
 }

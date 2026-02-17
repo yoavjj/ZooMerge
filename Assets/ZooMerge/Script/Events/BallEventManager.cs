@@ -21,7 +21,11 @@ public static class BallEventManager
     public static event System.Action OnSessionWonAnimation;
     public static event System.Action<bool> OnResetCounters;
 
-    public static void RaiseSessionStarted() => OnSessionStarted?.Invoke();
+    public static void RaiseSessionStarted()
+    {
+        SetMergesBlocked(false);
+        OnSessionStarted?.Invoke();
+    }
     public static void RaiseSessionWonAnimation() => OnSessionWonAnimation?.Invoke();
     public static void RaiseResetCounters(bool keepUI)
     {
@@ -53,6 +57,16 @@ public static class BallEventManager
     /// <summary>Fired when an enemy session ends (e.g. on defeat, before transition).</summary>
     public static event System.Action OnEnemySessionEnded;
 
+    /// <summary> Fired when an enemy is about to be defeated, allowing score popups to react (e.g.
+    public static event System.Action<ScorePopupInstance, EnemyDefeatType> OnEnemyDefeatImminent;
+
+    public static void RaiseEnemyDefeatImminent(ScorePopupInstance killer, EnemyDefeatType type)
+        => OnEnemyDefeatImminent?.Invoke(killer, type);
+
+    public static bool MergesBlocked { get; private set; }
+
+    public static void SetMergesBlocked(bool blocked) => MergesBlocked = blocked;
+
 
     // Enemy defeated (but not final one in level)
     public static event System.Action OnEnemyDefeatedMidLevel;
@@ -65,11 +79,17 @@ public static class BallEventManager
     }
 
     public static void RaiseEnemyAdvanced() => OnEnemyAdvanced?.Invoke();
-    public static void RaiseEnemySessionEnded() => OnEnemySessionEnded?.Invoke();
+
+    public static void RaiseEnemySessionEnded()
+    {
+        SetMergesBlocked(true);
+        OnEnemySessionEnded?.Invoke();
+    }
 
 
     // 📌 Game Over
     /// <summary>Fired when the game ends (won or lost).</summary>
+    /// 
 
     public static bool IsGameOver { get; private set; } = false;
     public static bool WasMidLevelLoss { get; private set; }
@@ -82,8 +102,15 @@ public static class BallEventManager
 
     public static void RaiseGameOver(BallInfo info, GameOverReason reason)
     {
+        SetMergesBlocked(true);
         OnGameOver?.Invoke(info, reason);
         OnGameOverAnimation?.Invoke();
+    }
+
+    public enum EnemyDefeatType
+    {
+        MidLevel,       // enemy defeated, more enemies remain
+        LevelComplete   // final enemy defeated
     }
 
     public static event Action OnReturnToMainMenu;

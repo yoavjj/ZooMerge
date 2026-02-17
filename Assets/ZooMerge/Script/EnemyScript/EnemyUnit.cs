@@ -55,6 +55,8 @@ public class EnemyUnit : MonoBehaviour
     {
         if (isDying) return;
 
+        ParticleEvents.Request("EnemyImpact", transform.position);
+
         if (UseSpine())
         {
             spineGraphic.AnimationState.SetAnimation(0, SafeClip(hitAnimation), false);

@@ -39,18 +39,33 @@ public class MergeScoreDisplayController : MonoBehaviour
 
     private readonly Dictionary<int, Queue<ScorePopupInstance>> poolsByIndex = new();
 
+    private bool sessionEnding;
+
     private void OnEnable()
     {
         BallEventManager.OnMergeScore += ShowScoreAtPosition;
+
+        BallEventManager.OnEnemySessionEnded += HandleSessionEnding;
+        BallEventManager.OnSessionStarted += ClearSessionEnding;
+        BallEventManager.OnEnemyAdvanced += ClearSessionEnding;
     }
 
     private void OnDisable()
     {
         BallEventManager.OnMergeScore -= ShowScoreAtPosition;
+
+        BallEventManager.OnEnemySessionEnded -= HandleSessionEnding;
+        BallEventManager.OnSessionStarted -= ClearSessionEnding;
+        BallEventManager.OnEnemyAdvanced -= ClearSessionEnding;
     }
+
+    private void HandleSessionEnding() => sessionEnding = true;
+    private void ClearSessionEnding() => sessionEnding = false;
 
     private void ShowScoreAtPosition(Vector3 worldPos, int score, int level)
     {
+        if (sessionEnding) return;
+        
         var popup = GetOrCreatePopup(level);
         popup.SetPoolIndex(Mathf.Clamp(level - 1, 0, scorePrefabsByLevel.Count - 1));
         popup.Text.text = $"+{score}";

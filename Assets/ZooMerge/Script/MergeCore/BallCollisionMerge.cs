@@ -22,6 +22,8 @@ public class BallCollisionMerge : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D col)
     {
+        if (BallEventManager.MergesBlocked) return;
+        
         if (!initialized || core == null)
         {
             //Debug.LogWarning("🚫 Merge skipped: Not initialized or core is null.");

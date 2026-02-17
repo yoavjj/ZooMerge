@@ -38,6 +38,10 @@ public class CircleDragInput : MonoBehaviour,
     [SerializeField] private float entryLineWidth = 6f;   // line length in world units
     [SerializeField] private bool centerLineOnSpawnX = true; // center the line on spawnContainer.x
 
+    [Header("Input Blocker (Optional)")]
+    [SerializeField] private GameObject screenBlocker; // full-screen UI panel (raycast target ON)
+    [SerializeField] private bool blockOnSessionEnd = true;
+
     #endregion
 
     #region Runtime State
@@ -75,6 +79,18 @@ public class CircleDragInput : MonoBehaviour,
 
     #region Unity Lifecycle
 
+    private void OnEnable()
+    {
+        BallEventManager.OnEnemySessionEnded += HandleSessionEndedBlock;
+        BallEventManager.OnSessionStarted += HandleSessionStartedUnblock;
+    }
+
+    private void OnDisable()
+    {
+        BallEventManager.OnEnemySessionEnded -= HandleSessionEndedBlock;
+        BallEventManager.OnSessionStarted -= HandleSessionStartedUnblock;
+    }
+
     private void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -86,6 +102,20 @@ public class CircleDragInput : MonoBehaviour,
         cam = Camera.main;
         CacheBounds();
         CacheBufferZone();
+    }
+
+    private void HandleSessionEndedBlock()
+    {
+        if (!blockOnSessionEnd) return;
+
+        if (screenBlocker != null)
+            screenBlocker.SetActive(true);
+    }
+
+    private void HandleSessionStartedUnblock()
+    {
+        if (screenBlocker != null)
+            screenBlocker.SetActive(false);
     }
 
     public bool HasActiveBall() => activeBall != null;

@@ -48,14 +48,8 @@ public class PopupManager : MonoBehaviour
         }
     }
 
-    private void OnEnable()
-    {
-        //BallEventManager.OnGameOver += ShowEndPopup;
-    }
-
     private void OnDisable()
     {
-        //BallEventManager.OnGameOver -= ShowEndPopup;
         if (winLosePopupRoutine != null) { StopCoroutine(winLosePopupRoutine); winLosePopupRoutine = null; }
     }
 
@@ -76,13 +70,20 @@ public class PopupManager : MonoBehaviour
         pauseRestartPopupInstance = null;
     }
 
-    private void ShowEndPopup(BallInfo info, GameOverReason reason)
+    public void ShowEndLvlPopup(GameOverReason reason)
     {
-        if (winLosePopupRoutine != null) StopCoroutine(winLosePopupRoutine);
-        winLosePopupRoutine = StartCoroutine(ShowWinLosePopupAfterDelay(winLosePopupDelay, () =>
+        if (winLosePopupRoutine != null)
         {
-            PopupMessageCenter.ShowEndPopupMessage(WinLosePopup.Instance, reason);
-        }));
+            StopCoroutine(winLosePopupRoutine);
+            winLosePopupRoutine = null;
+        }
+
+        // Ensure popup exists
+        if (gameUIPopupInstance == null)
+            gameUIPopupInstance = Instantiate(winLosePopupPrefab, transform);
+
+        // Now WinLosePopup.Instance should exist
+        PopupMessageCenter.ShowEndPopupMessage(WinLosePopup.Instance, reason);
     }
 
     public void ShowEnemyDefeatedMessage()

@@ -40,14 +40,26 @@ public class ScorePopupInstance : MonoBehaviour
     private int popupScore;
 
     private bool outTriggered = false;
+    private bool cancelled;
+
+    private void OnEnable()
+    {
+        BallEventManager.OnEnemySessionEnded += HandleEnemySessionEndedGlobal;
+        BallEventManager.OnEnemyDefeatImminent += HandleEnemyDefeatImminent;
+    }
 
     private void OnDisable()
     {
+        BallEventManager.OnEnemySessionEnded -= HandleEnemySessionEndedGlobal;
+        BallEventManager.OnEnemyDefeatImminent -= HandleEnemyDefeatImminent;
+
         if (flyRoutine != null) StopCoroutine(flyRoutine);
         flyRoutine = null;
         InUse = false;
         hasExited = false;
         outTriggered = false;
+
+        cancelled = false; // ✅ ADDED
     }
 
     public void Init(
@@ -68,6 +80,7 @@ public class ScorePopupInstance : MonoBehaviour
         GameObject enemy
     )
     {
+        cancelled = false;
         InUse = true;
         this.onComplete = onComplete;
         this.cam = cam;
@@ -229,6 +242,44 @@ public class ScorePopupInstance : MonoBehaviour
         yield return new WaitForSeconds(delay);
         InUse = false;
         onComplete?.Invoke(this);
+    }
+
+    private void HandleEnemySessionEndedGlobal()
+    {
+        CancelAndReturn();
+    }
+
+    private void CancelAndReturn()
+    {
+        if (cancelled) return;
+        cancelled = true;
+
+        // Prevent applying damage later
+        hasExited = true;
+
+        if (flyRoutine != null)
+        {
+            StopCoroutine(flyRoutine);
+            flyRoutine = null;
+        }
+
+        // Optional: play out anim if you want it to disappear nicely
+        if (animator != null)
+            animator.SetTrigger("Out");
+
+        InUse = false;
+        onComplete?.Invoke(this); // returns to pool (controller clears offsets + disables)
+    }
+
+    private void HandleEnemyDefeatImminent(ScorePopupInstance killer, BallEventManager.EnemyDefeatType type)
+    {
+        // If I'm the killer, keep going.
+        if (killer == this) return;
+
+        // If you ONLY want this behavior for level complete:
+        // if (type != BallEventManager.EnemyDefeatType.LevelComplete) return;
+
+        CancelAndReturn();
     }
 
 }

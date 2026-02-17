@@ -14,6 +14,7 @@ public static class MergeLevelManager
         levelData = data;
         currentLevelIndex = 0;
         currentEnemyIndex = 0;
+        LevelCompletePending = false;
     }
 
     public static void SetLevel(int levelNumber)
@@ -30,6 +31,7 @@ public static class MergeLevelManager
 
         currentLevelIndex = index;
         currentEnemyIndex = 0; // Reset enemy progression for this level
+        LevelCompletePending = false;
     }
 
     public static MergeLevel GetCurrentLevel()
@@ -48,12 +50,14 @@ public static class MergeLevelManager
 
         currentLevelIndex = Mathf.Min(currentLevelIndex + 1, levelData.levels.Count - 1);
         currentEnemyIndex = 0;
+        LevelCompletePending = false;
     }
 
     public static void ResetLevel()
     {
         currentLevelIndex = 0;
         currentEnemyIndex = 0;
+        LevelCompletePending = false;
     }
 
     // ✅ --- ENEMY MANAGEMENT ---
@@ -146,4 +150,20 @@ public static class MergeLevelManager
     /// Returns the total number of enemies for the current level.
     /// </summary>
     public static int TotalEnemiesInLevel => GetCurrentLevel().enemy_data?.Count ?? 0;
+
+    /// <summary>
+    /// Indicates whether the player has defeated all enemies in the current level and is pending level completion.
+    /// </summary>
+
+    public static bool LevelCompletePending { get; private set; } = false;
+
+    public static void MarkLevelCompletePending()
+    {
+        LevelCompletePending = true;
+    }
+
+    public static void ClearLevelCompletePending()
+    {
+        LevelCompletePending = false;
+    }
 }
