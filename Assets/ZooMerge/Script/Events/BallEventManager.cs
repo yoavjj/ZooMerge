@@ -132,4 +132,17 @@ public static class BallEventManager
 
     public static void RaiseSessionPaused() => OnSessionPaused?.Invoke();
     public static void RaiseSessionResumed() => OnSessionResumed?.Invoke();
+
+    private static int pauseBlockCount = 0;
+    public static bool PauseBlocked => pauseBlockCount > 0;
+
+    public static void PushPauseBlock()
+    {
+        pauseBlockCount++;
+    }
+
+    public static void PopPauseBlock()
+    {
+        pauseBlockCount = Mathf.Max(0, pauseBlockCount - 1);
+    }
 }

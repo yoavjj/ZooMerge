@@ -26,6 +26,8 @@ public class PopupManager : MonoBehaviour
     private GameObject mainMenuPopupInstance;
     private GameObject gameUIPopupInstance;
 
+    private bool isSessionActive;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -50,11 +52,22 @@ public class PopupManager : MonoBehaviour
 
     private void OnDisable()
     {
+        BallEventManager.OnSessionStarted -= HandleSessionStarted;
+        BallEventManager.OnEnemySessionEnded -= HandleSessionEnded;
+        BallEventManager.OnGameOver -= HandleGameOver;
+        BallEventManager.OnReturnToMainMenu -= HandleReturnToMainMenu;
+
         if (winLosePopupRoutine != null) { StopCoroutine(winLosePopupRoutine); winLosePopupRoutine = null; }
     }
 
     public void ShowPauseRestartPopup()
     {
+        if (BallEventManager.PauseBlocked) return;
+        
+        if (MergeScoreDisplayController.Instance != null &&
+            MergeScoreDisplayController.Instance.HasActiveScorePopups)
+            return;
+
         if (pauseRestartPopupInstance == null)
         {
             pauseRestartPopupInstance = Instantiate(pauseRestartPopupPrefab, transform);
@@ -187,20 +200,48 @@ public class PopupManager : MonoBehaviour
         levelProgressBarSlider.SyncIconsToCurrentProgress(includeCurrent: false);
     }
 
-    private void OnApplicationPause(bool pause)
+    private void HandleSessionStarted()
     {
-        if (pause)
-        {
-            TryShowPausePopupFromSystem();
-        }
+        isSessionActive = true;
     }
 
+    private void HandleSessionEnded()
+    {
+        // enemy transition or level end -> treat as not an "active play" moment
+        isSessionActive = false;
+    }
+
+    private void HandleGameOver(BallInfo info, GameOverReason reason)
+    {
+        isSessionActive = false;
+    }
+
+    private void HandleReturnToMainMenu()
+    {
+        isSessionActive = false;
+    }
+
+    private void OnApplicationPause(bool pause)
+    {
+        if (!pause) return;
+
+        // only during active gameplay session + not game over
+        if (!isSessionActive) return;
+        if (BallEventManager.IsGameOver) return;
+
+        TryShowPausePopupFromSystem();
+    }
+
+    // ✅ CHANGED
     private void OnApplicationFocus(bool hasFocus)
     {
-        if (!hasFocus)
-        {
-            TryShowPausePopupFromSystem();
-        }
+        if (hasFocus) return;
+
+        // only during active gameplay session + not game over
+        if (!isSessionActive) return;
+        if (BallEventManager.IsGameOver) return;
+
+        TryShowPausePopupFromSystem();
     }
 
     private void TryShowPausePopupFromSystem()

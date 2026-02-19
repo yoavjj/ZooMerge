@@ -60,11 +60,13 @@ public class CircleDropController : MonoBehaviour
     private bool isSettling = false;
     private bool hasAppliedInstantPhysics;
     private bool hasLanded = false;
+    private bool pauseBlockActive = false;
 
     private float targetGravityScale;
     private float startGravityScale;
     private float prefabGravityScale;
     private int assignedSortingOrder = 5;
+
     public int GetAssignedOrder() => assignedSortingOrder;
 
     // --- Cached animation names (filled once) ---
@@ -115,6 +117,8 @@ public class CircleDropController : MonoBehaviour
             CircleDragInput.Instance.ClearActiveBall(this);
 
         if (introRoutine != null) { StopCoroutine(introRoutine); introRoutine = null; }
+
+        ReleasePauseBlockIfActive();
     }
 
     // ---- Data push from BallInfo ----
@@ -148,6 +152,12 @@ public class CircleDropController : MonoBehaviour
     {
         if (!isDragging) return;
         isDragging = false;
+
+        if (!pauseBlockActive)
+        {
+            pauseBlockActive = true;
+            BallEventManager.PushPauseBlock();
+        }
 
         // ✅ Register the ball to BallRegistry when it goes live
         if (ballInfo != null)
@@ -211,6 +221,8 @@ public class CircleDropController : MonoBehaviour
         if (isDragging) return;
 
         if (hasLanded) return; // ✅ Already landed — skip
+        
+        ReleasePauseBlockIfActive();
 
         hasLanded = true; // ✅ Mark as landed on ANY collision
         CacheAnimNamesIfNeeded();
@@ -233,6 +245,13 @@ public class CircleDropController : MonoBehaviour
                 PlaySpine(animIdle, true);
             }
         }
+    }
+
+    public void ReleasePauseBlockIfActive()
+    {
+        if (!pauseBlockActive) return;
+        pauseBlockActive = false;
+        BallEventManager.PopPauseBlock();
     }
 
     private void OnCollisionExit2D(Collision2D collision)

@@ -15,6 +15,11 @@ public class SessionManager : MonoBehaviour
     [SerializeField] private Animator topUIAnimator;
     [SerializeField] private Animator bottomUIAnimator;
 
+    private static readonly int TR_SessionStart = Animator.StringToHash("Session_Start");
+    private static readonly int TR_SessionEnd = Animator.StringToHash("Session_End");
+    private static readonly int TR_SessionPause = Animator.StringToHash("Session_Pause");
+    private static readonly int TR_SessionResume = Animator.StringToHash("Session_Resume");
+
     [Header("Enemy Die FX Animator")]
     [SerializeField] private Animator enemyDieAnimator;
     [SerializeField] private string enemyDieTriggerName = "Die";
@@ -42,8 +47,8 @@ public class SessionManager : MonoBehaviour
     private void OnEnable()
     {
         OnSessionStarted += TriggerSessionStart;
-        OnSessionPaused += TriggerSessionEnd;
-        OnSessionResumed += TriggerSessionStart;
+        OnSessionPaused += TriggerSessionPause;
+        OnSessionResumed += TriggerSessionResume;
 
         OnSessionStarted += HandleSessionStartedForMerges;   // add this
         BallEventManager.OnEnemySessionEnded += HandleSessionEndedForMerges;
@@ -55,8 +60,8 @@ public class SessionManager : MonoBehaviour
     private void OnDisable()
     {
         OnSessionStarted -= TriggerSessionStart;
-        OnSessionPaused -= TriggerSessionEnd;
-        OnSessionResumed -= TriggerSessionStart;
+        OnSessionPaused -= TriggerSessionPause;
+        OnSessionResumed -= TriggerSessionResume;
 
         OnSessionStarted -= HandleSessionStartedForMerges;   // add this
         BallEventManager.OnEnemySessionEnded -= HandleSessionEndedForMerges;
@@ -73,7 +78,7 @@ public class SessionManager : MonoBehaviour
         mergeUnblockRoutine = StartCoroutine(UnblockMergesAfterDelay());
     }
 
-    // ✅ ADDED
+    
     private void HandleSessionEndedForMerges()
     {
         BallEventManager.SetMergesBlocked(true);
@@ -85,7 +90,7 @@ public class SessionManager : MonoBehaviour
         }
     }
 
-    // ✅ ADDED
+    
     private IEnumerator UnblockMergesAfterDelay()
     {
         if (mergeUnblockDelay > 0f)
@@ -150,6 +155,39 @@ public class SessionManager : MonoBehaviour
         topUIAnimator?.SetTrigger("Session_Start");
         bottomUIAnimator?.SetTrigger("Session_Start");
 
+        if (overlayRaycaster != null)
+            overlayRaycaster.enabled = true;
+    }
+
+    private void TriggerSessionPause()
+    {
+        // Only if session UI is currently active
+        if (!isSessionUIActive) return;
+
+        // Don’t touch enemyEndTriggerName here. Pause is not an end.
+        topUIAnimator?.ResetTrigger(TR_SessionResume);
+        bottomUIAnimator?.ResetTrigger(TR_SessionResume);
+
+        topUIAnimator?.SetTrigger(TR_SessionPause);
+        bottomUIAnimator?.SetTrigger(TR_SessionPause);
+
+        // Usually keep overlay raycaster OFF while paused
+        if (overlayRaycaster != null)
+            overlayRaycaster.enabled = false;
+    }
+
+    private void TriggerSessionResume()
+    {
+        // Only if session UI is currently active
+        if (!isSessionUIActive) return;
+
+        topUIAnimator?.ResetTrigger(TR_SessionPause);
+        bottomUIAnimator?.ResetTrigger(TR_SessionPause);
+
+        topUIAnimator?.SetTrigger(TR_SessionResume);
+        bottomUIAnimator?.SetTrigger(TR_SessionResume);
+
+        // Re-enable interactions
         if (overlayRaycaster != null)
             overlayRaycaster.enabled = true;
     }

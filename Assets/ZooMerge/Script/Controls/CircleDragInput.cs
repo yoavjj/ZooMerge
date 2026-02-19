@@ -28,6 +28,10 @@ public class CircleDragInput : MonoBehaviour,
     [SerializeField] private float minPressTimeBeforeDrop = 0.05f; // seconds
     private DragSmoother dragSmoother = new DragSmoother(0.05f);
 
+    [Header("Auto Centering (Optional)")]
+    [SerializeField] private bool recenterOnSessionStart = true;
+    [SerializeField] private float recenterX = 0f;
+
     private bool hasMovedSincePointerDown;
     private float pointerDownX;
 
@@ -116,6 +120,22 @@ public class CircleDragInput : MonoBehaviour,
     {
         if (screenBlocker != null)
             screenBlocker.SetActive(false);
+
+        if (recenterOnSessionStart)
+            RecenterPlayerToZero();
+    }
+
+    private void RecenterPlayerToZero()
+    {
+        if (spawnContainer == null) return;
+
+        var pos = spawnContainer.position;
+        pos.x = recenterX;
+        spawnContainer.position = pos;
+
+        // keep tracking consistent
+        pointerDownX = pos.x;
+        hasMovedSincePointerDown = false;
     }
 
     public bool HasActiveBall() => activeBall != null;

@@ -96,6 +96,10 @@ public class BallCollisionMerge : MonoBehaviour
         if (!merged)
         {
             //Debug.Log($"❌ Merge failed between: {self.name} and {other.name}");
+            
+            self.DropController?.ReleasePauseBlockIfActive();
+            other.DropController?.ReleasePauseBlockIfActive();
+
             self.DropController?.ApplyFinalPhysicsImmediately();
             other.DropController?.ApplyFinalPhysicsImmediately();
             TryApplyFriction(self, other);

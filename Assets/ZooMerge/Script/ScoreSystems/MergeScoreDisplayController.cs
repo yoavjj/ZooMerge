@@ -41,6 +41,15 @@ public class MergeScoreDisplayController : MonoBehaviour
 
     private bool sessionEnding;
 
+    public static MergeScoreDisplayController Instance { get; private set; }
+
+    public bool HasActiveScorePopups => activeCenterOffsets.Count > 0;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
     private void OnEnable()
     {
         BallEventManager.OnMergeScore += ShowScoreAtPosition;
