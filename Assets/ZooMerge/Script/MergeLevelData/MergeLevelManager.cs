@@ -4,6 +4,9 @@ using static Inventory;
 
 public static class MergeLevelManager
 {
+    public static event System.Action<int> OnLevelChanged;
+    private static void RaiseLevelChanged() => OnLevelChanged?.Invoke(CurrentLevelNumber);
+
     private static MergeLevelData levelData;
     private static int currentLevelIndex = 0;
     private static int currentEnemyIndex = 0;
@@ -11,6 +14,8 @@ public static class MergeLevelManager
 
     public static void Initialize(MergeLevelData data)
     {
+        RaiseLevelChanged();
+
         levelData = data;
         currentLevelIndex = 0;
         currentEnemyIndex = 0;
@@ -32,6 +37,8 @@ public static class MergeLevelManager
         currentLevelIndex = index;
         currentEnemyIndex = 0; // Reset enemy progression for this level
         LevelCompletePending = false;
+
+        RaiseLevelChanged();
     }
 
     public static MergeLevel GetCurrentLevel()
@@ -51,6 +58,8 @@ public static class MergeLevelManager
         currentLevelIndex = Mathf.Min(currentLevelIndex + 1, levelData.levels.Count - 1);
         currentEnemyIndex = 0;
         LevelCompletePending = false;
+
+        RaiseLevelChanged();
     }
 
     public static void ResetLevel()
@@ -58,6 +67,8 @@ public static class MergeLevelManager
         currentLevelIndex = 0;
         currentEnemyIndex = 0;
         LevelCompletePending = false;
+
+        RaiseLevelChanged();
     }
 
     // ✅ --- ENEMY MANAGEMENT ---

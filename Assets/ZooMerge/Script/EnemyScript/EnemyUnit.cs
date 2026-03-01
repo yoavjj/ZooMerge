@@ -23,6 +23,10 @@ public class EnemyUnit : MonoBehaviour
     [Header("Spine Death Event")]
     [SerializeField] private string deathEndEventName = "AnimEnd"; // ✅ Spine event name
 
+    [Header("Death Fade")]
+    [SerializeField, Min(0f)] private float deathFadeDuration = 0.08f; // 0 = instant
+    private Coroutine fadeRoutine;
+
     private bool isDying;
     private bool deathCleanupTriggered; // ✅ prevents double-cleanup
     private GameObject root;
@@ -48,6 +52,12 @@ public class EnemyUnit : MonoBehaviour
         {
             StopCoroutine(dieRoutine);
             dieRoutine = null;
+        }
+
+        if (fadeRoutine != null)
+        {
+            StopCoroutine(fadeRoutine);
+            fadeRoutine = null;
         }
     }
 
@@ -114,10 +124,11 @@ public class EnemyUnit : MonoBehaviour
         if (e != null && e.Data != null && e.Data.Name == deathEndEventName)
         {
             deathCleanupTriggered = true;
-
-            // Optional: stop further events from triggering anything
+        
+            // Unsubscribe immediately to avoid multiple triggers if the event fires more than once
             entry.Event -= OnDieEntryEvent;
 
+            FadeOutNow();          // fade opacity to zero at AnimEnd
             CleanupAfterDeath();
         }
     }
@@ -164,5 +175,47 @@ public class EnemyUnit : MonoBehaviour
     {
         if (HasClip(clip)) return clip;
         return HasClip(idleAnimation) ? idleAnimation : string.Empty;
+    }
+
+    private void FadeOutNow()
+    {
+        if (spineGraphic == null) return;
+
+        if (fadeRoutine != null) StopCoroutine(fadeRoutine);
+
+        if (deathFadeDuration <= 0f)
+        {
+            var c = spineGraphic.color;
+            c.a = 0f;
+            spineGraphic.color = c;
+            return;
+        }
+
+        fadeRoutine = StartCoroutine(FadeSpineGraphicAlpha(0f, deathFadeDuration));
+    }
+
+    private IEnumerator FadeSpineGraphicAlpha(float targetAlpha, float duration)
+    {
+        var c = spineGraphic.color;
+        float startAlpha = c.a;
+
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.deltaTime / Mathf.Max(0.0001f, duration);
+            float a = Mathf.Lerp(startAlpha, targetAlpha, Mathf.Clamp01(t));
+
+            c = spineGraphic.color;
+            c.a = a;
+            spineGraphic.color = c;
+
+            yield return null;
+        }
+
+        c = spineGraphic.color;
+        c.a = targetAlpha;
+        spineGraphic.color = c;
+
+        fadeRoutine = null;
     }
 }

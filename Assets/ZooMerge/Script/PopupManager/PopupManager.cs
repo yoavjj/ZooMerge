@@ -95,6 +95,12 @@ public class PopupManager : MonoBehaviour
         if (gameUIPopupInstance == null)
             gameUIPopupInstance = Instantiate(winLosePopupPrefab, transform);
 
+        // 🆕 Tell the popup that this is a full level completion context
+        if (WinLosePopup.Instance != null && reason == GameOverReason.Won)
+        {
+            WinLosePopup.Instance.SetLevelCompleteContext(true);
+        }
+
         // Now WinLosePopup.Instance should exist
         PopupMessageCenter.ShowEndPopupMessage(WinLosePopup.Instance, reason);
     }
@@ -104,6 +110,11 @@ public class PopupManager : MonoBehaviour
         if (winLosePopupRoutine != null) StopCoroutine(winLosePopupRoutine);
         winLosePopupRoutine = StartCoroutine(ShowWinLosePopupAfterDelay(winLosePopupDelay, () =>
         {
+            // 🆕 Ensure it knows this is NOT the end of the level
+            if (WinLosePopup.Instance != null)
+            {
+                WinLosePopup.Instance.SetLevelCompleteContext(false);
+            }
             PopupMessageCenter.ShowEnemyDefeated(WinLosePopup.Instance);
         }));
     }

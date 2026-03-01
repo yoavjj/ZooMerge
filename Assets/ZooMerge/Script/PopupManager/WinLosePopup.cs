@@ -17,6 +17,7 @@ public class WinLosePopup : MonoBehaviour
     [SerializeField] private Transform contentRoot;
     [SerializeField] private GameObject winContentPrefab;
     [SerializeField] private GameObject loseContentPrefab;
+    [SerializeField] private GameObject levelCompleteContentPrefab;
 
     [Header("Merge Summary")]
     [SerializeField] private MergeSummaryPanel mergeSummaryPanel;
@@ -36,6 +37,12 @@ public class WinLosePopup : MonoBehaviour
     [SerializeField] LevelProgressBarSlider levelProgressBarSlider;
     [SerializeField] private CollectibleFlyController collectibleFlyController;
 
+    [Header("Level Art Reveal")]
+    [SerializeField] private LevelArtRevealController levelArtRevealController;
+    [SerializeField, Min(0f)] private float levelRevealDuration = 4.5f;      // ✅ how long reveal stays on screen
+    [SerializeField, Min(0f)] private float revealOutDuration = 0.6f;        // ✅ how long reveal "Out" takes
+    private Coroutine playPressedRoutine;
+
     private bool isContinue = false;
     private bool levelCompleteContext = false;
     private GameOverReason currentReason;
@@ -52,6 +59,12 @@ public class WinLosePopup : MonoBehaviour
         {
             StopCoroutine(applyRoutine);
             applyRoutine = null;
+        }
+
+        if (playPressedRoutine != null)
+        {
+            StopCoroutine(playPressedRoutine);
+            playPressedRoutine = null;
         }
     }
 
@@ -133,9 +146,17 @@ public class WinLosePopup : MonoBehaviour
                 Destroy(contentRoot.GetChild(i).gameObject);
         }
 
-        GameObject prefabToSpawn = reason == GameOverReason.Won
-            ? winContentPrefab
-            : loseContentPrefab;
+        // 🆕 Decide which prefab to spawn based on the reason and level context
+        GameObject prefabToSpawn;
+        if (reason == GameOverReason.Lost)
+        {
+            prefabToSpawn = loseContentPrefab;
+        }
+        else
+        {
+            // If it's a win, check if it's the end of the entire level
+            prefabToSpawn = levelCompleteContext ? levelCompleteContentPrefab : winContentPrefab;
+        }
 
         var instance = Instantiate(prefabToSpawn, contentRoot);
 
@@ -170,6 +191,14 @@ public class WinLosePopup : MonoBehaviour
 
         bool isNewLevel = levelCompleteContext; // true only when popup showed a real level win
 
+        if (isNewLevel && levelArtRevealController != null)
+        {
+            int curLevel = MergeLevelManager.CurrentLevelNumber; // still the “completed” level at this moment
+            levelArtRevealController.Prepare(curLevel);
+            levelArtRevealController.PlayRevealAndSwap();
+        }
+
+
         if (isContinue)
         {
             var dropped = CircleDragInput.Instance?.droppedContainer;
@@ -178,27 +207,61 @@ public class WinLosePopup : MonoBehaviour
             isContinue = false;
         }
 
-        // advance level ONLY when it was a true level-complete popup
-        if (isNewLevel)
+        if (!isNewLevel)
         {
-            MergeLevelManager.AdvanceLevel();
-            BallEventManager.RaiseResetCounters(keepUI: false);
-        }
-        else
-        {
-            // Retry current level
+            // ✅ normal case (mid-level / retry / etc.)
             BallEventManager.RaiseResetCounters(keepUI: true);
+
+            PopupManager.Instance?.BeginSession(isNewLevel: false);
+            PopupManager.Instance?.InitializeProgressBarNow();
+
+            PlayContentOut();
+            animator.SetTrigger("Out");
+            Destroy(gameObject, 1.5f);
+            return;
         }
 
-        PopupManager.Instance?.BeginSession(isNewLevel);
+        // ✅ end-of-level flow (level reveal)
+        if (playPressedRoutine != null) StopCoroutine(playPressedRoutine);
+        playPressedRoutine = StartCoroutine(PlayNextLevelRevealThenAdvance());
 
-        // Initialize the progress bar on the PopupManager's slider
+    }
+
+    private IEnumerator PlayNextLevelRevealThenAdvance()
+    {
+        // We are still on the completed level at this moment
+        if (levelArtRevealController != null)
+        {
+            int curLevel = MergeLevelManager.CurrentLevelNumber;
+            levelArtRevealController.Prepare(curLevel);
+            levelArtRevealController.PlayRevealAndSwap();
+        }
+
+        // Keep popup alive during reveal (no animator Out here)
+        yield return new WaitForSeconds(levelRevealDuration);
+
+        // Trigger reveal OUT (mask exit)
+        if (levelArtRevealController != null)
+            levelArtRevealController.PlayRevealOut();
+
+        // Wait for reveal-out animation to finish
+        if (revealOutDuration > 0f)
+            yield return new WaitForSeconds(revealOutDuration);
+
+        // ✅ Only now advance level + reset counters
+        MergeLevelManager.AdvanceLevel();
+        BallEventManager.RaiseResetCounters(keepUI: false);
+
+        // Start next session after level advance
+        PopupManager.Instance?.BeginSession(isNewLevel: true);
         PopupManager.Instance?.InitializeProgressBarNow();
 
+        // Now close popup
         PlayContentOut();
-
         animator.SetTrigger("Out");
         Destroy(gameObject, 1.5f);
+
+        playPressedRoutine = null;
     }
 
     public void PlayContentOut()
@@ -275,5 +338,10 @@ public class WinLosePopup : MonoBehaviour
         levelProgressBarSlider.InitializeCurrentLevel(); // rebuild visuals
         levelProgressBarSlider.SyncIconsToCurrentProgress(includeCurrent: false); // keep grey state as-is
         //collectibleFlyController.PositionCoinContainerToCurrentIcon(); // reposition coin container
+    }
+
+    public void SetLevelCompleteContext(bool isComplete)
+    {
+        levelCompleteContext = isComplete;
     }
 }
