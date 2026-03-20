@@ -43,7 +43,7 @@ public class GameHealthManager : MonoBehaviour
         OnSessionStarted += ResetHealth;
         OnEnemyAdvanced += ResetHealth;
 
-        Debug.Log($"❤️ Initialized with {currentHealth} HP for Level {currentLevel.level}");
+        Debug.Log($"❤️ Initialized with {currentHealth} HP for Galaxy {MergeLevelManager.CurrentGalaxyId} Level {MergeLevelManager.CurrentLevelInGalaxy}");
     }
 
     private void OnDestroy()
@@ -180,7 +180,7 @@ public class GameHealthManager : MonoBehaviour
     }
         );
 
-        Debug.Log($"🔄 Health reset for Level {currentLevel.level} ({currentHealth} HP)");
+        Debug.Log($"🔄 Health reset for Galaxy {MergeLevelManager.CurrentGalaxyId} Level {MergeLevelManager.CurrentLevelInGalaxy} ({currentHealth} HP)");
     }
 
     private float NormalizeHealthToSlider(int health)

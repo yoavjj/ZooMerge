@@ -20,7 +20,7 @@ public class MergeSummaryPanel : MonoBehaviour
     private Coroutine buildRoutine;
 
     private int totalCollectiblesPending = 0;
-    private System.Action onAllCollectiblesFinished;
+    public System.Action onAllCollectiblesFinished;
 
     private bool waitingForOpenSignal = false;
     private List<MergeSessionTracker.MergeCounterSnapshot> pendingSnapshot;

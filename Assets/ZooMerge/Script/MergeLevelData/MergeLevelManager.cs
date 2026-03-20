@@ -1,180 +1,277 @@
 using System;
 using UnityEngine;
-using static Inventory;
 
 public static class MergeLevelManager
 {
-    public static event System.Action<int> OnLevelChanged;
-    private static void RaiseLevelChanged() => OnLevelChanged?.Invoke(CurrentLevelNumber);
+    // Optional: keep old signature, but now passes "global" level number
+    public static event Action<int> OnLevelChanged;
 
-    private static MergeLevelData levelData;
-    private static int currentLevelIndex = 0;
+    private static MergeLevelData data;
+
+    private static int currentGalaxyIndex = 0; // index into data.galaxies
+    private static int currentLevelIndex = 0;  // index into galaxy.levels
     private static int currentEnemyIndex = 0;
     private static int pendingEnemyCoins = 0;
 
-    public static void Initialize(MergeLevelData data)
-    {
-        RaiseLevelChanged();
+    public static bool LevelCompletePending { get; private set; } = false;
+    public static int LevelsInCurrentGalaxy => GetCurrentGalaxy().levels?.Count ?? 0;
 
-        levelData = data;
+    public static void Initialize(MergeLevelData newData)
+    {
+        data = newData;
+
+        currentGalaxyIndex = 0;
         currentLevelIndex = 0;
         currentEnemyIndex = 0;
         LevelCompletePending = false;
-    }
-
-    public static void SetLevel(int levelNumber)
-    {
-        if (levelData == null || levelData.levels.Count == 0)
-            throw new Exception("Level data not initialized.");
-
-        int index = levelData.levels.FindIndex(l => l.level == levelNumber);
-        if (index == -1)
-        {
-            Debug.LogWarning($"⚠️ Level {levelNumber} not found. Defaulting to level 1.");
-            index = 0;
-        }
-
-        currentLevelIndex = index;
-        currentEnemyIndex = 0; // Reset enemy progression for this level
-        LevelCompletePending = false;
 
         RaiseLevelChanged();
+    }
+
+    private static void RaiseLevelChanged()
+    {
+        OnLevelChanged?.Invoke(CurrentLevelNumber);
+    }
+
+    // ---------- Galaxy / Level getters ----------
+    public static GalaxyData GetCurrentGalaxy()
+    {
+        if (data == null || data.galaxies == null || data.galaxies.Count == 0)
+            throw new Exception("Galaxy data not initialized.");
+
+        currentGalaxyIndex = Mathf.Clamp(currentGalaxyIndex, 0, data.galaxies.Count - 1);
+        return data.galaxies[currentGalaxyIndex];
     }
 
     public static MergeLevel GetCurrentLevel()
     {
-        if (levelData == null || levelData.levels.Count == 0)
-            throw new Exception("Level data not initialized.");
+        var galaxy = GetCurrentGalaxy();
 
-        return levelData.levels[Mathf.Clamp(currentLevelIndex, 0, levelData.levels.Count - 1)];
+        if (galaxy.levels == null || galaxy.levels.Count == 0)
+            throw new Exception("Current galaxy has no levels.");
+
+        currentLevelIndex = Mathf.Clamp(currentLevelIndex, 0, galaxy.levels.Count - 1);
+        return galaxy.levels[currentLevelIndex];
     }
 
-    public static int CurrentLevelNumber => GetCurrentLevel().level;
+    // Public read-only
+    public static int CurrentGalaxyId => GetCurrentGalaxy().galaxyId;
+    public static string CurrentGalaxyName => GetCurrentGalaxy().name;
 
-    public static void AdvanceLevel()
+    public static int CurrentLevelInGalaxy => GetCurrentLevel().index; // 1..N from JSON
+    public static string CurrentLevelName => GetCurrentLevel().name;
+
+    /// <summary>
+    /// "Global" level number for UI if you still want Level 1..∞ across galaxies.
+    /// This assumes global numbering = sum of previous galaxy levels + current index.
+    /// </summary>
+    public static int CurrentLevelNumber
     {
-        var current = GetCurrentLevel();
+        get
+        {
+            if (data == null || data.galaxies == null) return 1;
 
-        currentLevelIndex = Mathf.Min(currentLevelIndex + 1, levelData.levels.Count - 1);
+            int total = 0;
+            for (int g = 0; g < currentGalaxyIndex; g++)
+                total += data.galaxies[g].levels?.Count ?? 0;
+
+            // current levelIndex is 0-based, display is +1
+            return total + currentLevelIndex + 1;
+        }
+    }
+
+    // ---------- Setting a level ----------
+    /// <summary>
+    /// Backwards compatible: set by GLOBAL level number.
+    /// If you still call SetLevel(CurrentLevelNumber) from main menu, this will work.
+    /// </summary>
+    public static void SetLevel(int globalLevelNumber)
+    {
+        if (data == null || data.galaxies == null || data.galaxies.Count == 0)
+            throw new Exception("Level data not initialized.");
+
+        int target = Mathf.Max(1, globalLevelNumber);
+        int running = 0;
+
+        for (int g = 0; g < data.galaxies.Count; g++)
+        {
+            int count = data.galaxies[g].levels?.Count ?? 0;
+            if (target <= running + count)
+            {
+                currentGalaxyIndex = g;
+                currentLevelIndex = (target - running) - 1; // to 0-based
+                currentEnemyIndex = 0;
+                pendingEnemyCoins = 0;
+                LevelCompletePending = false;
+                RaiseLevelChanged();
+                return;
+            }
+            running += count;
+        }
+
+        // fallback to first level
+        Debug.LogWarning($"⚠️ Global Level {globalLevelNumber} not found. Defaulting to Galaxy 1 Level 1.");
+        currentGalaxyIndex = 0;
+        currentLevelIndex = 0;
         currentEnemyIndex = 0;
+        pendingEnemyCoins = 0;
+        LevelCompletePending = false;
+        RaiseLevelChanged();
+    }
+
+    /// <summary>
+    /// New: set by galaxyId + levelIndex inside galaxy (1-based).
+    /// </summary>
+    public static void SetLevel(int galaxyId, int levelIndexInGalaxy)
+    {
+        if (data == null || data.galaxies == null || data.galaxies.Count == 0)
+            throw new Exception("Level data not initialized.");
+
+        int gIndex = data.galaxies.FindIndex(g => g.galaxyId == galaxyId);
+        if (gIndex < 0)
+        {
+            Debug.LogWarning($"⚠️ Galaxy {galaxyId} not found. Defaulting to Galaxy 1.");
+            gIndex = 0;
+        }
+
+        var galaxy = data.galaxies[gIndex];
+        int lIndex = Mathf.Clamp(levelIndexInGalaxy - 1, 0, Mathf.Max(0, (galaxy.levels?.Count ?? 1) - 1));
+
+        currentGalaxyIndex = gIndex;
+        currentLevelIndex = lIndex;
+
+        currentEnemyIndex = 0;
+        pendingEnemyCoins = 0;
         LevelCompletePending = false;
 
+        RaiseLevelChanged();
+    }
+
+    public static int CurrentStageId
+    {
+        get
+        {
+            var level = GetCurrentLevel();
+            return level.stageId > 0 ? level.stageId : level.index;
+        }
+    }
+
+    public static int GetStageIdAtOffset(int offset)
+    {
+        var galaxy = GetCurrentGalaxy();
+
+        int targetIndex = currentLevelIndex + offset;
+
+        if (galaxy.levels == null || galaxy.levels.Count == 0)
+            return -1;
+
+        // Clamp inside galaxy
+        targetIndex = Mathf.Clamp(targetIndex, 0, galaxy.levels.Count - 1);
+
+        var level = galaxy.levels[targetIndex];
+
+        return level.stageId > 0 ? level.stageId : level.index;
+    }
+
+    // ---------- Advancing ----------
+    public static void AdvanceLevel()
+    {
+        var galaxy = GetCurrentGalaxy();
+
+        currentEnemyIndex = 0;
+        pendingEnemyCoins = 0;
+        LevelCompletePending = false;
+
+        // next level inside this galaxy?
+        if (currentLevelIndex + 1 < (galaxy.levels?.Count ?? 0))
+        {
+            currentLevelIndex++;
+            RaiseLevelChanged();
+            return;
+        }
+
+        // move to next galaxy if exists, else clamp to last level
+        if (currentGalaxyIndex + 1 < data.galaxies.Count)
+        {
+            currentGalaxyIndex++;
+            currentLevelIndex = 0;
+            RaiseLevelChanged();
+            return;
+        }
+
+        // already at final galaxy final level
+        currentLevelIndex = Mathf.Clamp(currentLevelIndex, 0, (galaxy.levels?.Count ?? 1) - 1);
         RaiseLevelChanged();
     }
 
     public static void ResetLevel()
     {
+        currentGalaxyIndex = 0;
         currentLevelIndex = 0;
         currentEnemyIndex = 0;
+        pendingEnemyCoins = 0;
         LevelCompletePending = false;
 
         RaiseLevelChanged();
     }
 
-    // ✅ --- ENEMY MANAGEMENT ---
+    // ---------- Enemy management (unchanged logic, but uses current level) ----------
     public static int GetCurrentEnemyId()
     {
         var level = GetCurrentLevel();
-        if (level.enemy_data == null || level.enemy_data.Count == 0)
-            return -1;
-
-        if (currentEnemyIndex < 0 || currentEnemyIndex >= level.enemy_data.Count)
-            return -1;
-
+        if (level.enemy_data == null || level.enemy_data.Count == 0) return -1;
+        if (currentEnemyIndex < 0 || currentEnemyIndex >= level.enemy_data.Count) return -1;
         return level.enemy_data[currentEnemyIndex].id;
     }
 
-    /// <summary>
-    /// Advances to the next enemy in the current level. 
-    /// Returns true if there is another enemy remaining, false if all are done.
-    /// </summary>
     public static bool TryAdvanceEnemy()
     {
         var level = GetCurrentLevel();
+        if (level.enemy_data == null || level.enemy_data.Count == 0) return false;
+        if (currentEnemyIndex < 0 || currentEnemyIndex >= level.enemy_data.Count) return false;
 
-        if (level.enemy_data == null || level.enemy_data.Count == 0)
-            return false;
-
-        if (currentEnemyIndex < 0 || currentEnemyIndex >= level.enemy_data.Count)
-            return false;
-
-        // 🔐 Capture coins BEFORE advancing
         pendingEnemyCoins = level.enemy_data[currentEnemyIndex].coins;
 
         if (currentEnemyIndex + 1 < level.enemy_data.Count)
         {
             currentEnemyIndex++;
-            Debug.Log($"[MergeLevelManager] Advancing to enemy {currentEnemyIndex + 1}/{level.enemy_data.Count} for Level {level.level}");
+            Debug.Log($"[MergeLevelManager] Advancing to enemy {currentEnemyIndex + 1}/{level.enemy_data.Count} for Galaxy {CurrentGalaxyId} Level {CurrentLevelInGalaxy}");
             return true;
         }
 
-        Debug.Log($"[MergeLevelManager] All enemies defeated for Level {level.level}");
+        Debug.Log($"[MergeLevelManager] All enemies defeated for Galaxy {CurrentGalaxyId} Level {CurrentLevelInGalaxy}");
         return false;
     }
 
     public static int ConsumePendingEnemyCoins()
     {
         int coins = pendingEnemyCoins;
-        pendingEnemyCoins = 0; // prevent double-claim
+        pendingEnemyCoins = 0;
         return coins;
     }
 
     public static int GetCurrentEnemyCoins()
     {
         var level = GetCurrentLevel();
-
-        if (level.enemy_data == null || level.enemy_data.Count == 0)
-            return 0;
-
-        if (currentEnemyIndex < 0 || currentEnemyIndex >= level.enemy_data.Count)
-            return 0;
-
+        if (level.enemy_data == null || level.enemy_data.Count == 0) return 0;
+        if (currentEnemyIndex < 0 || currentEnemyIndex >= level.enemy_data.Count) return 0;
         return level.enemy_data[currentEnemyIndex].coins;
     }
 
     public static int GetCurrentEnemyHealth()
     {
         var level = GetCurrentLevel();
-        if (level.enemy_data == null || level.enemy_data.Count == 0)
-            return -1;
-
-        if (currentEnemyIndex < 0 || currentEnemyIndex >= level.enemy_data.Count)
-            return -1;
-
+        if (level.enemy_data == null || level.enemy_data.Count == 0) return -1;
+        if (currentEnemyIndex < 0 || currentEnemyIndex >= level.enemy_data.Count) return -1;
         return level.enemy_data[currentEnemyIndex].health;
     }
 
-    /// <summary>
-    /// Resets the current enemy index to the first enemy for the current level.
-    /// </summary>
-    public static void ResetEnemyProgress()
-    {
-        currentEnemyIndex = 0;
-    }
+    public static void ResetEnemyProgress() => currentEnemyIndex = 0;
 
-    /// <summary>
-    /// Returns the current enemy index (0-based) for tracking UI or debugging.
-    /// </summary>
     public static int CurrentEnemyIndex => currentEnemyIndex;
 
-    /// <summary>
-    /// Returns the total number of enemies for the current level.
-    /// </summary>
     public static int TotalEnemiesInLevel => GetCurrentLevel().enemy_data?.Count ?? 0;
 
-    /// <summary>
-    /// Indicates whether the player has defeated all enemies in the current level and is pending level completion.
-    /// </summary>
-
-    public static bool LevelCompletePending { get; private set; } = false;
-
-    public static void MarkLevelCompletePending()
-    {
-        LevelCompletePending = true;
-    }
-
-    public static void ClearLevelCompletePending()
-    {
-        LevelCompletePending = false;
-    }
+    public static void MarkLevelCompletePending() => LevelCompletePending = true;
+    public static void ClearLevelCompletePending() => LevelCompletePending = false;
 }

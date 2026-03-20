@@ -9,44 +9,93 @@ public class LevelArtDatabase : ScriptableObject
     public class Entry
     {
         public int level;
-        public DissolveAnimatorDriver artPrefab; // component on the prefab asset
+        public DissolveAnimatorDriver artPrefab; // level art prefab (has DissolveAnimatorDriver)
     }
 
+    [Serializable]
+    public class GalaxyEntry
+    {
+        public int galaxyId;
+        public GameObject galaxyPrefab; // any prefab you want (background, VFX, etc.)
+        public GameObject galaxyRoadmapPrefab;
+    }
+
+    [Header("Level Art")]
     [SerializeField] private List<Entry> entries = new();
 
-    private Dictionary<int, DissolveAnimatorDriver> cache;
+    [Header("Galaxy Art")]
+    [SerializeField] private List<GalaxyEntry> galaxyEntries = new();
 
-    private void OnEnable() => RebuildCache();
+    private Dictionary<int, DissolveAnimatorDriver> levelCache;
+    private Dictionary<int, GameObject> galaxyCache;
+    private Dictionary<int, GameObject> galaxyRoadmapCache;
+
+    private void OnEnable() => RebuildCaches();
 
 #if UNITY_EDITOR
-    private void OnValidate() => RebuildCache();
+    private void OnValidate() => RebuildCaches();
 #endif
 
-    private void RebuildCache()
+    private void RebuildCaches()
     {
-        cache ??= new Dictionary<int, DissolveAnimatorDriver>();
-        cache.Clear();
+        // ---- level cache ----
+        levelCache ??= new Dictionary<int, DissolveAnimatorDriver>();
+        levelCache.Clear();
 
-        if (entries == null) return;
-
-        foreach (var e in entries)
+        if (entries != null)
         {
-            if (e == null) continue;
-            if (e.level <= 0) continue;
-            if (e.artPrefab == null) continue;
+            foreach (var e in entries)
+            {
+                if (e == null) continue;
+                if (e.level <= 0) continue;
+                if (e.artPrefab == null) continue;
 
-            cache[e.level] = e.artPrefab;
+                levelCache[e.level] = e.artPrefab;
+            }
+        }
+
+        // ---- galaxy cache ----
+        galaxyCache ??= new Dictionary<int, GameObject>();
+        galaxyCache.Clear();
+
+        if (galaxyEntries != null)
+        {
+            foreach (var e in galaxyEntries)
+            {
+                if (e == null) continue;
+                if (e.galaxyId <= 0) continue;
+                if (e.galaxyPrefab == null) continue;
+
+                galaxyCache[e.galaxyId] = e.galaxyPrefab;
+            }
+        }
+
+        // ---- galaxy roadmap cache ----
+        galaxyRoadmapCache ??= new Dictionary<int, GameObject>();
+        galaxyRoadmapCache.Clear();
+
+        if (galaxyEntries != null)
+        {
+            foreach (var e in galaxyEntries)
+            {
+                if (e == null) continue;
+                if (e.galaxyId <= 0) continue;
+                if (e.galaxyRoadmapPrefab == null) continue;
+
+                galaxyRoadmapCache[e.galaxyId] = e.galaxyRoadmapPrefab;
+            }
         }
     }
 
+    // ---------- LEVEL ----------
     public DissolveAnimatorDriver GetPrefabForLevel(int level)
     {
-        // 1) Try cache
-        if (cache == null) RebuildCache();
-        if (cache != null && cache.TryGetValue(level, out var prefab) && prefab != null)
+        if (levelCache == null) RebuildCaches();
+
+        if (levelCache.TryGetValue(level, out var prefab) && prefab != null)
             return prefab;
 
-        // 2) ✅ Hard fallback: scan entries (this will work even if cache is stale)
+        // fallback scan
         if (entries != null)
         {
             for (int i = 0; i < entries.Count; i++)
@@ -56,21 +105,68 @@ public class LevelArtDatabase : ScriptableObject
                 if (e.level != level) continue;
                 if (e.artPrefab == null) continue;
 
-                // keep cache in sync
-                cache ??= new Dictionary<int, DissolveAnimatorDriver>();
-                cache[level] = e.artPrefab;
-
+                levelCache ??= new Dictionary<int, DissolveAnimatorDriver>();
+                levelCache[level] = e.artPrefab;
                 return e.artPrefab;
             }
         }
 
-        // 3) 🔎 Debug: show what the asset *actually* contains at runtime
-        Debug.LogError(
-            $"[LevelArtDatabase] No prefab for level {level}. " +
-            $"EntriesCount={(entries == null ? 0 : entries.Count)}. " +
-            $"LevelsInAsset=[{GetLevelsDebug()}]"
-        );
+        Debug.LogError($"[LevelArtDatabase] No LEVEL prefab for level {level}. LevelsInAsset=[{GetLevelsDebug()}]");
+        return null;
+    }
 
+    // ---------- GALAXY ----------
+    public GameObject GetPrefabForGalaxy(int galaxyId)
+    {
+        if (galaxyCache == null) RebuildCaches();
+
+        if (galaxyCache.TryGetValue(galaxyId, out var prefab) && prefab != null)
+            return prefab;
+
+        // fallback scan
+        if (galaxyEntries != null)
+        {
+            for (int i = 0; i < galaxyEntries.Count; i++)
+            {
+                var e = galaxyEntries[i];
+                if (e == null) continue;
+                if (e.galaxyId != galaxyId) continue;
+                if (e.galaxyPrefab == null) continue;
+
+                galaxyCache ??= new Dictionary<int, GameObject>();
+                galaxyCache[galaxyId] = e.galaxyPrefab;
+                return e.galaxyPrefab;
+            }
+        }
+
+        Debug.LogError($"[LevelArtDatabase] No GALAXY prefab for galaxyId {galaxyId}. GalaxiesInAsset=[{GetGalaxiesDebug()}]");
+        return null;
+    }
+
+    public GameObject GetRoadmapPrefabForGalaxy(int galaxyId)
+    {
+        if (galaxyRoadmapCache == null) RebuildCaches();
+
+        if (galaxyRoadmapCache.TryGetValue(galaxyId, out var prefab) && prefab != null)
+            return prefab;
+
+        // fallback scan
+        if (galaxyEntries != null)
+        {
+            for (int i = 0; i < galaxyEntries.Count; i++)
+            {
+                var e = galaxyEntries[i];
+                if (e == null) continue;
+                if (e.galaxyId != galaxyId) continue;
+                if (e.galaxyRoadmapPrefab == null) continue;
+
+                galaxyRoadmapCache ??= new Dictionary<int, GameObject>();
+                galaxyRoadmapCache[galaxyId] = e.galaxyRoadmapPrefab;
+                return e.galaxyRoadmapPrefab;
+            }
+        }
+
+        Debug.LogWarning($"[LevelArtDatabase] No ROADMAP prefab for galaxyId {galaxyId}");
         return null;
     }
 
@@ -82,6 +178,18 @@ public class LevelArtDatabase : ScriptableObject
         {
             if (e == null) continue;
             list.Add($"{e.level}:{(e.artPrefab != null ? "OK" : "NULL")}");
+        }
+        return string.Join(", ", list);
+    }
+
+    private string GetGalaxiesDebug()
+    {
+        if (galaxyEntries == null) return "";
+        var list = new List<string>(galaxyEntries.Count);
+        foreach (var e in galaxyEntries)
+        {
+            if (e == null) continue;
+            list.Add($"{e.galaxyId}:{(e.galaxyPrefab != null ? "OK" : "NULL")}");
         }
         return string.Join(", ", list);
     }

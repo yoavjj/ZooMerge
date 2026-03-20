@@ -7,8 +7,12 @@ public class DissolveAnimatorDriver : MonoBehaviour
     [Header("Target (UI)")]
     [SerializeField] private Graphic targetGraphic; // Image / RawImage / TMP's Graphic
     [SerializeField] private string dissolveProp = "_DissolveAmount";
-    [SerializeField] private Material sourceMaterial;   // ✅ the material asset to use
-    [SerializeField] private bool overrideMaterial = true; // ✅ if true, always apply sourceMaterial
+    [SerializeField] private Material inMaterial;    // ✅ material to use when playing IN
+    [SerializeField] private Material outMaterial;   // ✅ material to use when playing OUT
+    [SerializeField, HideInInspector] private Material lastBaseMaterial;
+    [SerializeField] private bool overrideMaterial = true; // keep this
+    public enum StartMaterialMode { In, Out }
+    [SerializeField] private StartMaterialMode startMode = StartMaterialMode.In; // ✅ which material to clone on enable
 
     [Header("Animated Value (keyframe this in Animator)")]
     [SerializeField] private float dissolveAmount = 0f;
@@ -67,22 +71,59 @@ public class DissolveAnimatorDriver : MonoBehaviour
     {
         if (targetGraphic == null) return;
 
-        // Decide what base material we should clone
         Material baseMat = null;
 
-        if (overrideMaterial && sourceMaterial != null)
-            baseMat = sourceMaterial;
-        else
+        if (overrideMaterial)
+        {
+            // ✅ Choose base material by startMode (THIS is the key change)
+            if (startMode == StartMaterialMode.Out)
+                baseMat = outMaterial != null ? outMaterial : inMaterial;
+            else
+                baseMat = inMaterial != null ? inMaterial : outMaterial;
+        }
+
+        if (baseMat == null)
             baseMat = targetGraphic.material;
 
         if (baseMat == null) return;
 
-        // If we already created and assigned an instance, keep it.
-        if (runtimeMat != null && targetGraphic.material == runtimeMat) return;
+        if (runtimeMat != null && targetGraphic.material == runtimeMat && lastBaseMaterial == baseMat)
+            return;
 
-        // Create a per-object material instance (prevents affecting other UI using same asset).
         runtimeMat = Instantiate(baseMat);
         targetGraphic.material = runtimeMat;
+        lastBaseMaterial = baseMat;
+    }
+
+    private void SetMaterialBase(Material baseMat)
+    {
+        if (targetGraphic == null || baseMat == null) return;
+
+        // ✅ Only skip if we're already using this exact base material
+        if (runtimeMat != null && targetGraphic.material == runtimeMat && lastBaseMaterial == baseMat)
+            return;
+
+        if (Application.isPlaying && runtimeMat != null)
+            Destroy(runtimeMat);
+        else if (!Application.isPlaying && runtimeMat != null)
+            DestroyImmediate(runtimeMat);
+
+        runtimeMat = Instantiate(baseMat);
+        targetGraphic.material = runtimeMat;
+        lastBaseMaterial = baseMat;
+        Apply(); // push current dissolveAmount onto the new mat
+    }
+
+    public void PrimeAsIn()
+    {
+        startMode = StartMaterialMode.In;
+        if (overrideMaterial && inMaterial != null) SetMaterialBase(inMaterial);
+    }
+
+    public void PrimeAsOut()
+    {
+        startMode = StartMaterialMode.Out;
+        if (overrideMaterial && outMaterial != null) SetMaterialBase(outMaterial);
     }
 
     // Keyframe this if you want, or call via Animation Event

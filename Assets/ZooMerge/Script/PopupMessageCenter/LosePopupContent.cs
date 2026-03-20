@@ -1,11 +1,12 @@
 using UnityEngine;
 
-public class LosePopupContent : MonoBehaviour, IWinLoseContent
+public class LosePopupContent : WinLoseContentBase
 {
     [SerializeField] private Animator animator;
-    public Animator Animator => animator;
 
-    public void OnShown()
+    public override Animator Animator => animator;
+
+    public override void OnShown()
     {
         animator.SetTrigger("Lose");
     }

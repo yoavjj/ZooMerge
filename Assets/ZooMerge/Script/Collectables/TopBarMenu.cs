@@ -23,6 +23,19 @@ public class TopBarMenu : MonoBehaviour
             : null;
     }
 
+    public void BuildAllBallTypesUI()
+    {
+        if (MergeSessionTracker.Instance == null) return;
+
+        // Get all configured types from your tracker config
+        List<BallType> allTypes = MergeSessionTracker.Instance
+            .GetTypeConfigs()
+            .ConvertAll(c => c.type);
+
+        PrepareTypes(allTypes);   // creates items even if count is 0
+        RebuildLayoutImmediate();
+    }
+
     /// <summary>
     /// Build from inventory snapshot (used on popup open / resume)
     /// </summary>

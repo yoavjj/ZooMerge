@@ -50,11 +50,13 @@ public class SessionManager : MonoBehaviour
         OnSessionPaused += TriggerSessionPause;
         OnSessionResumed += TriggerSessionResume;
 
-        OnSessionStarted += HandleSessionStartedForMerges;   // add this
+        OnSessionStarted += HandleSessionStartedForMerges;
         BallEventManager.OnEnemySessionEnded += HandleSessionEndedForMerges;
 
         BallEventManager.OnEnemySessionEnded += OnEnemySessionEnded;
         BallEventManager.OnEnemyDeathSpineEvent += OnEnemyDeathSpineEvent;
+
+        BallEventManager.OnReturnToMainMenu += HandleReturnToMainMenu;
     }
 
     private void OnDisable()
@@ -63,11 +65,28 @@ public class SessionManager : MonoBehaviour
         OnSessionPaused -= TriggerSessionPause;
         OnSessionResumed -= TriggerSessionResume;
 
-        OnSessionStarted -= HandleSessionStartedForMerges;   // add this
+        OnSessionStarted -= HandleSessionStartedForMerges;
         BallEventManager.OnEnemySessionEnded -= HandleSessionEndedForMerges;
 
         BallEventManager.OnEnemySessionEnded -= OnEnemySessionEnded;
         BallEventManager.OnEnemyDeathSpineEvent -= OnEnemyDeathSpineEvent;
+
+        BallEventManager.OnReturnToMainMenu -= HandleReturnToMainMenu;
+    }
+
+    private void HandleReturnToMainMenu()
+    {
+        // Treat quitting like an end
+        TriggerSessionEnd();
+
+        // Also make sure gameplay interaction is locked
+        BallEventManager.SetMergesBlocked(true);
+
+        if (mergeUnblockRoutine != null)
+        {
+            StopCoroutine(mergeUnblockRoutine);
+            mergeUnblockRoutine = null;
+        }
     }
 
     private void HandleSessionStartedForMerges()

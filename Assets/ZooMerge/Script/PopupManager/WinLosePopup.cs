@@ -15,9 +15,13 @@ public class WinLosePopup : MonoBehaviour
 
     [Header("Content Variants")]
     [SerializeField] private Transform contentRoot;
-    [SerializeField] private GameObject winContentPrefab;
-    [SerializeField] private GameObject loseContentPrefab;
-    [SerializeField] private GameObject levelCompleteContentPrefab;
+    [SerializeField] private PrefabLibrary prefabLibrary;
+
+    private const string WIN = "WinContent";
+    private const string LOSE = "LoseContent";
+    private const string LEVEL_COMPLETE = "LevelCompleteContent";
+    private const string LEVEL_REVEAL = "LevelReveal";
+    private const string GALAXY_ROADMAP = "GalaxyRoadmapPopup";
 
     [Header("Merge Summary")]
     [SerializeField] private MergeSummaryPanel mergeSummaryPanel;
@@ -37,8 +41,15 @@ public class WinLosePopup : MonoBehaviour
     [SerializeField] LevelProgressBarSlider levelProgressBarSlider;
     [SerializeField] private CollectibleFlyController collectibleFlyController;
 
-    [Header("Level Art Reveal")]
-    [SerializeField] private LevelArtRevealController levelArtRevealController;
+    [Header("Level Art Reveal (Spawned Popup)")]
+    [SerializeField] private Transform levelArtRevealContainer;             // ✅ scene container (PopupsRoot)
+    private LevelArtRevealController levelArtRevealInstance;
+    [SerializeField, Min(0f)] private float popupOutDelay = 0.35f; // delay before closing WinLosePopup
+
+    [Header("Play Button Ready FX")]
+    [SerializeField] private Animator playButtonAnimator; // assign the Play button animator
+    [SerializeField] private string readyTrigger = "Ready"; // trigger name in that animator
+
     [SerializeField, Min(0f)] private float levelRevealDuration = 4.5f;      // ✅ how long reveal stays on screen
     [SerializeField, Min(0f)] private float revealOutDuration = 0.6f;        // ✅ how long reveal "Out" takes
     private Coroutine playPressedRoutine;
@@ -48,13 +59,25 @@ public class WinLosePopup : MonoBehaviour
     private GameOverReason currentReason;
     private Coroutine applyRoutine;
 
+    [SerializeField] private bool preloadLevelRevealOnStart = true;
+    [SerializeField] private bool keepRevealInactiveWhenIdle = true;
+
     private void Awake()
     {
         Instance = this;
     }
 
+    void OnEnable()
+    {
+        if (mergeSummaryPanel != null)
+            mergeSummaryPanel.onAllCollectiblesFinished += HandleSummaryReady;
+    }
+
     private void OnDisable()
     {
+        if (mergeSummaryPanel != null)
+            mergeSummaryPanel.onAllCollectiblesFinished -= HandleSummaryReady;
+
         if (applyRoutine != null)
         {
             StopCoroutine(applyRoutine);
@@ -146,24 +169,25 @@ public class WinLosePopup : MonoBehaviour
                 Destroy(contentRoot.GetChild(i).gameObject);
         }
 
-        // 🆕 Decide which prefab to spawn based on the reason and level context
-        GameObject prefabToSpawn;
-        if (reason == GameOverReason.Lost)
+        if (prefabLibrary == null)
         {
-            prefabToSpawn = loseContentPrefab;
-        }
-        else
-        {
-            // If it's a win, check if it's the end of the entire level
-            prefabToSpawn = levelCompleteContext ? levelCompleteContentPrefab : winContentPrefab;
+            Debug.LogError("[WinLosePopup] PrefabLibrary is not assigned.");
+            return;
         }
 
-        var instance = Instantiate(prefabToSpawn, contentRoot);
+        string prefabId = (reason == GameOverReason.Lost)
+            ? LOSE
+            : (levelCompleteContext ? LEVEL_COMPLETE : WIN);
 
-        // IMPORTANT: no GetComponent
-        activeContent = instance.GetComponent<IWinLoseContent>();
+        var prefab = prefabLibrary.GetWinLose(prefabId);
+        if (prefab == null)
+            return;
 
-        activeContent?.OnShown();
+        var instance = Instantiate(prefab, contentRoot);
+
+        activeContent = instance;
+
+        activeContent.OnShown();
     }
 
     public void ShowContinueOption()
@@ -181,6 +205,36 @@ public class WinLosePopup : MonoBehaviour
         Destroy(gameObject, 1f);
     }
 
+    public void ShowGalaxyRoadmap()
+    {
+        if (prefabLibrary == null || levelArtRevealContainer == null)
+            return;
+
+        var prefab = prefabLibrary.GetRaw(GALAXY_ROADMAP);
+        if (prefab == null)
+            return;
+
+        var instGO = Instantiate(prefab, levelArtRevealContainer);
+
+        var roadmap = instGO.GetComponent<Popup_GalaxyRoadmap>();
+        if (roadmap == null)
+        {
+            Debug.LogError("[WinLosePopup] GalaxyRoadmap prefab missing script.");
+            return;
+        }
+
+        roadmap.Initialize();
+
+        // optional: reset transform
+        var rt = instGO.transform as RectTransform;
+        if (rt != null)
+        {
+            rt.anchoredPosition3D = Vector3.zero;
+            rt.localRotation = Quaternion.identity;
+            rt.localScale = Vector3.one;
+        }
+    }
+
     public void OnPlayPressed()
     {
         if (mergeSummaryPanel != null && mergeSummaryPanel.IsBusy)
@@ -190,14 +244,6 @@ public class WinLosePopup : MonoBehaviour
         }
 
         bool isNewLevel = levelCompleteContext; // true only when popup showed a real level win
-
-        if (isNewLevel && levelArtRevealController != null)
-        {
-            int curLevel = MergeLevelManager.CurrentLevelNumber; // still the “completed” level at this moment
-            levelArtRevealController.Prepare(curLevel);
-            levelArtRevealController.PlayRevealAndSwap();
-        }
-
 
         if (isContinue)
         {
@@ -229,38 +275,54 @@ public class WinLosePopup : MonoBehaviour
 
     private IEnumerator PlayNextLevelRevealThenAdvance()
     {
-        // We are still on the completed level at this moment
-        if (levelArtRevealController != null)
+        // Spawn and play reveal (if not already spawned)
+        if (levelArtRevealInstance == null)
+            levelArtRevealInstance = SpawnLevelRevealPopup();
+
+        if (levelArtRevealInstance != null)
         {
+            if (keepRevealInactiveWhenIdle)
+                levelArtRevealInstance.gameObject.SetActive(true);
+
             int curLevel = MergeLevelManager.CurrentLevelNumber;
-            levelArtRevealController.Prepare(curLevel);
-            levelArtRevealController.PlayRevealAndSwap();
+            levelArtRevealInstance.Prepare(curLevel, afterCompletion: true);
+            levelArtRevealInstance.PlayRevealAndSwap();
+
+            // Advance level only after reveal is done showing
+            MergeLevelManager.AdvanceLevel();
+            BallEventManager.RaiseResetCounters(keepUI: false);
+            levelArtRevealInstance.updateProgressBarSlider();
         }
 
-        // Keep popup alive during reveal (no animator Out here)
-        yield return new WaitForSeconds(levelRevealDuration);
+        // ✅ Delay before closing Win/Lose popup (does NOT extend total reveal time)
+        float delay = Mathf.Clamp(popupOutDelay, 0f, levelRevealDuration);
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
 
-        // Trigger reveal OUT (mask exit)
-        if (levelArtRevealController != null)
-            levelArtRevealController.PlayRevealOut();
+        animator.SetTrigger("Out");
+        PlayContentOut();
 
-        // Wait for reveal-out animation to finish
-        if (revealOutDuration > 0f)
-            yield return new WaitForSeconds(revealOutDuration);
+        // ✅ Keep reveal visible for the remaining time
+        float remaining = Mathf.Max(0f, levelRevealDuration - delay);
+        if (remaining > 0f)
+            yield return new WaitForSeconds(remaining);
 
-        // ✅ Only now advance level + reset counters
-        MergeLevelManager.AdvanceLevel();
-        BallEventManager.RaiseResetCounters(keepUI: false);
+        // Reveal OUT
+        if (levelArtRevealInstance != null)
+            levelArtRevealInstance.PlayRevealOut();
 
-        // Start next session after level advance
         PopupManager.Instance?.BeginSession(isNewLevel: true);
         PopupManager.Instance?.InitializeProgressBarNow();
 
-        // Now close popup
-        PlayContentOut();
-        animator.SetTrigger("Out");
-        Destroy(gameObject, 1.5f);
+        // Let reveal-out finish
+        if (revealOutDuration > 0f)
+            yield return new WaitForSeconds(revealOutDuration);
 
+        // Cleanup reveal popup
+        if (keepRevealInactiveWhenIdle && levelArtRevealInstance != null)
+            levelArtRevealInstance.gameObject.SetActive(false);
+
+        Destroy(gameObject, 4.8f);
         playPressedRoutine = null;
     }
 
@@ -322,7 +384,18 @@ public class WinLosePopup : MonoBehaviour
             Debug.LogWarning("⚠️ WinLosePopup: LevelProgressBarSlider reference is missing.");
             return;
         }
-        levelCompleteContext = toLevelEnd;
+
+        levelCompleteContext = toLevelEnd;  // already in your code
+
+        if (toLevelEnd && preloadLevelRevealOnStart)
+        {
+            if (levelArtRevealInstance == null)
+                levelArtRevealInstance = SpawnLevelRevealPopup();
+
+            if (keepRevealInactiveWhenIdle && levelArtRevealInstance != null)
+                levelArtRevealInstance.gameObject.SetActive(false);
+        }
+
         levelProgressBarSlider?.PlayAdvanceAnimationFromPopup(
             toLevelEnd,
             enemyDoneDelay,
@@ -343,5 +416,42 @@ public class WinLosePopup : MonoBehaviour
     public void SetLevelCompleteContext(bool isComplete)
     {
         levelCompleteContext = isComplete;
+    }
+
+    private LevelArtRevealController SpawnLevelRevealPopup()
+    {
+        if (prefabLibrary == null || levelArtRevealContainer == null)
+            return null;
+
+        var prefab = prefabLibrary.GetLevelReveal(LEVEL_REVEAL);
+        if (prefab == null)
+            return null;
+
+        var inst = Instantiate(prefab, levelArtRevealContainer);
+
+        var rt = inst.transform as RectTransform;
+        if (rt != null)
+        {
+            rt.anchoredPosition3D = Vector3.zero;
+            rt.localRotation = Quaternion.identity;
+            rt.localScale = Vector3.one;
+        }
+        else
+        {
+            inst.transform.localPosition = Vector3.zero;
+            inst.transform.localRotation = Quaternion.identity;
+            inst.transform.localScale = Vector3.one;
+        }
+
+        return inst;
+    }
+
+    private void HandleSummaryReady()
+    {
+        if (playButtonAnimator == null || string.IsNullOrEmpty(readyTrigger))
+            return;
+
+        playButtonAnimator.ResetTrigger(readyTrigger);
+        playButtonAnimator.SetTrigger(readyTrigger);
     }
 }

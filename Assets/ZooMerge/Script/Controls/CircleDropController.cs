@@ -6,6 +6,7 @@ public class CircleDropController : MonoBehaviour
 {
     [Header("Core")]
     [SerializeField] private Rigidbody2D rb;
+    public Rigidbody2D Rigidbody => rb;
     [SerializeField] private float settleDuration = 3f; // seconds to fully settle
     [SerializeField] private Transform motionTarget;
 

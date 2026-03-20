@@ -61,12 +61,14 @@
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/Benchmark02.cs" />
     <Compile Include="Assets/MOST_HapticFeedback/Scripts/MOST_HapticFeedback.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/CircleDragInput.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Reveal/GalaxyColorAnimator.cs" />
     <Compile Include="Assets/ZooMerge/Script/ATTManager/ATTRequest.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/CollectibleSpawnCircle.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallRegistry.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/BallFactoryAddressables.cs" />
     <Compile Include="Assets/ZooMerge/Script/SessionManager/EnemyProgressConfig.cs" />
     <Compile Include="Assets/ZooMerge/Script/EnemyScript/EnemyUnit.cs" />
+    <Compile Include="Assets/ZooMerge/Script/MergeLevelData/GalaxyProgressSlider.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/SpineSortingOrderManager.cs" />
     <Compile Include="Assets/ZooMerge/Script/SplashScreenController/SplashScreenController.cs" />
     <Compile Include="Assets/ZooMerge/Script/AddressableScript/AddressableInstantiator.cs" />
@@ -84,10 +86,12 @@
     <Compile Include="Assets/ZooMerge/Script/EnemyScript/EnemyDieAnimatorEventRelay.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/DragSmoother.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexJitter.cs" />
+    <Compile Include="Assets/ZooMerge/Script/PopupManager/PrefabLibrary.cs" />
     <Compile Include="Assets/ZooMerge/Script/AddressableScript/AddressablesPreloader.cs" />
     <Compile Include="Assets/ZooMerge/Script/EnemyScript/EnemySpawner.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_UiFrameRateCounter.cs" />
     <Compile Include="Assets/ZooMerge/Script/SplashScreenController/EditorMainBootstrap.cs" />
+    <Compile Include="Assets/ZooMerge/Script/PopupManager/Popup_GalaxyRoadmap.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexZoom.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeLevelData/MergeLevelManager.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_TextSelector_B.cs" />
@@ -137,6 +141,7 @@
     <Compile Include="Assets/ZooMerge/Script/UIScripts/UIFloorAnchor.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/CollectibleFlightSettings.cs" />
     <Compile Include="Assets/ZooMerge/Script/FirebaseScript/FirebaseInitializer.cs" />
+    <Compile Include="Assets/ZooMerge/Script/PopupManager/WinLoseContentBase.cs" />
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/ScreenMover.cs" />
     <Compile Include="Assets/ZooMerge/Script/FirebaseScript/RemoteAdConfig.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/FlyingCollectible.cs" />
@@ -148,7 +153,6 @@
     <Compile Include="Assets/ZooMerge/Script/EnemyScript/SliderAnimator.cs" />
     <Compile Include="Assets/Samples/Ads Mediation/9.2.0/Unity LevelPlay Sample/Scripts/LevelPlaySample.cs" />
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/ScorePopupInstance.cs" />
-    <Compile Include="Assets/ZooMerge/Script/MergeLevelData/MergeLevelData.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallSortingService.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/ObjectSpin.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_PhoneNumberValidator.cs" />
@@ -223,6 +227,7 @@
     <None Include="Assets/TextMesh Pro/Resources/LineBreaking Following Characters.txt" />
     <None Include="Assets/ZooMerge/Animation/spine/export/Bug/ladybug.atlas.txt" />
     <None Include="Assets/ZooMerge/Animation/spine/export/Doggy/pug.atlas.txt" />
+    <None Include="Assets/ZooMerge/Shaders/BlackAndWhiteShaderTest.shader" />
     <None Include="Assets/ZooMerge/Textures/Shader/StencilMaskedParticle.shader" />
     <None Include="Assets/JMO Assets/Cartoon FX (legacy)/Shaders/CFX2 Particle Alpha Blend Tint.shader" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile Masking.shader" />

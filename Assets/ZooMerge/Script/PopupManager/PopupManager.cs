@@ -9,9 +9,12 @@ public class PopupManager : MonoBehaviour
     public static PopupManager Instance { get; private set; }
 
     [Header("Refs")]
-    [SerializeField] private GameObject mainMenuPopupPrefab;
-    [SerializeField] private GameObject winLosePopupPrefab;
-    [SerializeField] private GameObject pauseRestartPopupPrefab;
+    [SerializeField] private PrefabLibrary prefabLibrary;
+
+    private const string MAIN_MENU = "MainMenuPopup";
+    private const string WIN_LOSE = "WinLosePopup";
+    private const string PAUSE = "PauseRestartPopup";
+    
     [SerializeField] private BallSpawner ballSpawner;
     [SerializeField] LevelProgressBarSlider levelProgressBarSlider;
 
@@ -43,10 +46,14 @@ public class PopupManager : MonoBehaviour
         if (ensureActivePanelOnStart != null && !ensureActivePanelOnStart.activeSelf)
             ensureActivePanelOnStart.SetActive(true);
 
-        if (mainMenuPopupPrefab != null)
+        if (prefabLibrary != null)
         {
-            mainMenuPopupInstance = Instantiate(mainMenuPopupPrefab, transform);
-            mainMenuPopupInstance.SetActive(true);
+            var prefab = prefabLibrary.GetRaw(MAIN_MENU);
+            if (prefab != null)
+            {
+                mainMenuPopupInstance = Instantiate(prefab, transform);
+                mainMenuPopupInstance.SetActive(true);
+            }
         }
     }
 
@@ -70,7 +77,9 @@ public class PopupManager : MonoBehaviour
 
         if (pauseRestartPopupInstance == null)
         {
-            pauseRestartPopupInstance = Instantiate(pauseRestartPopupPrefab, transform);
+            var prefab = prefabLibrary.GetRaw(PAUSE);
+            if (prefab != null)
+                pauseRestartPopupInstance = Instantiate(prefab, transform);
         }
 
         pauseRestartPopupInstance.SetActive(true);
@@ -93,7 +102,11 @@ public class PopupManager : MonoBehaviour
 
         // Ensure popup exists
         if (gameUIPopupInstance == null)
-            gameUIPopupInstance = Instantiate(winLosePopupPrefab, transform);
+        {
+            var prefab = prefabLibrary.GetRaw(WIN_LOSE);
+            if (prefab != null)
+                gameUIPopupInstance = Instantiate(prefab, transform);
+        }
 
         // 🆕 Tell the popup that this is a full level completion context
         if (WinLosePopup.Instance != null && reason == GameOverReason.Won)
@@ -124,7 +137,11 @@ public class PopupManager : MonoBehaviour
         if (delay > 0f) yield return new WaitForSeconds(delay);
 
         if (gameUIPopupInstance == null)
-            gameUIPopupInstance = Instantiate(winLosePopupPrefab, transform);
+        {
+            var prefab = prefabLibrary.GetRaw(WIN_LOSE);
+            if (prefab != null)
+                gameUIPopupInstance = Instantiate(prefab, transform);
+        }
 
         showBody?.Invoke();
         winLosePopupRoutine = null;
@@ -132,10 +149,14 @@ public class PopupManager : MonoBehaviour
 
     public void ShowMainMenu()
     {
-        if (mainMenuPopupPrefab != null)
+        if (prefabLibrary != null)
         {
-            mainMenuPopupInstance = Instantiate(mainMenuPopupPrefab, transform);
-            mainMenuPopupInstance.SetActive(true);
+            var prefab = prefabLibrary.GetRaw(MAIN_MENU);
+            if (prefab != null)
+            {
+                mainMenuPopupInstance = Instantiate(prefab, transform);
+                mainMenuPopupInstance.SetActive(true);
+            }
         }
     }
 

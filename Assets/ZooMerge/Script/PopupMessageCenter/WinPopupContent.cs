@@ -1,11 +1,12 @@
 using UnityEngine;
 
-public class WinPopupContent : MonoBehaviour, IWinLoseContent
+public class WinPopupContent : WinLoseContentBase
 {
     [SerializeField] private Animator animator;
-    public Animator Animator => animator;
 
-    public void OnShown()
+    public override Animator Animator => animator;
+
+    public override void OnShown()
     {
         animator.SetTrigger("Win");
     }
