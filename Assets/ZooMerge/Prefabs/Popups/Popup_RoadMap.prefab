@@ -148,7 +148,7 @@ GameObject:
   - component: {fileID: 8461160819543482873}
   - component: {fileID: 1746310708848829456}
   m_Layer: 0
-  m_Name: Asteriod_Image_5
+  m_Name: Asteriod_Image_7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -223,7 +223,7 @@ GameObject:
   - component: {fileID: 7031908457759992580}
   - component: {fileID: 4038372405111413586}
   m_Layer: 0
-  m_Name: Asteriod_Image_3
+  m_Name: Asteriod_Image_5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -334,7 +334,7 @@ GameObject:
   - component: {fileID: 7088227587641749545}
   - component: {fileID: 1200517713227612190}
   m_Layer: 0
-  m_Name: Asteriod_Image_1
+  m_Name: Asteriod_Image_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -407,7 +407,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4565476282801760634}
   - component: {fileID: 3661925340929552112}
+  - component: {fileID: 2215139798736699441}
   - component: {fileID: 5834707946445877923}
+  - component: {fileID: 958913878699226260}
   m_Layer: 0
   m_Name: Popup_RoadMap
   m_TagString: Untagged
@@ -451,6 +453,100 @@ MonoBehaviour:
   currentGalaxyContainer: {fileID: 3500955827919394338}
   nextGalaxyContainer: {fileID: 4733249238165521680}
   nextNextGalaxyContainer: {fileID: 7877765588407877745}
+--- !u!114 &2215139798736699441
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1568670802107940013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0db9ac9b5177c4d19aa0647a99177dd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AsteroidFieldAnimator
+  groups:
+  - asteroids:
+    - {fileID: 5295916114056327315}
+    - {fileID: 1901113005446493345}
+    - {fileID: 365701636403599427}
+    - {fileID: 7670332689884777340}
+    - {fileID: 1333056698519073758}
+    - {fileID: 1323833958111015900}
+    - {fileID: 7924806828872179670}
+  - asteroids:
+    - {fileID: 2406652183322525950}
+    - {fileID: 8531550535487311879}
+    - {fileID: 8223425215835004883}
+    - {fileID: 532632473340563790}
+    - {fileID: 4662445790955275512}
+    - {fileID: 3129072402037049111}
+    - {fileID: 7360766528918008677}
+  - asteroids:
+    - {fileID: 5179012816268444794}
+    - {fileID: 567990518586238795}
+    - {fileID: 2812393411622153190}
+    - {fileID: 221404974607451968}
+    - {fileID: 2383865886888281330}
+    - {fileID: 6754928952608169811}
+    - {fileID: 3503976340068759247}
+  animator: {fileID: 5834707946445877923}
+  scaleInCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  scaleInDuration: 0.4
+  delayBetweenAsteroids: 0.02
+  hoverAmplitude: 1.5
+  hoverFrequency: 1
+  hoverAxis: {x: 25, y: 25, z: 0}
+  scaleOutCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  scaleOutDuration: 0.35
+  scaleOutUseStagger: 0
+  scaleOutDelayBetweenAsteroids: 0.05
 --- !u!95 &5834707946445877923
 Animator:
   serializedVersion: 7
@@ -462,6 +558,139 @@ Animator:
   m_Enabled: 1
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: 9100000, guid: 677d29bb463dc438bae7c0b8c0887021, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &958913878699226260
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1568670802107940013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1366244d952654f0eb3acd1740dbed6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelArtController
+  database: {fileID: 11400000, guid: 508b212b7926a46b4a09d06eb7e353a9, type: 2}
+  artContainer: {fileID: 0}
+  galaxyArtContainer: {fileID: 3826437255187846147}
+  galaxyProgress: {fileID: 592988700769065018}
+  animateGalaxyProgress: 1
+--- !u!1 &1665849144115672927
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6724431351639007623}
+  - component: {fileID: 3156364911280238272}
+  - component: {fileID: 3750289191925388921}
+  m_Layer: 0
+  m_Name: CloseButton_Button
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6724431351639007623
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665849144115672927}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children:
+  - {fileID: 6130198640691188522}
+  m_Father: {fileID: 4803883291172067357}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 373.6839, y: 126.9183}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &3156364911280238272
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665849144115672927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 3
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 0}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 2215139798736699441}
+        m_TargetAssemblyTypeName: AsteroidFieldAnimator, Assembly-CSharp
+        m_MethodName: ClosePopup
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!95 &3750289191925388921
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665849144115672927}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 219843df41be4428a86f1a5cfc420e8c, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -501,7 +730,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 9150928222986740182}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -560,7 +789,7 @@ GameObject:
   - component: {fileID: 8597961693944054713}
   - component: {fileID: 128328506597775368}
   m_Layer: 0
-  m_Name: Asteriod_Image_1
+  m_Name: Asteriod_Image_6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -651,7 +880,7 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0.001953125}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 9150928222986740182}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -710,7 +939,7 @@ GameObject:
   - component: {fileID: 3061559368135414003}
   - component: {fileID: 5652624412889343207}
   m_Layer: 0
-  m_Name: Asteriod_Image_6
+  m_Name: Asteriod_Image_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -801,13 +1030,13 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3129072402037049111}
-  - {fileID: 4662445790955275512}
-  - {fileID: 8223425215835004883}
-  - {fileID: 7360766528918008677}
   - {fileID: 2406652183322525950}
-  - {fileID: 532632473340563790}
   - {fileID: 8531550535487311879}
+  - {fileID: 8223425215835004883}
+  - {fileID: 532632473340563790}
+  - {fileID: 4662445790955275512}
+  - {fileID: 3129072402037049111}
+  - {fileID: 7360766528918008677}
   m_Father: {fileID: 750903889825972821}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -49.143}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -902,7 +1131,7 @@ GameObject:
   - component: {fileID: 3301159635501100744}
   - component: {fileID: 6817611249386461728}
   m_Layer: 0
-  m_Name: Asteriod_Image_2
+  m_Name: Asteriod_Image_5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1052,7 +1281,7 @@ GameObject:
   - component: {fileID: 9200441308726272171}
   - component: {fileID: 2022675469030375779}
   m_Layer: 0
-  m_Name: Asteriod_Image_4
+  m_Name: Asteriod_Image_7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1127,7 +1356,7 @@ GameObject:
   - component: {fileID: 7860957356061071406}
   - component: {fileID: 5566433937903869872}
   m_Layer: 0
-  m_Name: Asteriod_Image_4
+  m_Name: Asteriod_Image_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1190,6 +1419,81 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &4031141163415236119
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6130198640691188522}
+  - component: {fileID: 61445619768146733}
+  - component: {fileID: 8115690782471919289}
+  m_Layer: 0
+  m_Name: Button_Image
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6130198640691188522
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4031141163415236119}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6724431351639007623}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 372.2, y: 184.2}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &61445619768146733
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4031141163415236119}
+  m_CullTransparentMesh: 1
+--- !u!114 &8115690782471919289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4031141163415236119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 70b1d4844d78344a685537a13c7fd679, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1.52
 --- !u!1 &4605066550069847588
 GameObject:
   m_ObjectHideFlags: 0
@@ -1219,12 +1523,13 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3332502330541283662}
-  - {fileID: 5240912924335265287}
   - {fileID: 3938553205435171609}
   - {fileID: 8711746674485867994}
+  - {fileID: 5240912924335265287}
   - {fileID: 9150928222986740182}
   - {fileID: 2174583734232975374}
   - {fileID: 4096343670997220697}
+  - {fileID: 4803883291172067357}
   m_Father: {fileID: 4565476282801760634}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -1244,7 +1549,7 @@ GameObject:
   - component: {fileID: 1823700013119832269}
   - component: {fileID: 2666978340750323172}
   m_Layer: 0
-  m_Name: Asteriod_Image_7
+  m_Name: Asteriod_Image_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1394,7 +1699,7 @@ GameObject:
   - component: {fileID: 4705088541425752696}
   - component: {fileID: 353467164807627449}
   m_Layer: 0
-  m_Name: Asteriod_Image_6
+  m_Name: Asteriod_Image_5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1544,7 +1849,7 @@ GameObject:
   - component: {fileID: 7990354970646535535}
   - component: {fileID: 4690998991829883038}
   m_Layer: 0
-  m_Name: Asteriod_Image_3
+  m_Name: Asteriod_Image_4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1619,7 +1924,7 @@ GameObject:
   - component: {fileID: 4418276700521052767}
   - component: {fileID: 7951678995185518446}
   m_Layer: 0
-  m_Name: Asteriod_Image_5
+  m_Name: Asteriod_Image_6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1694,7 +1999,7 @@ GameObject:
   - component: {fileID: 2741647392522441455}
   - component: {fileID: 211731542091011175}
   m_Layer: 0
-  m_Name: Asteriod_Image_5
+  m_Name: Asteriod_Image_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1769,7 +2074,7 @@ GameObject:
   - component: {fileID: 7111877323461976419}
   - component: {fileID: 8402298549552529278}
   m_Layer: 0
-  m_Name: Asteriod_Image_4
+  m_Name: Asteriod_Image_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1870,6 +2175,42 @@ RectTransform:
   m_AnchoredPosition: {x: 12.699984, y: -150.75198}
   m_SizeDelta: {x: 1006, y: 1366.2}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &5970770091326584348
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4803883291172067357}
+  m_Layer: 0
+  m_Name: CloseButton_Holder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &4803883291172067357
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5970770091326584348}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children:
+  - {fileID: 6724431351639007623}
+  m_Father: {fileID: 750903889825972821}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 551, y: 940.7}
+  m_SizeDelta: {x: 175.01, y: 176.1}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &6149857329377315074
 GameObject:
   m_ObjectHideFlags: 0
@@ -1898,7 +2239,7 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0.35216233, w: 0.935939}
   m_LocalPosition: {x: 0, y: 0, z: 0.01953125}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 9150928222986740182}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -41.239}
@@ -2040,7 +2381,7 @@ GameObject:
   - component: {fileID: 9017188438423154421}
   - component: {fileID: 912755154040262572}
   m_Layer: 0
-  m_Name: Asteriod_Image_1
+  m_Name: Asteriod_Image_3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2115,7 +2456,7 @@ GameObject:
   - component: {fileID: 2680907629577098889}
   - component: {fileID: 6278646114958801488}
   m_Layer: 0
-  m_Name: Asteriod_Image_7
+  m_Name: Asteriod_Image_6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2225,7 +2566,7 @@ GameObject:
   - component: {fileID: 7378259872759393664}
   - component: {fileID: 4732115034310690607}
   m_Layer: 0
-  m_Name: Asteriod_Image_2
+  m_Name: Asteriod_Image_4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2316,12 +2657,12 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 5295916114056327315}
+  - {fileID: 1901113005446493345}
   - {fileID: 365701636403599427}
   - {fileID: 7670332689884777340}
   - {fileID: 1333056698519073758}
-  - {fileID: 5295916114056327315}
   - {fileID: 1323833958111015900}
-  - {fileID: 1901113005446493345}
   - {fileID: 7924806828872179670}
   m_Father: {fileID: 750903889825972821}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2358,13 +2699,13 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 5179012816268444794}
   - {fileID: 567990518586238795}
   - {fileID: 2812393411622153190}
   - {fileID: 221404974607451968}
-  - {fileID: 5179012816268444794}
-  - {fileID: 3503976340068759247}
   - {fileID: 2383865886888281330}
   - {fileID: 6754928952608169811}
+  - {fileID: 3503976340068759247}
   m_Father: {fileID: 750903889825972821}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 42.541}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -2419,7 +2760,7 @@ GameObject:
   - component: {fileID: 1221864207003900199}
   - component: {fileID: 6638765347706543505}
   m_Layer: 0
-  m_Name: Asteriod_Image_2
+  m_Name: Asteriod_Image_3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2510,7 +2851,7 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0.35216233, w: 0.935939}
   m_LocalPosition: {x: 0, y: 0, z: 0.01953125}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 9150928222986740182}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -41.239}
@@ -2569,7 +2910,7 @@ GameObject:
   - component: {fileID: 8264365680918237585}
   - component: {fileID: 4908282420566509111}
   m_Layer: 0
-  m_Name: Asteriod_Image_6
+  m_Name: Asteriod_Image_4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2764,6 +3105,17 @@ PrefabInstance:
       addedObject: {fileID: 886064670832168775}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
+--- !u!114 &592988700769065018 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 73984675009268476, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
+  m_PrefabInstance: {fileID: 665513220041675462}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e0efaaa535c84c6a916f31ea1b87a83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyProgressSlider
 --- !u!224 &1789929949392266937 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1291261444904645759, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
