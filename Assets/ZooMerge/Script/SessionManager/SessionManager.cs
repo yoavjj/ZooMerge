@@ -57,6 +57,8 @@ public class SessionManager : MonoBehaviour
         BallEventManager.OnEnemyDeathSpineEvent += OnEnemyDeathSpineEvent;
 
         BallEventManager.OnReturnToMainMenu += HandleReturnToMainMenu;
+
+        BallEventManager.OnBallTouchedGameOverLine += HandleBallTouchedGameOverLine;
     }
 
     private void OnDisable()
@@ -72,6 +74,13 @@ public class SessionManager : MonoBehaviour
         BallEventManager.OnEnemyDeathSpineEvent -= OnEnemyDeathSpineEvent;
 
         BallEventManager.OnReturnToMainMenu -= HandleReturnToMainMenu;
+        BallEventManager.OnBallTouchedGameOverLine -= HandleBallTouchedGameOverLine;
+    }
+
+
+    private void HandleBallTouchedGameOverLine(BallInfo info)
+    {
+        TriggerSessionEnd();
     }
 
     private void HandleReturnToMainMenu()

@@ -68,6 +68,7 @@
 		half _SecondColorSmooth;
 
 		half _HdrMultiply;
+		half _Opacity;
 
 		half _ReceivedShadowsStrength;
 
@@ -568,6 +569,7 @@
 			half _DissolveSmooth;
 
 			half _HdrMultiply;
+			half _Opacity;
 
 			half _Cutoff;
 
@@ -713,6 +715,9 @@
 
 				half3 particleColor = mainTex.rgb * i.color.rgb;
 				half particleAlpha = mainTex.a * i.color.a;
+
+				particleColor *= _Opacity;   // fades additive glow too
+				particleAlpha *= _Opacity;   // fades alpha-based modes
 
 				// ================================================================
 				// Dissolve

@@ -162,31 +162,12 @@ public class WinLosePopup : MonoBehaviour
 
     private void BuildContent(GameOverReason reason)
     {
-        // Clear previous content
-        if (contentRoot.childCount > 0)
-        {
-            for (int i = contentRoot.childCount - 1; i >= 0; i--)
-                Destroy(contentRoot.GetChild(i).gameObject);
-        }
+        ClearContent();
 
-        if (prefabLibrary == null)
-        {
-            Debug.LogError("[WinLosePopup] PrefabLibrary is not assigned.");
-            return;
-        }
+        var prefab = GetContentPrefab(reason);
+        if (prefab == null) return;
 
-        string prefabId = (reason == GameOverReason.Lost)
-            ? LOSE
-            : (levelCompleteContext ? LEVEL_COMPLETE : WIN);
-
-        var prefab = prefabLibrary.GetWinLose(prefabId);
-        if (prefab == null)
-            return;
-
-        var instance = Instantiate(prefab, contentRoot);
-
-        activeContent = instance;
-
+        activeContent = Instantiate(prefab, contentRoot);
         activeContent.OnShown();
     }
 
@@ -198,6 +179,27 @@ public class WinLosePopup : MonoBehaviour
         isContinue = true;
     }
 
+    private void ClearContent()
+    {
+        for (int i = contentRoot.childCount - 1; i >= 0; i--)
+            Destroy(contentRoot.GetChild(i).gameObject);
+    }
+
+    private WinLoseContentBase GetContentPrefab(GameOverReason reason)
+    {
+        if (prefabLibrary == null)
+        {
+            Debug.LogError("[WinLosePopup] PrefabLibrary is not assigned.");
+            return null;
+        }
+
+        string id = (reason == GameOverReason.Lost)
+            ? LOSE
+            : (levelCompleteContext ? LEVEL_COMPLETE : WIN);
+
+        return prefabLibrary.GetWinLose(id);
+    }
+
     public void OnMainMenuButtonPressed()
     {
         PopupManager.Instance?.ConfirmReturnToMainMenu();
@@ -205,93 +207,154 @@ public class WinLosePopup : MonoBehaviour
         Destroy(gameObject, 1f);
     }
 
-    public void ShowGalaxyRoadmap()
+    public void ShowGalaxyRoadmap(bool fromLevelFlow = false)
     {
-        if (prefabLibrary == null || levelArtRevealContainer == null)
-            return;
+        var roadmap = SpawnGalaxyRoadmap();
+        if (roadmap == null) return;
 
-        var prefab = prefabLibrary.GetRaw(GALAXY_ROADMAP);
-        if (prefab == null)
-            return;
-
-        var instGO = Instantiate(prefab, levelArtRevealContainer);
-
-        var roadmap = instGO.GetComponent<Popup_GalaxyRoadmap>();
-        if (roadmap == null)
-        {
-            Debug.LogError("[WinLosePopup] GalaxyRoadmap prefab missing script.");
-            return;
-        }
+        // ✅ PREPARE BEFORE advancing level affects data
+        roadmap.PrepareProgressBeforeReveal();
 
         roadmap.Initialize();
+        roadmap.PlayIntro(fromLevelFlow);
+        ResetRectTransform(roadmap.transform);
+    }
 
-        // optional: reset transform
-        var rt = instGO.transform as RectTransform;
+    private void ResetRectTransform(Transform t)
+    {
+        var rt = t as RectTransform;
         if (rt != null)
         {
             rt.anchoredPosition3D = Vector3.zero;
-            rt.localRotation = Quaternion.identity;
-            rt.localScale = Vector3.one;
         }
+        else
+        {
+            t.localPosition = Vector3.zero;
+        }
+
+        t.localRotation = Quaternion.identity;
+        t.localScale = Vector3.one;
+    }
+
+    private Popup_GalaxyRoadmap SpawnGalaxyRoadmap()
+    {
+        if (prefabLibrary == null || levelArtRevealContainer == null)
+            return null;
+
+        var prefab = prefabLibrary.GetGalaxyRoadmap(GALAXY_ROADMAP);
+        if (prefab == null)
+            return null;
+
+        return Instantiate(prefab, levelArtRevealContainer);
     }
 
     public void OnPlayPressed()
     {
+        if (IsSummaryBusy()) return;
+
+        HandleContinue();
+
+        if (!IsNewLevel())
+        {
+            HandleNormalRestart();
+            return;
+        }
+
+        StartNextLevelFlow();
+    }
+
+    private bool IsSummaryBusy()
+    {
         if (mergeSummaryPanel != null && mergeSummaryPanel.IsBusy)
         {
             Debug.Log("⏳ Wait! Merge summary still running.");
-            return;
+            return true;
         }
+        return false;
+    }
 
-        bool isNewLevel = levelCompleteContext; // true only when popup showed a real level win
+    private bool IsNewLevel()
+    {
+        return levelCompleteContext;
+    }
 
-        if (isContinue)
-        {
-            var dropped = CircleDragInput.Instance?.droppedContainer;
-            if (dropped != null)
-                BallStateSaver.Instance.RestoreState(dropped);
-            isContinue = false;
-        }
+    private void HandleContinue()
+    {
+        if (!isContinue) return;
 
-        if (!isNewLevel)
-        {
-            // ✅ normal case (mid-level / retry / etc.)
-            BallEventManager.RaiseResetCounters(keepUI: true);
+        var dropped = CircleDragInput.Instance?.droppedContainer;
+        if (dropped != null)
+            BallStateSaver.Instance.RestoreState(dropped);
 
-            PopupManager.Instance?.BeginSession(isNewLevel: false);
-            PopupManager.Instance?.InitializeProgressBarNow();
+        isContinue = false;
+    }
 
-            PlayContentOut();
-            animator.SetTrigger("Out");
-            Destroy(gameObject, 1.5f);
-            return;
-        }
+    private void HandleNormalRestart()
+    {
+        BallEventManager.RaiseResetCounters(keepUI: true);
 
-        // ✅ end-of-level flow (level reveal)
-        if (playPressedRoutine != null) StopCoroutine(playPressedRoutine);
+        PopupManager.Instance?.BeginSession(isNewLevel: false);
+        PopupManager.Instance?.InitializeProgressBarNow();
+
+        ClosePopup();
+    }
+
+    private void ClosePopup()
+    {
+        PlayContentOut();
+        animator?.SetTrigger("Out");
+        Destroy(gameObject, 1.5f);
+    }
+
+    private void StartNextLevelFlow()
+    {
+        if (playPressedRoutine != null)
+            StopCoroutine(playPressedRoutine);
+
         playPressedRoutine = StartCoroutine(PlayNextLevelRevealThenAdvance());
-
     }
 
     private IEnumerator PlayNextLevelRevealThenAdvance()
     {
-        // Spawn and play reveal (if not already spawned)
-        if (levelArtRevealInstance == null)
-            levelArtRevealInstance = SpawnLevelRevealPopup();
+        bool isGalaxyEnd = MergeLevelManager.IsLastLevelInCurrentGalaxy;
 
-        if (levelArtRevealInstance != null)
+        if (!isGalaxyEnd)
         {
-            if (keepRevealInactiveWhenIdle)
-                levelArtRevealInstance.gameObject.SetActive(true);
+            // Spawn and play reveal (if not already spawned)
+            if (levelArtRevealInstance == null)
+                levelArtRevealInstance = SpawnLevelRevealPopup();
 
-            int curLevel = MergeLevelManager.CurrentLevelNumber;
-            levelArtRevealInstance.Prepare(curLevel, afterCompletion: true);
-            levelArtRevealInstance.PlayRevealAndSwap();
+            if (levelArtRevealInstance != null)
+            {
+                if (keepRevealInactiveWhenIdle)
+                    levelArtRevealInstance.gameObject.SetActive(true);
 
-            // Advance level only after reveal is done showing
+                int curLevel = MergeLevelManager.CurrentLevelNumber;
+                levelArtRevealInstance.Prepare(curLevel, afterCompletion: true);
+                levelArtRevealInstance.PlayRevealAndSwap();
+
+                // Advance level only after reveal is done showing
+                MergeLevelManager.AdvanceLevel();
+                BallEventManager.RaiseResetCounters(keepUI: false);
+                levelArtRevealInstance.updateProgressBarSlider();
+            }
+        }
+        else
+        {
+            // ✅ Galaxy-end: advance into the next galaxy, then show roadmap popup
+            // ✅ 1. Spawn popup FIRST
+            var roadmap = SpawnGalaxyRoadmap();
+            if (roadmap != null)
+            {
+                roadmap.PrepareProgressBeforeReveal(); // ✅ cache OLD state
+                roadmap.PlayIntro(true);
+                roadmap.Initialize();
+                ResetRectTransform(roadmap.transform);
+            }
+
+            // ✅ 2. THEN advance level
             MergeLevelManager.AdvanceLevel();
             BallEventManager.RaiseResetCounters(keepUI: false);
-            levelArtRevealInstance.updateProgressBarSlider();
         }
 
         // ✅ Delay before closing Win/Lose popup (does NOT extend total reveal time)
@@ -307,19 +370,16 @@ public class WinLosePopup : MonoBehaviour
         if (remaining > 0f)
             yield return new WaitForSeconds(remaining);
 
-        // Reveal OUT
-        if (levelArtRevealInstance != null)
+        // Reveal OUT (only for the level reveal popup)
+        if (!isGalaxyEnd && levelArtRevealInstance != null)
             levelArtRevealInstance.PlayRevealOut();
 
-        PopupManager.Instance?.BeginSession(isNewLevel: true);
-        PopupManager.Instance?.InitializeProgressBarNow();
-
-        // Let reveal-out finish
-        if (revealOutDuration > 0f)
+        // Let reveal-out finish (only relevant for level reveal popup)
+        if (!isGalaxyEnd && revealOutDuration > 0f)
             yield return new WaitForSeconds(revealOutDuration);
 
         // Cleanup reveal popup
-        if (keepRevealInactiveWhenIdle && levelArtRevealInstance != null)
+        if (!isGalaxyEnd && keepRevealInactiveWhenIdle && levelArtRevealInstance != null)
             levelArtRevealInstance.gameObject.SetActive(false);
 
         Destroy(gameObject, 4.8f);

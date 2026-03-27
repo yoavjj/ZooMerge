@@ -16,4 +16,10 @@ public class WinLoseAnimationEvents : MonoBehaviour
             mergeSummaryPanel.OnPopupOpenAnimationFinished();
         }
     }
+
+    public void AE_OnRevealFinished()
+    {
+        PopupManager.Instance?.BeginSession(isNewLevel: false);
+        PopupManager.Instance?.InitializeProgressBarNow();
+    }
 }

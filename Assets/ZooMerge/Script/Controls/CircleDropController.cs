@@ -336,7 +336,7 @@ public class CircleDropController : MonoBehaviour
             PlaySpine(animTouching, true);
 
         yield return new WaitForSeconds(requiredGameOverContactTime);
-        BallEventManager.RaiseGameOver(ballInfo, GameOverReason.Lost);
+        BallEventManager.RaiseBallTouchedGameOverLine(ballInfo, GameOverReason.Lost);
         gameOverTouchRoutine = null;
     }
 

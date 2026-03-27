@@ -17,7 +17,7 @@ public class LevelArtDatabase : ScriptableObject
     {
         public int galaxyId;
         public GameObject galaxyPrefab; // any prefab you want (background, VFX, etc.)
-        public GameObject galaxyRoadmapPrefab;
+        public GalaxyRoadmapPrefabConfigurator galaxyRoadmapPrefab;
     }
 
     [Header("Level Art")]
@@ -28,7 +28,7 @@ public class LevelArtDatabase : ScriptableObject
 
     private Dictionary<int, DissolveAnimatorDriver> levelCache;
     private Dictionary<int, GameObject> galaxyCache;
-    private Dictionary<int, GameObject> galaxyRoadmapCache;
+    private Dictionary<int, GalaxyRoadmapPrefabConfigurator> galaxyRoadmapCache;
 
     private void OnEnable() => RebuildCaches();
 
@@ -63,7 +63,7 @@ public class LevelArtDatabase : ScriptableObject
             foreach (var e in galaxyEntries)
             {
                 if (e == null) continue;
-                if (e.galaxyId <= 0) continue;
+                if (e.galaxyId < 0) continue;
                 if (e.galaxyPrefab == null) continue;
 
                 galaxyCache[e.galaxyId] = e.galaxyPrefab;
@@ -71,7 +71,7 @@ public class LevelArtDatabase : ScriptableObject
         }
 
         // ---- galaxy roadmap cache ----
-        galaxyRoadmapCache ??= new Dictionary<int, GameObject>();
+        galaxyRoadmapCache ??= new Dictionary<int, GalaxyRoadmapPrefabConfigurator>();
         galaxyRoadmapCache.Clear();
 
         if (galaxyEntries != null)
@@ -79,7 +79,7 @@ public class LevelArtDatabase : ScriptableObject
             foreach (var e in galaxyEntries)
             {
                 if (e == null) continue;
-                if (e.galaxyId <= 0) continue;
+                if (e.galaxyId < 0) continue;
                 if (e.galaxyRoadmapPrefab == null) continue;
 
                 galaxyRoadmapCache[e.galaxyId] = e.galaxyRoadmapPrefab;
@@ -143,7 +143,7 @@ public class LevelArtDatabase : ScriptableObject
         return null;
     }
 
-    public GameObject GetRoadmapPrefabForGalaxy(int galaxyId)
+    public GalaxyRoadmapPrefabConfigurator GetRoadmapPrefabForGalaxy(int galaxyId)
     {
         if (galaxyRoadmapCache == null) RebuildCaches();
 
@@ -153,6 +153,7 @@ public class LevelArtDatabase : ScriptableObject
         // fallback scan
         if (galaxyEntries != null)
         {
+            Debug.Log($"[LevelArtDatabase] Looking for galaxyId={galaxyId}. Entries={GetGalaxiesDebug()}");
             for (int i = 0; i < galaxyEntries.Count; i++)
             {
                 var e = galaxyEntries[i];
@@ -160,7 +161,7 @@ public class LevelArtDatabase : ScriptableObject
                 if (e.galaxyId != galaxyId) continue;
                 if (e.galaxyRoadmapPrefab == null) continue;
 
-                galaxyRoadmapCache ??= new Dictionary<int, GameObject>();
+                galaxyRoadmapCache ??= new Dictionary<int, GalaxyRoadmapPrefabConfigurator>();
                 galaxyRoadmapCache[galaxyId] = e.galaxyRoadmapPrefab;
                 return e.galaxyRoadmapPrefab;
             }
@@ -189,7 +190,7 @@ public class LevelArtDatabase : ScriptableObject
         foreach (var e in galaxyEntries)
         {
             if (e == null) continue;
-            list.Add($"{e.galaxyId}:{(e.galaxyPrefab != null ? "OK" : "NULL")}");
+            list.Add($"{e.galaxyId}: galaxy={(e.galaxyPrefab ? "OK" : "NULL")} roadmap={(e.galaxyRoadmapPrefab ? "OK" : "NULL")}");
         }
         return string.Join(", ", list);
     }

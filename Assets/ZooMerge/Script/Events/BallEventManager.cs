@@ -107,6 +107,16 @@ public static class BallEventManager
         OnGameOverAnimation?.Invoke();
     }
 
+    public static event Action<BallInfo> OnBallTouchedGameOverLine;
+
+    public static void RaiseBallTouchedGameOverLine(BallInfo info, GameOverReason reason)
+    {
+        SetMergesBlocked(true);
+        OnGameOver?.Invoke(info, reason);
+        OnGameOverAnimation?.Invoke();
+        OnBallTouchedGameOverLine?.Invoke(info);
+    }
+
     public enum EnemyDefeatType
     {
         MidLevel,       // enemy defeated, more enemies remain

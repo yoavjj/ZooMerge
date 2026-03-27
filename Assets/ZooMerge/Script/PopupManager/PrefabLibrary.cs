@@ -70,4 +70,10 @@ public class PrefabLibrary : ScriptableObject
         var go = GetRaw(id);
         return go != null ? go.GetComponent<LevelArtRevealController>() : null;
     }
+
+    public Popup_GalaxyRoadmap GetGalaxyRoadmap(string id)
+    {
+        var go = GetRaw(id);
+        return go != null ? go.GetComponent<Popup_GalaxyRoadmap>() : null;
+    }
 }

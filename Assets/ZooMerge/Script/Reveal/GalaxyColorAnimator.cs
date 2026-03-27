@@ -102,6 +102,17 @@ public class GalaxyColorAnimator : MonoBehaviour
     public void SetBlend(float value)
     {
         blend = value;
+        EnsureMaterialInstance(); // <--- add this
         Apply();
+    }
+
+    public void PlayState(string triggerName)
+    {
+        if (galaxyAnimator == null) return;
+        if (string.IsNullOrEmpty(triggerName)) return;
+
+        // Optional but helps when switching quickly
+        galaxyAnimator.ResetTrigger(triggerName);
+        galaxyAnimator.SetTrigger(triggerName);
     }
 }

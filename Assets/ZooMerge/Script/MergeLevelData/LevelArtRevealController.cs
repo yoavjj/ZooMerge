@@ -109,6 +109,12 @@ public class LevelArtRevealController : MonoBehaviour
         galaxyProgress.OnAnimationComplete = OnGalaxyProgressFinished;
     }
 
+    public void AE_OnRevealFinished()
+    {
+        PopupManager.Instance?.BeginSession(isNewLevel: true);
+        PopupManager.Instance?.InitializeProgressBarNow();
+    }
+    
     private void OnGalaxyProgressFinished()
     {
         // Only trigger if fully completed

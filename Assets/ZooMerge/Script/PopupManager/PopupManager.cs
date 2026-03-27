@@ -57,14 +57,28 @@ public class PopupManager : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        BallEventManager.OnBallTouchedGameOverLine += HandleBallTouchedGameOverLine;
+    }
+
     private void OnDisable()
     {
-        BallEventManager.OnSessionStarted -= HandleSessionStarted;
-        BallEventManager.OnEnemySessionEnded -= HandleSessionEnded;
-        BallEventManager.OnGameOver -= HandleGameOver;
-        BallEventManager.OnReturnToMainMenu -= HandleReturnToMainMenu;
+        BallEventManager.OnBallTouchedGameOverLine -= HandleBallTouchedGameOverLine;
 
         if (winLosePopupRoutine != null) { StopCoroutine(winLosePopupRoutine); winLosePopupRoutine = null; }
+    }
+
+    private void HandleBallTouchedGameOverLine(BallInfo info)
+    {
+        isSessionActive = false;
+        ShowEndLvlPopup(GameOverReason.Lost); // or whatever reason you want for this unique case
+    }
+
+    private void HandleGameOver(BallInfo info, GameOverReason reason)
+    {
+        isSessionActive = false;
+        ShowEndLvlPopup(reason);
     }
 
     public void ShowPauseRestartPopup()
@@ -235,17 +249,6 @@ public class PopupManager : MonoBehaviour
     private void HandleSessionStarted()
     {
         isSessionActive = true;
-    }
-
-    private void HandleSessionEnded()
-    {
-        // enemy transition or level end -> treat as not an "active play" moment
-        isSessionActive = false;
-    }
-
-    private void HandleGameOver(BallInfo info, GameOverReason reason)
-    {
-        isSessionActive = false;
     }
 
     private void HandleReturnToMainMenu()

@@ -17,6 +17,8 @@ public class LevelArtController : MonoBehaviour
     [SerializeField] private GalaxyProgressSlider galaxyProgress;
     [SerializeField] private bool animateGalaxyProgress = true;
 
+    private GalaxyColorAnimator currentGalaxyAnimator;
+
     private GameObject currentGalaxyInstance;
     private int currentGalaxyShown = -1;
 
@@ -104,6 +106,7 @@ public class LevelArtController : MonoBehaviour
         }
 
         currentGalaxyInstance = Instantiate(galaxyPrefab, galaxyArtContainer);
+        currentGalaxyAnimator = currentGalaxyInstance.GetComponentInChildren<GalaxyColorAnimator>();
 
         // UI-safe reset (works for both normal Transforms and RectTransforms)
         var rt = currentGalaxyInstance.transform as RectTransform;
@@ -130,5 +133,11 @@ public class LevelArtController : MonoBehaviour
             MergeLevelManager.LevelsInCurrentGalaxy,
             animateGalaxyProgress
         );
+    }
+
+    public void PlayGalaxyDone()
+    {
+        if (currentGalaxyAnimator != null)
+            currentGalaxyAnimator.PlayDone();
     }
 }

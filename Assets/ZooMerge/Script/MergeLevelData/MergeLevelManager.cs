@@ -173,6 +173,17 @@ public static class MergeLevelManager
         return level.stageId > 0 ? level.stageId : level.index;
     }
 
+    public static bool IsLastLevelInCurrentGalaxy
+    {
+        get
+        {
+            var galaxy = GetCurrentGalaxy();
+            int count = galaxy.levels?.Count ?? 0;
+            if (count <= 0) return true; // defensive: treat empty as "last"
+            return currentLevelIndex >= count - 1;
+        }
+    }
+
     // ---------- Advancing ----------
     public static void AdvanceLevel()
     {
