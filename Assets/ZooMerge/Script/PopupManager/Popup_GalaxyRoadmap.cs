@@ -10,8 +10,7 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
     [SerializeField] private LevelArtController levelArtController;
     private GalaxyColorAnimator currentGalaxyAnimator;
 
-    [Header("Database")]
-    [SerializeField] private LevelArtDatabase levelArtDatabase;
+    [SerializeField] private LevelProgressBarSlider levelProgressBar;
 
     [Header("Containers")]
     [SerializeField] private Transform currentGalaxyContainer;
@@ -72,9 +71,9 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
 
     public void Initialize()
     {
-        if (levelArtDatabase == null)
+        if (levelArtController == null || levelArtController.Database == null)
         {
-            Debug.LogError("[GalaxyRoadmap] Missing LevelArtDatabase");
+            Debug.LogError("[GalaxyRoadmap] Missing LevelArtController or its LevelArtDatabase");
             return;
         }
 
@@ -82,14 +81,11 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
         Clear(ref nextInstance);
         Clear(ref nextNextInstance);
 
-        // Base galaxy
         int baseGalaxyId = MergeLevelManager.CurrentGalaxyId;
 
-        // SHIFT when coming from reveal flow
         if (isRevealMode)
             baseGalaxyId += 1;
 
-        // 🔥 Spawn shifted galaxies
         SpawnGalaxy(baseGalaxyId, currentGalaxyContainer, ref currentInstance, GalaxyRoadmapPrefabConfigurator.Slot.Current);
         SpawnGalaxy(baseGalaxyId + 1, nextGalaxyContainer, ref nextInstance, GalaxyRoadmapPrefabConfigurator.Slot.Next);
         SpawnGalaxy(baseGalaxyId + 2, nextNextGalaxyContainer, ref nextNextInstance, GalaxyRoadmapPrefabConfigurator.Slot.NextNext);
@@ -103,7 +99,7 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
     {
         if (parent == null) return;
 
-        var prefab = levelArtDatabase.GetRoadmapPrefabForGalaxy(galaxyId);
+        var prefab = levelArtController.Database.GetRoadmapPrefabForGalaxy(galaxyId);
         if (prefab == null)
         {
             Debug.LogWarning($"[GalaxyRoadmap] No roadmap prefab for galaxyId {galaxyId}");
@@ -177,7 +173,7 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
         }
 
         // optional: small delay to let animation play
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(2.5f);
 
         Destroy(gameObject);
     }
@@ -191,6 +187,8 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
         // ✅ IMPORTANT — same as working script
         galaxyProgress.OnAnimationComplete = null;
         galaxyProgress.OnAnimationComplete = OnGalaxyProgressFinished;
+
+        levelProgressBar.InitializeCurrentLevel();
     }
 
     public void AE_PlayGalaxyReveal()
@@ -206,12 +204,23 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
         PopupManager.Instance?.InitializeProgressBarNow();
     }
 
+    public void AE_StageReveal()
+    {
+        levelArtController?.StageReveal();
+    }
+
     private void OnGalaxyProgressFinished()
     {
         if (cachedCompleted >= cachedTotal)
         {
             levelArtController.PlayGalaxyDone();
         }
+    }
+
+    public void AE_UpdateGalaxySlider()
+    {
+        levelArtController?.PlayGalaxyOutAndSwapToNext();
+        levelArtController?.CallGalaxySlider();
     }
 
     private void EnsureMaterialInstance()

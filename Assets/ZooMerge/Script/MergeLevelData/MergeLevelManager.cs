@@ -184,6 +184,15 @@ public static class MergeLevelManager
         }
     }
 
+    public static int GetGalaxyIdAtOffset(int offset)
+    {
+        if (data == null || data.galaxies == null || data.galaxies.Count == 0)
+            return -1;
+
+        int idx = Mathf.Clamp(currentGalaxyIndex + offset, 0, data.galaxies.Count - 1);
+        return data.galaxies[idx].galaxyId;
+    }
+
     // ---------- Advancing ----------
     public static void AdvanceLevel()
     {

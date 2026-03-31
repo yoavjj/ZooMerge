@@ -612,7 +612,7 @@ GameObject:
   - component: {fileID: 2453813690070571563}
   - component: {fileID: 3080458384838228908}
   - component: {fileID: 4921033287460038489}
-  - component: {fileID: 4620406963997953160}
+  - component: {fileID: 3956126387593860387}
   m_Layer: 0
   m_Name: popup_Level_Complete_Art
   m_TagString: Untagged
@@ -678,7 +678,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &4620406963997953160
+--- !u!114 &3956126387593860387
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -687,11 +687,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 7715906936587079390}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1366244d952654f0eb3acd1740dbed6a, type: 3}
+  m_Script: {fileID: 11500000, guid: bec9d5ec167134fe69832b62f953c4d2, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LevelArtController
+  m_EditorClassIdentifier: Assembly-CSharp::LevelArtController_Popup
   database: {fileID: 11400000, guid: 508b212b7926a46b4a09d06eb7e353a9, type: 2}
   artContainer: {fileID: 6047658713224089322}
+  galaxyArtContainer: {fileID: 0}
+  galaxyProgress: {fileID: 0}
+  animateGalaxyProgress: 1
 --- !u!1 &8062580400546652121
 GameObject:
   m_ObjectHideFlags: 0

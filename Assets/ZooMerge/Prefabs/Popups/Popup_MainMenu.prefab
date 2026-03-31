@@ -693,7 +693,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6047679180331901379}
   - component: {fileID: 2413776802302787492}
-  - component: {fileID: 3379507110423043417}
+  - component: {fileID: 1906449982474650596}
   - component: {fileID: 5770017234473226161}
   m_Layer: 0
   m_Name: Popup_MainMenu
@@ -738,7 +738,8 @@ MonoBehaviour:
   playButton: {fileID: 6849864308225317443}
   mainMenuAnimator: {fileID: 5770017234473226161}
   playPressedDelay: 0.2
---- !u!114 &3379507110423043417
+  levelArtController: {fileID: 1906449982474650596}
+--- !u!114 &1906449982474650596
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -747,9 +748,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 4153767231893100836}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1366244d952654f0eb3acd1740dbed6a, type: 3}
+  m_Script: {fileID: 11500000, guid: bec9d5ec167134fe69832b62f953c4d2, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LevelArtController
+  m_EditorClassIdentifier: Assembly-CSharp::LevelArtController_PlayIdleOnSpawn
   database: {fileID: 11400000, guid: 508b212b7926a46b4a09d06eb7e353a9, type: 2}
   artContainer: {fileID: 9208864547417087565}
   galaxyArtContainer: {fileID: 2442292766102923564}
@@ -2392,6 +2393,10 @@ PrefabInstance:
     - target: {fileID: 4275619130115037546, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
       propertyPath: m_Name
       value: Galaxy_Slider
+      objectReference: {fileID: 0}
+    - target: {fileID: 8274942163248745927, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8274942163248745927, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
       propertyPath: m_AnchorMax.y

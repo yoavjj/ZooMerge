@@ -118,12 +118,14 @@ public class DissolveAnimatorDriver : MonoBehaviour
     {
         startMode = StartMaterialMode.In;
         if (overrideMaterial && inMaterial != null) SetMaterialBase(inMaterial);
+        PlayIdle();
     }
 
     public void PrimeAsOut()
     {
         startMode = StartMaterialMode.Out;
         if (overrideMaterial && outMaterial != null) SetMaterialBase(outMaterial);
+        PlayIdle();
     }
 
     // Keyframe this if you want, or call via Animation Event

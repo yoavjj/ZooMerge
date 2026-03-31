@@ -16,6 +16,8 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField, Min(0f)] private float playPressedDelay = 0.25f;
     private Coroutine playPressedRoutine;
 
+    [SerializeField] private LevelArtController levelArtController;
+
     private int cachedLevelNumber;
     private bool cachedIsNewLevel;
     private bool cacheReady = false;

@@ -21,6 +21,8 @@ public class GalaxyColorAnimator : MonoBehaviour
     [Header("Animator")]
     [SerializeField] private Animator galaxyAnimator;
     [SerializeField] private string galaxyDoneTrigger = "Done";
+    [SerializeField] private string galaxyOutTrigger = "Out";
+    [SerializeField] private string galaxyRevealTrigger = "Reveal";
 
     private Material runtimeMat;
 
@@ -114,5 +116,19 @@ public class GalaxyColorAnimator : MonoBehaviour
         // Optional but helps when switching quickly
         galaxyAnimator.ResetTrigger(triggerName);
         galaxyAnimator.SetTrigger(triggerName);
+    }
+
+    public void PlayOut()
+    {
+        galaxyAnimator?.ResetTrigger(galaxyOutTrigger);
+        galaxyAnimator?.SetTrigger(galaxyOutTrigger);
+
+        Destroy(gameObject, 1.5f);
+    }
+
+    public void PlayReveal()
+    {
+        galaxyAnimator?.ResetTrigger(galaxyRevealTrigger);
+        galaxyAnimator?.SetTrigger(galaxyRevealTrigger);
     }
 }

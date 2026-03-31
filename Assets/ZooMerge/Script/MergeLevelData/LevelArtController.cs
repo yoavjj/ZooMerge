@@ -5,6 +5,7 @@ public class LevelArtController : MonoBehaviour
 {
     [Header("Config")]
     [SerializeField] private LevelArtDatabase database;
+    public LevelArtDatabase Database => database;
 
     [Header("Where the art should spawn/live")]
     [SerializeField] private Transform artContainer;
@@ -24,17 +25,7 @@ public class LevelArtController : MonoBehaviour
 
     private int currentStageShown = -1;
 
-    private void OnEnable()
-    {
-        BallEventManager.OnEnemyAdvanced += Refresh; // optional, if your "advance" implies level change elsewhere
-        //MergeLevelManager.OnLevelChanged += HandleLevelChanged; // (added below)
-    }
-
-    private void OnDisable()
-    {
-        BallEventManager.OnEnemyAdvanced -= Refresh;
-        //MergeLevelManager.OnLevelChanged -= HandleLevelChanged;
-    }
+    private Coroutine galaxySwapRoutine;
 
     private void Start()
     {
@@ -62,7 +53,7 @@ public class LevelArtController : MonoBehaviour
         UpdateGalaxyProgress();
     }
 
-    private void ShowLvlStage(int stageId)
+    protected virtual void ShowLvlStage(int stageId)
     {
         if (database == null || artContainer == null) return;
         if (currentStageShown == stageId) return;
@@ -83,8 +74,6 @@ public class LevelArtController : MonoBehaviour
         currentInstance.transform.localPosition = Vector3.zero;
         currentInstance.transform.localRotation = Quaternion.identity;
         currentInstance.transform.localScale = Vector3.one;
-
-        currentInstance.PlayIdle();
     }
 
     private void ShowGalaxyArt(int galaxyId)
@@ -139,5 +128,76 @@ public class LevelArtController : MonoBehaviour
     {
         if (currentGalaxyAnimator != null)
             currentGalaxyAnimator.PlayDone();
+    }
+
+    public void ForceShowCurrentStageArt()
+    {
+        // Force it even if it thinks it's already showing the same stage
+        currentStageShown = -1;
+        ShowLvlStage(MergeLevelManager.CurrentStageId);
+    }
+
+    public void StageReveal()
+    {
+        if (currentInstance == null)
+            return;
+
+        ShowLvlStage(MergeLevelManager.CurrentStageId);
+        ShowGalaxyArt(MergeLevelManager.CurrentGalaxyId);
+
+        // This sets the "In" trigger on the Animator inside DissolveAnimatorDriver
+        currentInstance.PlayIn();
+    }
+
+    public void CallGalaxySlider()
+    {
+        UpdateGalaxyProgress();
+    }
+
+    public void PlayIdle()
+    {
+        if (currentInstance == null)
+            return;
+
+        currentInstance.PlayIdle();
+    }
+
+    public void PlayGalaxyOut()
+    {
+        if (currentGalaxyAnimator == null)
+            return;
+
+        currentGalaxyAnimator.PlayOut();
+    }
+
+    public void PlayGalaxyOutAndSwapToNext()
+    {
+        if (currentGalaxyAnimator == null)
+            return;
+
+        // play out (this will Destroy the galaxy GO after 1.5s inside GalaxyColorAnimator)
+        currentGalaxyAnimator.PlayOut();
+
+        // schedule spawning the next galaxy after the same delay
+        if (galaxySwapRoutine != null)
+            StopCoroutine(galaxySwapRoutine);
+
+        galaxySwapRoutine = StartCoroutine(SwapGalaxyAfterDelay(0.5f));
+    }
+
+    private IEnumerator SwapGalaxyAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        // Make sure the manager is already updated to the next galaxy BEFORE this runs
+        // So this will spawn the correct next galaxy:
+        currentGalaxyShown = -1; // force ShowGalaxyArt to run even if id matches
+        ShowGalaxyArt(MergeLevelManager.CurrentGalaxyId);
+
+        // play the reveal on the freshly spawned galaxy
+        if (currentGalaxyAnimator != null)
+            currentGalaxyAnimator.PlayReveal();
+
+        galaxySwapRoutine = null;
     }
 }
