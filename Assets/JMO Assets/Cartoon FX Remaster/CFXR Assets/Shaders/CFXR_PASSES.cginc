@@ -388,6 +388,9 @@
 			half particleAlpha = mainTex.a * i.color.a;
 		#endif
 
+		particleColor *= _Opacity;
+		particleAlpha *= _Opacity;
+
 		#if _CFXR_SECONDCOLOR_LERP
 			half secondColorMap = tex2D(_SecondColorTex, i.uv_random.xy).r;
 			float time = lerp(-_SecondColorSmooth, 1+_SecondColorSmooth, i.secondColor.a);

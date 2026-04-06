@@ -27,7 +27,6 @@ public class MergeLevel
     // inside a galaxy (1..N)
     public int index;
     public int stageId;
-    public string name;
     public List<EnemyData> enemy_data;
     public List<MergeScoreEntry> scores;
 }

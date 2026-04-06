@@ -248,6 +248,8 @@ public class LevelArtRevealController : MonoBehaviour
 
         // ✅ NO GetComponent — use serialized reference on prefab root
         currentGalaxyAnimator = currentGalaxyInstance.GetComponent<GalaxyColorAnimator>();
+        if (currentGalaxyAnimator != null)
+            currentGalaxyAnimator.PlayIdle();
 
         var rt = currentGalaxyInstance.transform as RectTransform;
         if (rt != null)

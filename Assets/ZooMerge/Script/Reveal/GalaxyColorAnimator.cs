@@ -23,6 +23,7 @@ public class GalaxyColorAnimator : MonoBehaviour
     [SerializeField] private string galaxyDoneTrigger = "Done";
     [SerializeField] private string galaxyOutTrigger = "Out";
     [SerializeField] private string galaxyRevealTrigger = "Reveal";
+    [SerializeField] private string galaxyIdleTrigger = "Idle";
 
     private Material runtimeMat;
 
@@ -130,5 +131,11 @@ public class GalaxyColorAnimator : MonoBehaviour
     {
         galaxyAnimator?.ResetTrigger(galaxyRevealTrigger);
         galaxyAnimator?.SetTrigger(galaxyRevealTrigger);
+    }
+
+    public void PlayIdle()
+    {
+        galaxyAnimator?.ResetTrigger(galaxyIdleTrigger);
+        galaxyAnimator?.SetTrigger(galaxyIdleTrigger);
     }
 }

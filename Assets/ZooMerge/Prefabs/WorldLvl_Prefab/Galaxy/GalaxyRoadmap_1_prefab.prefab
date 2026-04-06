@@ -51,12 +51,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d853b39055374b08a026bc43a40baeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyRoadmapPrefabConfigurator
-  cloudImage: {fileID: 6001140641054259294}
-  lockImage: {fileID: 2478568545697493439}
-  amountText: {fileID: 1573814747193369647}
   galaxyColorAnimator: {fileID: 4710656957640331876}
-  colorBlendValue: 0
-  bwBlendValue: 1
+  galaxyLevelNameText: {fileID: 7597319666281169034}
+  currentTrigger: Current
+  nextTrigger: Next
+  revealTrigger: Reveal
 --- !u!114 &4710656957640331876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -76,6 +75,9 @@ MonoBehaviour:
   blend: 1
   galaxyAnimator: {fileID: 2441729955362922698}
   galaxyDoneTrigger: Reveal
+  galaxyOutTrigger: Out
+  galaxyRevealTrigger: Reveal
+  galaxyIdleTrigger: Idle
 --- !u!95 &2441729955362922698
 Animator:
   serializedVersion: 7
@@ -110,7 +112,7 @@ GameObject:
   - component: {fileID: 487655829692356815}
   - component: {fileID: 7597319666281169034}
   m_Layer: 5
-  m_Name: Amount_Text
+  m_Name: GalaxyLevel_Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

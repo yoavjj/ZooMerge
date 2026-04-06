@@ -57,9 +57,7 @@ public static class MergeLevelManager
     // Public read-only
     public static int CurrentGalaxyId => GetCurrentGalaxy().galaxyId;
     public static string CurrentGalaxyName => GetCurrentGalaxy().name;
-
     public static int CurrentLevelInGalaxy => GetCurrentLevel().index; // 1..N from JSON
-    public static string CurrentLevelName => GetCurrentLevel().name;
 
     /// <summary>
     /// "Global" level number for UI if you still want Level 1..∞ across galaxies.
@@ -193,6 +191,14 @@ public static class MergeLevelManager
         return data.galaxies[idx].galaxyId;
     }
 
+    public static string GetGalaxyNameById(int galaxyId)
+    {
+        if (data == null || data.galaxies == null) return string.Empty;
+
+        var g = data.galaxies.Find(x => x.galaxyId == galaxyId);
+        return g != null ? g.name : string.Empty;
+    }
+    
     // ---------- Advancing ----------
     public static void AdvanceLevel()
     {

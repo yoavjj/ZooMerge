@@ -42,12 +42,15 @@ public class MainMenuUI : MonoBehaviour
     private IEnumerator BuildTopBarWhenReady()
     {
         yield return new WaitUntil(() => GameInventory.Instance != null && MergeSessionTracker.Instance != null);
+        yield return new WaitUntil(() => FirebaseInitializer.IsReady);
 
         topBarMenu.BuildCoinUI();
         topBarMenu.BuildAllBallTypesUI();
 
         // ✅ Cache session data ahead of time (avoids jank on click)
         CacheSessionStartData();
+
+        levelArtController?.Refresh();
     }
 
     private void CacheSessionStartData()

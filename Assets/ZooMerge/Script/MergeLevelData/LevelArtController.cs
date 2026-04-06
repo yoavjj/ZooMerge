@@ -25,8 +25,6 @@ public class LevelArtController : MonoBehaviour
 
     private int currentStageShown = -1;
 
-    private Coroutine galaxySwapRoutine;
-
     private void Start()
     {
         StartCoroutine(WaitForFirebaseThenRefresh());
@@ -36,9 +34,6 @@ public class LevelArtController : MonoBehaviour
     {
         // Wait until Firebase is ready
         yield return new WaitUntil(() => FirebaseInitializer.IsReady);
-
-        // Now it’s safe
-        Refresh();
     }
 
     private void HandleLevelChanged(int levelNumber)
@@ -46,7 +41,7 @@ public class LevelArtController : MonoBehaviour
         ShowLvlStage(levelNumber);
     }
 
-    private void Refresh()
+    public void Refresh()
     {
         ShowLvlStage(MergeLevelManager.CurrentStageId);
         ShowGalaxyArt(MergeLevelManager.CurrentGalaxyId);
@@ -76,16 +71,62 @@ public class LevelArtController : MonoBehaviour
         currentInstance.transform.localScale = Vector3.one;
     }
 
-    private void ShowGalaxyArt(int galaxyId)
+    public void ShowPreviousGalaxyArt()
+    {
+        // previous in QUEUE order, not galaxyId-1
+        int prevGalaxyId = MergeLevelManager.GetGalaxyIdAtOffset(-1);
+
+        if (prevGalaxyId < 0)
+            return;
+
+        // force respawn even if it thinks it’s already shown
+        currentGalaxyShown = -1;
+        ShowGalaxyArt(prevGalaxyId);
+    }
+
+    public void ShowCurrentGalaxyArt()
+    {
+        // force respawn even if it thinks it’s already shown
+        currentGalaxyShown = -1;
+        ShowGalaxyArt(MergeLevelManager.CurrentGalaxyId);
+    }
+
+    public void ShowCurrentGalaxyArtAndReveal(float revealDelay = 0.25f)
+    {
+        // Spawn WITHOUT replacing, and WITHOUT playing idle (so it doesn't show before reveal)
+        ShowGalaxyArt(MergeLevelManager.CurrentGalaxyId, replaceExisting: false, playIdleOnSpawn: false);
+
+        if (currentGalaxyAnimator != null)
+            StartCoroutine(DelayedGalaxyReveal(revealDelay, currentGalaxyAnimator));
+    }
+
+    private IEnumerator DelayedGalaxyReveal(float delay, GalaxyColorAnimator animatorToReveal)
+    {
+        yield return new WaitForSeconds(delay);
+
+        // In case something changed/destroyed while waiting
+        if (animatorToReveal != null)
+            animatorToReveal.PlayReveal();
+    }
+
+    public void ShowCurrentStageArt()
+    {
+        ShowLvlStage(MergeLevelManager.CurrentStageId);
+    }
+
+    private void ShowGalaxyArt(int galaxyId, bool replaceExisting = true, bool playIdleOnSpawn = true)
     {
         if (database == null || galaxyArtContainer == null) return;
-        if (currentGalaxyShown == galaxyId) return;
 
-        currentGalaxyShown = galaxyId;
+        if (replaceExisting && currentGalaxyShown == galaxyId) return;
 
-        // cleanup old
-        if (currentGalaxyInstance != null)
-            Destroy(currentGalaxyInstance);
+        if (replaceExisting)
+        {
+            currentGalaxyShown = galaxyId;
+
+            if (currentGalaxyInstance != null)
+                Destroy(currentGalaxyInstance);
+        }
 
         var galaxyPrefab = database.GetPrefabForGalaxy(galaxyId);
         if (galaxyPrefab == null)
@@ -94,11 +135,13 @@ public class LevelArtController : MonoBehaviour
             return;
         }
 
-        currentGalaxyInstance = Instantiate(galaxyPrefab, galaxyArtContainer);
-        currentGalaxyAnimator = currentGalaxyInstance.GetComponentInChildren<GalaxyColorAnimator>();
+        var spawned = Instantiate(galaxyPrefab, galaxyArtContainer);
 
-        // UI-safe reset (works for both normal Transforms and RectTransforms)
-        var rt = currentGalaxyInstance.transform as RectTransform;
+        currentGalaxyInstance = spawned;
+        currentGalaxyAnimator = spawned.GetComponent<GalaxyColorAnimator>();
+
+        // UI-safe reset
+        var rt = spawned.transform as RectTransform;
         if (rt != null)
         {
             rt.anchoredPosition3D = Vector3.zero;
@@ -107,12 +150,15 @@ public class LevelArtController : MonoBehaviour
         }
         else
         {
-            currentGalaxyInstance.transform.localPosition = Vector3.zero;
-            currentGalaxyInstance.transform.localRotation = Quaternion.identity;
-            currentGalaxyInstance.transform.localScale = Vector3.one;
+            spawned.transform.localPosition = Vector3.zero;
+            spawned.transform.localRotation = Quaternion.identity;
+            spawned.transform.localScale = Vector3.one;
         }
-    }
 
+        // ✅ NEW: default behavior = go idle right away
+        if (playIdleOnSpawn && currentGalaxyAnimator != null)
+            currentGalaxyAnimator.PlayIdle();
+    }
     private void UpdateGalaxyProgress()
     {
         if (galaxyProgress == null) return;
@@ -143,7 +189,6 @@ public class LevelArtController : MonoBehaviour
             return;
 
         ShowLvlStage(MergeLevelManager.CurrentStageId);
-        ShowGalaxyArt(MergeLevelManager.CurrentGalaxyId);
 
         // This sets the "In" trigger on the Animator inside DissolveAnimatorDriver
         currentInstance.PlayIn();
@@ -168,36 +213,5 @@ public class LevelArtController : MonoBehaviour
             return;
 
         currentGalaxyAnimator.PlayOut();
-    }
-
-    public void PlayGalaxyOutAndSwapToNext()
-    {
-        if (currentGalaxyAnimator == null)
-            return;
-
-        // play out (this will Destroy the galaxy GO after 1.5s inside GalaxyColorAnimator)
-        currentGalaxyAnimator.PlayOut();
-
-        // schedule spawning the next galaxy after the same delay
-        if (galaxySwapRoutine != null)
-            StopCoroutine(galaxySwapRoutine);
-
-        galaxySwapRoutine = StartCoroutine(SwapGalaxyAfterDelay(0.5f));
-    }
-
-    private IEnumerator SwapGalaxyAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        // Make sure the manager is already updated to the next galaxy BEFORE this runs
-        // So this will spawn the correct next galaxy:
-        currentGalaxyShown = -1; // force ShowGalaxyArt to run even if id matches
-        ShowGalaxyArt(MergeLevelManager.CurrentGalaxyId);
-
-        // play the reveal on the freshly spawned galaxy
-        if (currentGalaxyAnimator != null)
-            currentGalaxyAnimator.PlayReveal();
-
-        galaxySwapRoutine = null;
     }
 }

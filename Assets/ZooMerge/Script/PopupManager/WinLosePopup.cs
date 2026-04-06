@@ -62,6 +62,16 @@ public class WinLosePopup : MonoBehaviour
     [SerializeField] private bool preloadLevelRevealOnStart = true;
     [SerializeField] private bool keepRevealInactiveWhenIdle = true;
 
+    private enum DeferredAction
+    {
+        None,
+        PlayPressed,
+        ShowGalaxyRoadmap
+    }
+
+    private DeferredAction deferredAction = DeferredAction.None;
+    private bool deferredRoadmapFromLevelFlow = false;
+
     private void Awake()
     {
         Instance = this;
@@ -129,9 +139,36 @@ public class WinLosePopup : MonoBehaviour
         switch (reason)
         {
             case GameOverReason.Won:
-                levelMessageText.text = $"Level {currentLevel} Complete!\nNext: Level {currentLevel + 1}";
-                playButtonText.text = $"Level {currentLevel + 1}";
-                break;
+                {
+                    // Current state (before advancing)
+                    int levelInGalaxy = MergeLevelManager.CurrentLevelInGalaxy;         // 1..N
+                    int levelsInGalaxy = Mathf.Max(1, MergeLevelManager.LevelsInCurrentGalaxy);
+                    string galaxyName = MergeLevelManager.CurrentGalaxyName;
+
+                    bool isGalaxyEnd = MergeLevelManager.IsLastLevelInCurrentGalaxy;
+
+                    //levelMessageText.text = $"Level {currentLevel} Complete!";
+
+                    if (!isGalaxyEnd)
+                    {
+                        int nextLevelInGalaxy = Mathf.Clamp(levelInGalaxy + 1, 1, levelsInGalaxy);
+
+                        // Example short “smart” label:
+                        // "Milky Way 2/7" (you can tweak format)
+                        playButtonText.text = $"Next Level: {nextLevelInGalaxy}";
+
+                        // If you still want a second line:
+                        //levelMessageText.text += $"\nNext: {galaxyName} {nextLevelInGalaxy}/{levelsInGalaxy}";
+                    }
+                    else
+                    {
+                        // End of galaxy -> short “new galaxy” text
+                        playButtonText.text = "Next Galaxy";
+                        //levelMessageText.text += "\nNext: New Galaxy";
+                    }
+
+                    break;
+                }
 
             case GameOverReason.Lost:
                 levelMessageText.text = $"Try Again: Level {currentLevel}";
@@ -204,11 +241,22 @@ public class WinLosePopup : MonoBehaviour
     {
         PopupManager.Instance?.ConfirmReturnToMainMenu();
         animator.SetTrigger("Out");
+        PlayContentOut();
         Destroy(gameObject, 1f);
     }
 
     public void ShowGalaxyRoadmap(bool fromLevelFlow = false)
     {
+        // ✅ block while collectibles/summary is still running
+        if (IsSummaryBusy())
+        {
+            deferredAction = DeferredAction.ShowGalaxyRoadmap; // last wins
+            deferredRoadmapFromLevelFlow = fromLevelFlow;
+            return;
+        }
+
+        deferredAction = DeferredAction.None;
+
         var roadmap = SpawnGalaxyRoadmap();
         if (roadmap == null) return;
 
@@ -250,8 +298,13 @@ public class WinLosePopup : MonoBehaviour
 
     public void OnPlayPressed()
     {
-        if (IsSummaryBusy()) return;
+        if (IsSummaryBusy())
+        {
+            deferredAction = DeferredAction.PlayPressed; // last wins
+            return;
+        }
 
+        deferredAction = DeferredAction.None; // optional: clear if you want
         HandleContinue();
 
         if (!IsNewLevel())
@@ -447,7 +500,7 @@ public class WinLosePopup : MonoBehaviour
 
         levelCompleteContext = toLevelEnd;  // already in your code
 
-        if (toLevelEnd && preloadLevelRevealOnStart)
+        if (toLevelEnd && preloadLevelRevealOnStart && !MergeLevelManager.IsLastLevelInCurrentGalaxy)
         {
             if (levelArtRevealInstance == null)
                 levelArtRevealInstance = SpawnLevelRevealPopup();
@@ -462,20 +515,6 @@ public class WinLosePopup : MonoBehaviour
             sliderAdvanceDuration,
             sliderAdvanceCurve
         );
-    }
-
-    public void ResetProgressBarVisuals()
-    {
-        if (levelProgressBarSlider == null) return;
-
-        levelProgressBarSlider.InitializeCurrentLevel(); // rebuild visuals
-        levelProgressBarSlider.SyncIconsToCurrentProgress(includeCurrent: false); // keep grey state as-is
-        //collectibleFlyController.PositionCoinContainerToCurrentIcon(); // reposition coin container
-    }
-
-    public void SetLevelCompleteContext(bool isComplete)
-    {
-        levelCompleteContext = isComplete;
     }
 
     private LevelArtRevealController SpawnLevelRevealPopup()
@@ -506,6 +545,20 @@ public class WinLosePopup : MonoBehaviour
         return inst;
     }
 
+    public void ResetProgressBarVisuals()
+    {
+        if (levelProgressBarSlider == null) return;
+
+        levelProgressBarSlider.InitializeCurrentLevel(); // rebuild visuals
+        levelProgressBarSlider.SyncIconsToCurrentProgress(includeCurrent: false); // keep grey state as-is
+        //collectibleFlyController.PositionCoinContainerToCurrentIcon(); // reposition coin container
+    }
+
+    public void SetLevelCompleteContext(bool isComplete)
+    {
+        levelCompleteContext = isComplete;
+    }
+
     private void HandleSummaryReady()
     {
         if (playButtonAnimator == null || string.IsNullOrEmpty(readyTrigger))
@@ -513,5 +566,17 @@ public class WinLosePopup : MonoBehaviour
 
         playButtonAnimator.ResetTrigger(readyTrigger);
         playButtonAnimator.SetTrigger(readyTrigger);
+
+        // ✅ run last cached action (only one)
+        var action = deferredAction;
+        var roadmapFlow = deferredRoadmapFromLevelFlow;
+
+        deferredAction = DeferredAction.None; // clear first to avoid loops
+        deferredRoadmapFromLevelFlow = false;
+
+        if (action == DeferredAction.PlayPressed)
+            OnPlayPressed();
+        else if (action == DeferredAction.ShowGalaxyRoadmap)
+            ShowGalaxyRoadmap(roadmapFlow);
     }
 }

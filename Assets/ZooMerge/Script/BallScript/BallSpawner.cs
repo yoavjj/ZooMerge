@@ -127,40 +127,25 @@ public class BallSpawner : MonoBehaviour
     {
         // Unity Physics
         if (ball.allRigidbodies != null)
-        {
             foreach (var rb2 in ball.allRigidbodies)
                 rb2.simulated = !on;
-        }
 
         if (ball.allColliders != null)
-        {
             foreach (var col in ball.allColliders)
                 col.enabled = !on;
-        }
 
-        // ✅ Spine Physics Constraints
+        // ✅ Force idle pose + freeze / unfreeze
+        if (ball.controller != null)
+            ball.controller.SetPreviewFreeze(on);
+
+        // ✅ Spine Physics Constraints (you can keep this)
         if (ball.controller != null && ball.controller.Spine != null)
         {
             var skeleton = ball.controller.Spine.Skeleton;
-
             if (skeleton != null && skeleton.PhysicsConstraints != null)
             {
                 for (int i = 0; i < skeleton.PhysicsConstraints.Count; i++)
-                {
-                    var constraint = skeleton.PhysicsConstraints.Items[i];
-
-                    // Save original mix maybe?
-                    if (on)
-                    {
-                        // entering preview mode → freeze
-                        constraint.Mix = 0f;
-                    }
-                    else
-                    {
-                        // leaving preview → restore full physics
-                        constraint.Mix = 1f;
-                    }
-                }
+                    skeleton.PhysicsConstraints.Items[i].Mix = on ? 0f : 1f;
             }
         }
     }

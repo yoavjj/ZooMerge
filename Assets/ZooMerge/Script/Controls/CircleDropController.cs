@@ -491,6 +491,37 @@ public class CircleDropController : MonoBehaviour
             PlaySpine(animIdle, true);
     }
 
+    public void SetPreviewFreeze(bool freeze)
+    {
+        if (spineAnimation == null) return;
+
+        CacheAnimNamesIfNeeded();
+
+        if (freeze)
+        {
+            // 1) Force a known pose (Idle) onto the skeleton
+            if (!string.IsNullOrEmpty(animIdle) && SpineHasAnimation(animIdle))
+            {
+                var state = spineAnimation.AnimationState;
+
+                // Set idle (loop is fine, we’ll freeze time anyway)
+                state.SetAnimation(0, animIdle, true);
+
+                // Apply immediately so the skeleton has a correct pose THIS frame
+                state.Update(0f);
+                state.Apply(spineAnimation.Skeleton);
+            }
+
+            // 2) Freeze spine playback (keeps the applied pose)
+            spineAnimation.timeScale = 0f;
+        }
+        else
+        {
+            // Unfreeze
+            spineAnimation.timeScale = 1f;
+        }
+    }
+
     public void IntroPrep()
     {
         circle.radius = 0.01f;

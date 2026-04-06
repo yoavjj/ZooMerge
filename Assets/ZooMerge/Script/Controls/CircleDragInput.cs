@@ -87,12 +87,20 @@ public class CircleDragInput : MonoBehaviour,
     {
         BallEventManager.OnEnemySessionEnded += HandleSessionEndedBlock;
         BallEventManager.OnSessionStarted += HandleSessionStartedUnblock;
+
+        BallEventManager.OnSessionPaused += CancelActivePress;
+        BallEventManager.OnGameOverAnimation += CancelActivePress;
+        BallEventManager.OnReturnToMainMenu += CancelActivePress;
     }
 
     private void OnDisable()
     {
         BallEventManager.OnEnemySessionEnded -= HandleSessionEndedBlock;
         BallEventManager.OnSessionStarted -= HandleSessionStartedUnblock;
+
+        BallEventManager.OnSessionPaused -= CancelActivePress;
+        BallEventManager.OnGameOverAnimation -= CancelActivePress;
+        BallEventManager.OnReturnToMainMenu -= CancelActivePress;
     }
 
     private void Awake()
@@ -110,6 +118,8 @@ public class CircleDragInput : MonoBehaviour,
 
     private void HandleSessionEndedBlock()
     {
+        CancelActivePress();
+        
         if (!blockOnSessionEnd) return;
 
         if (screenBlocker != null)
@@ -306,6 +316,11 @@ public class CircleDragInput : MonoBehaviour,
         if (!inputEnabled) return;
         if (isSpawnCooldown) return;
         if (eventData.pointerId != activePointerId) return;
+        if (BallEventManager.PauseBlocked || BallEventManager.IsGameOver)
+        {
+            activePointerId = int.MinValue;
+            return;
+        }
 
         // Ignore if released outside the window
         if (!IsWithinScreen(eventData.position))
@@ -629,4 +644,14 @@ public class CircleDragInput : MonoBehaviour,
     }
 
     #endregion
+
+    private void CancelActivePress()
+    {
+        activePointerId = int.MinValue;   // cancels the current pointer
+        spawnedAfterThisPress = false;
+        hasMovedSincePointerDown = false;
+
+        // optional: clear hover visuals
+        shipRayMarker?.DisableHighlight();
+    }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class GalaxyRoadmapPrefabConfigurator : MonoBehaviour
 {
@@ -7,10 +8,19 @@ public class GalaxyRoadmapPrefabConfigurator : MonoBehaviour
     [Header("Galaxy Image (BW/Color)")]
     [SerializeField] private GalaxyColorAnimator galaxyColorAnimator;
 
+    [Header("Galaxy Name Text")]
+    [SerializeField] private TextMeshProUGUI galaxyLevelNameText;
+
     [Header("Animator Triggers")]
     [SerializeField] private string currentTrigger = "Current";
     [SerializeField] private string nextTrigger = "Next";
-    [SerializeField] private string RevealTrigger = "Reveal";
+    [SerializeField] private string revealTrigger = "Reveal";
+
+    public void SetGalaxyName(string galaxyName, bool show)
+    {
+        if (galaxyLevelNameText == null) return;
+        galaxyLevelNameText.text = show ? (galaxyName ?? string.Empty) : string.Empty;
+    }
 
     public void Configure(Slot slot, bool isReveal)
     {
@@ -20,23 +30,11 @@ public class GalaxyRoadmapPrefabConfigurator : MonoBehaviour
 
         if (isReveal)
         {
-            if (isCurrent)
-            {
-                // ✅ ONLY current behaves like NEXT
-                galaxyColorAnimator.SetBlend(0f);
-                galaxyColorAnimator.PlayState(nextTrigger);
-            }
-            else
-            {
-                // others stay as normal "next style"
-                galaxyColorAnimator.SetBlend(0f);
-                galaxyColorAnimator.PlayState(nextTrigger);
-            }
-
+            galaxyColorAnimator.SetBlend(0f);
+            galaxyColorAnimator.PlayState(nextTrigger);
             return;
         }
 
-        // Normal mode
         galaxyColorAnimator.SetBlend(isCurrent ? 1f : 0f);
         galaxyColorAnimator.PlayState(isCurrent ? currentTrigger : nextTrigger);
     }
@@ -44,6 +42,6 @@ public class GalaxyRoadmapPrefabConfigurator : MonoBehaviour
     public void PlayReveal()
     {
         if (galaxyColorAnimator != null)
-            galaxyColorAnimator.PlayState(RevealTrigger);
+            galaxyColorAnimator.PlayState(revealTrigger);
     }
 }

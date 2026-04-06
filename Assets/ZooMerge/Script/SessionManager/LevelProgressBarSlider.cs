@@ -12,7 +12,7 @@ public class LevelProgressBarSlider : MonoBehaviour
     [SerializeField] private BallSet ballSet;              // for enemy icons
 
     [Header("Level Info")]
-    [SerializeField] private TextMeshProUGUI levelNameText;
+    [SerializeField] private TextMeshProUGUI GalaxylevelNameText;
 
     [Header("Icon Strip")]
     [SerializeField] private RectTransform iconsContainer; // parent for EnemyLvl_Image / Line_Image
@@ -98,9 +98,9 @@ public class LevelProgressBarSlider : MonoBehaviour
                 return;
             }
 
-            if (levelNameText != null)
+            if (GalaxylevelNameText != null)
             {
-                levelNameText.text = level.name;
+                GalaxylevelNameText.text = MergeLevelManager.CurrentGalaxyName;
             }
 
             if (stripBuilder == null)

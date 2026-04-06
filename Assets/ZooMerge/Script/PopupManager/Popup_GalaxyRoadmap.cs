@@ -82,13 +82,44 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
         Clear(ref nextNextInstance);
 
         int baseGalaxyId = MergeLevelManager.CurrentGalaxyId;
-
         if (isRevealMode)
             baseGalaxyId += 1;
 
-        SpawnGalaxy(baseGalaxyId, currentGalaxyContainer, ref currentInstance, GalaxyRoadmapPrefabConfigurator.Slot.Current);
-        SpawnGalaxy(baseGalaxyId + 1, nextGalaxyContainer, ref nextInstance, GalaxyRoadmapPrefabConfigurator.Slot.Next);
-        SpawnGalaxy(baseGalaxyId + 2, nextNextGalaxyContainer, ref nextNextInstance, GalaxyRoadmapPrefabConfigurator.Slot.NextNext);
+        int id0 = WrapGalaxyId(baseGalaxyId);
+        int id1 = WrapGalaxyId(id0 + 1);
+        int id2 = WrapGalaxyId(id1 + 1);
+
+        SpawnGalaxy(id0, currentGalaxyContainer, ref currentInstance, GalaxyRoadmapPrefabConfigurator.Slot.Current);
+        SpawnGalaxy(id1, nextGalaxyContainer, ref nextInstance, GalaxyRoadmapPrefabConfigurator.Slot.Next);
+        SpawnGalaxy(id2, nextNextGalaxyContainer, ref nextNextInstance, GalaxyRoadmapPrefabConfigurator.Slot.NextNext);
+
+        levelArtController.ShowCurrentGalaxyArt();
+    }
+
+    private int WrapGalaxyId(int requestedGalaxyId)
+    {
+        var db = levelArtController?.Database;
+        if (db == null) return requestedGalaxyId;
+
+        // If this one exists, use it
+        if (db.GetRoadmapPrefabForGalaxy(requestedGalaxyId) != null)
+            return requestedGalaxyId;
+
+        // Otherwise, loop forward until we find something that exists.
+        // (Hard safety cap so we never infinite loop)
+        const int maxSteps = 1000;
+        int id = requestedGalaxyId;
+
+        for (int i = 0; i < maxSteps; i++)
+        {
+            id++;
+
+            if (db.GetRoadmapPrefabForGalaxy(id) != null)
+                return id;
+        }
+
+        // Fallback: give back requested if nothing found
+        return requestedGalaxyId;
     }
 
     private void SpawnGalaxy(
@@ -109,6 +140,10 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
         instance = Instantiate(prefab, parent);  // typed instantiate
         instance.Configure(slot, isRevealMode);
 
+        // ✅ Set the correct text for THIS galaxyId (fixes reveal mode)
+        string galaxyName = MergeLevelManager.GetGalaxyNameById(galaxyId);
+        instance.SetGalaxyName(galaxyName, show: slot == GalaxyRoadmapPrefabConfigurator.Slot.Current);
+
         // reset transform (UI safe)
         var rt = instance.transform as RectTransform;
         if (rt != null)
@@ -124,7 +159,7 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
             instance.transform.localScale = Vector3.one;
         }
 
-        currentGalaxyAnimator = instance.GetComponentInChildren<GalaxyColorAnimator>();
+        currentGalaxyAnimator = instance.GetComponent<GalaxyColorAnimator>();
     }
 
     private void Clear(ref GalaxyRoadmapPrefabConfigurator inst)
@@ -147,6 +182,10 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
 
         if (fromLevelFlow)
         {
+            levelArtController?.ShowPreviousGalaxyArt();
+
+            levelArtController?.ShowCurrentStageArt();
+
             EnsureMaterialInstance();
 
             // ✅ Start auto close
@@ -219,8 +258,11 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
 
     public void AE_UpdateGalaxySlider()
     {
-        levelArtController?.PlayGalaxyOutAndSwapToNext();
+        levelArtController?.PlayGalaxyOut();
         levelArtController?.CallGalaxySlider();
+
+        // ✅ show current galaxy art + reveal animation
+        levelArtController?.ShowCurrentGalaxyArtAndReveal();
     }
 
     private void EnsureMaterialInstance()
