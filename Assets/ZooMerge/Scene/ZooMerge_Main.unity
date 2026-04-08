@@ -6441,59 +6441,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 609905845}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!21 &665783581
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs_Dissolve_2(Clone)
-  m_Shader: {fileID: -6465566751694194690, guid: 23b0993baa23744a9a45d22c61d58dd4, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_Lightmaps:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_LightmapsInd:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_ShadowMasks:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _CurveStrength: 0.15
-    - _DissolveAmount: 0
-    - _DissolveScale: 0
-    - _OutlineThickness: 0.018
-    - _Softness: 0.5
-    - _SpiralStrength: 28.2
-    - _VerticalDissolve: -0.71
-    m_Colors:
-    - _OutlineColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Vector2: {r: 0.5, g: 0.5, b: 0, a: 0}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &698945804
 GameObject:
   m_ObjectHideFlags: 0
@@ -6617,7 +6564,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!21 &714578502
+--- !u!21 &705937428
 Material:
   serializedVersion: 8
   m_ObjectHideFlags: 0
@@ -7494,6 +7441,59 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!21 &1208301418
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shader Graphs_Dissolve_2(Clone)
+  m_Shader: {fileID: -6465566751694194690, guid: 23b0993baa23744a9a45d22c61d58dd4, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _CurveStrength: 0.15
+    - _DissolveAmount: 0
+    - _DissolveScale: 0
+    - _OutlineThickness: 0.018
+    - _Softness: 0.5
+    - _SpiralStrength: 28.2
+    - _VerticalDissolve: -0.71
+    m_Colors:
+    - _OutlineColor: {r: 1, g: 1, b: 1, a: 1}
+    - _Vector2: {r: 0.5, g: 0.5, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1266128780
 GameObject:
   m_ObjectHideFlags: 0
@@ -8899,10 +8899,10 @@ MonoBehaviour:
   m_BackgroundTexture: {fileID: 2800000, guid: 27f4815d87843814b93fd628205c6639, type: 3}
   m_Font: {fileID: 12800000, guid: 90bd06f3c14f8e64fb392e249991c1c3, type: 3}
   m_LevelPlayLogo: {fileID: 2800000, guid: 8404ba1de38df57488c5daf62be56dc4, type: 3}
-  m_BannerCoordinates: {x: 259, y: 2430.125}
+  m_BannerCoordinates: {x: 184, y: 2634.875}
   Position: 7
   m_AdSize: 0
-  m_BannerSize: {x: 652, y: 101.875}
+  m_BannerSize: {x: 916, y: 143.125}
 --- !u!4 &1972720812
 Transform:
   m_ObjectHideFlags: 0
@@ -9216,6 +9216,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: CFXR3 Flying Ember (Upward Erratic)
       objectReference: {fileID: 0}
+    - target: {fileID: 8505146054985106073, guid: 3e97f5f2741b87543b813fdb5de9bb96, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9246,7 +9250,7 @@ PrefabInstance:
     - target: {fileID: 4177388567480153501, guid: c841a4a6802244dc1b0e08740156ecc0, type: 3}
       propertyPath: m_Material
       value: 
-      objectReference: {fileID: 714578502}
+      objectReference: {fileID: 1208301418}
     - target: {fileID: 4565476282801760634, guid: c841a4a6802244dc1b0e08740156ecc0, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -10207,6 +10211,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+    - target: {fileID: 1946384686018126848, guid: 124939752bd6c43eaad0d18d14cb23c4, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2051025643849479299, guid: 124939752bd6c43eaad0d18d14cb23c4, type: 3}
       propertyPath: InitialModule.startSize.scalar
       value: 1
@@ -10355,6 +10363,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+    - target: {fileID: 8024323809960763971, guid: 124939752bd6c43eaad0d18d14cb23c4, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8570538320822149408, guid: 124939752bd6c43eaad0d18d14cb23c4, type: 3}
       propertyPath: m_SortingOrder
       value: 2

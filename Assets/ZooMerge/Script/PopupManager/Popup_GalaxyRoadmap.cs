@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -44,9 +45,12 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
     private Material originalMaterial;
 
     private int cachedCompleted;
+
     private int cachedTotal;
 
     private bool isRevealMode;
+
+    public event Action OnClosedRoadmap;
 
     private void Update()
     {
@@ -215,6 +219,14 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
         yield return new WaitForSeconds(2.5f);
 
         Destroy(gameObject);
+    }
+
+    public void ClosePopup()
+    {
+        // Prevent double-close calls
+        if (!gameObject) return;
+
+        OnClosedRoadmap?.Invoke();
     }
 
     public void AE_AnimateGalaxyProgress()

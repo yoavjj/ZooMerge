@@ -59,6 +59,9 @@ public class WinLosePopup : MonoBehaviour
     private GameOverReason currentReason;
     private Coroutine applyRoutine;
 
+    private Popup_GalaxyRoadmap roadmapInstance;
+    private bool roadmapOpenOrSpawning = false;
+
     [SerializeField] private bool preloadLevelRevealOnStart = true;
     [SerializeField] private bool keepRevealInactiveWhenIdle = true;
 
@@ -99,6 +102,9 @@ public class WinLosePopup : MonoBehaviour
             StopCoroutine(playPressedRoutine);
             playPressedRoutine = null;
         }
+
+        if (roadmapInstance != null)
+            roadmapInstance.OnClosedRoadmap -= HandleRoadmapClosed;
     }
 
     public void SetMessage(string msg)
@@ -247,6 +253,10 @@ public class WinLosePopup : MonoBehaviour
 
     public void ShowGalaxyRoadmap(bool fromLevelFlow = false)
     {
+        // ✅ If already open/spawning, ignore repeated clicks
+        if (roadmapOpenOrSpawning)
+            return;
+
         // ✅ block while collectibles/summary is still running
         if (IsSummaryBusy())
         {
@@ -257,15 +267,41 @@ public class WinLosePopup : MonoBehaviour
 
         deferredAction = DeferredAction.None;
 
-        var roadmap = SpawnGalaxyRoadmap();
-        if (roadmap == null) return;
+        // ✅ If we cached an instance but it got destroyed, clear it
+        if (roadmapInstance == null)
+        {
+            roadmapInstance = null; // (Unity destroyed object becomes "fake null")
+        }
+        else
+        {
+            // ✅ Reuse existing roadmap
+            roadmapOpenOrSpawning = true;
+            roadmapInstance.gameObject.SetActive(true);
+            roadmapInstance.Initialize();
+            roadmapInstance.PlayIntro(fromLevelFlow);
+            ResetRectTransform(roadmapInstance.transform);
+            return;
+        }
+
+        // ✅ Create new roadmap
+        roadmapOpenOrSpawning = true;
+
+        roadmapInstance = SpawnGalaxyRoadmap();
+        if (roadmapInstance == null)
+        {
+            roadmapOpenOrSpawning = false; // allow retry if something went wrong
+            return;
+        }
+
+        // ✅ listen for close so we can allow opening again
+        roadmapInstance.OnClosedRoadmap += HandleRoadmapClosed;
 
         // ✅ PREPARE BEFORE advancing level affects data
-        roadmap.PrepareProgressBeforeReveal();
+        roadmapInstance.PrepareProgressBeforeReveal();
 
-        roadmap.Initialize();
-        roadmap.PlayIntro(fromLevelFlow);
-        ResetRectTransform(roadmap.transform);
+        roadmapInstance.Initialize();
+        roadmapInstance.PlayIntro(fromLevelFlow);
+        ResetRectTransform(roadmapInstance.transform);
     }
 
     private void ResetRectTransform(Transform t)
@@ -282,6 +318,16 @@ public class WinLosePopup : MonoBehaviour
 
         t.localRotation = Quaternion.identity;
         t.localScale = Vector3.one;
+    }
+
+    private void HandleRoadmapClosed()
+    {
+        roadmapOpenOrSpawning = false;
+
+        if (roadmapInstance != null)
+            roadmapInstance.OnClosedRoadmap -= HandleRoadmapClosed;
+
+        roadmapInstance = null;
     }
 
     private Popup_GalaxyRoadmap SpawnGalaxyRoadmap()
@@ -354,6 +400,9 @@ public class WinLosePopup : MonoBehaviour
 
     private void ClosePopup()
     {
+        roadmapOpenOrSpawning = false;
+        roadmapInstance = null;
+
         PlayContentOut();
         animator?.SetTrigger("Out");
         Destroy(gameObject, 1.5f);
