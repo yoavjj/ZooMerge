@@ -19,10 +19,26 @@ public class BallSpawner : MonoBehaviour
     private BallSet.Entry queuedEntry;
     private string lastPickWhy;
 
+    private bool warmedUp = false;
+
+    public void WarmupPreview()
+    {
+        if (warmedUp) return;
+        warmedUp = true;
+
+        // Generate the first preview while you're still on the main menu.
+        PrepareNextPreview();
+    }
+
     public void BeginSession()
     {
-        PrepareNextPreview();
+        // If not warmed up, do it now.
+        if (!warmedUp)
+            PrepareNextPreview();
+
         PromotePreviewToActive(null);
+
+        // Next preview for after the first active ball
         PrepareNextPreview();
     }
 

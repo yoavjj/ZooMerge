@@ -25,11 +25,16 @@ public class PopupManager : MonoBehaviour
 
     private Coroutine winLosePopupRoutine;
 
+    private Coroutine beginSessionRoutine;
+
     private GameObject pauseRestartPopupInstance;
     private GameObject mainMenuPopupInstance;
     private GameObject gameUIPopupInstance;
 
     private bool isSessionActive;
+
+    private bool endPopupLocked = false;
+    private GameOverReason? lockedEndReason = null;
 
     private void Awake()
     {
@@ -60,13 +65,24 @@ public class PopupManager : MonoBehaviour
     private void OnEnable()
     {
         BallEventManager.OnBallTouchedGameOverLine += HandleBallTouchedGameOverLine;
+        WinLosePopup.OnWinLoseClosed += UnlockEndPopup;
     }
 
     private void OnDisable()
     {
         BallEventManager.OnBallTouchedGameOverLine -= HandleBallTouchedGameOverLine;
+        WinLosePopup.OnWinLoseClosed -= UnlockEndPopup;
 
         if (winLosePopupRoutine != null) { StopCoroutine(winLosePopupRoutine); winLosePopupRoutine = null; }
+    }
+
+    private void UnlockEndPopup()
+    {
+        endPopupLocked = false;
+        lockedEndReason = null;
+
+        // optional: if you want the next end popup to re-instantiate cleanly
+        gameUIPopupInstance = null;
     }
 
     private void HandleBallTouchedGameOverLine(BallInfo info)
@@ -108,6 +124,20 @@ public class PopupManager : MonoBehaviour
 
     public void ShowEndLvlPopup(GameOverReason reason)
     {
+        // ✅ If an end popup is already showing/locked, ignore any other attempt.
+        if (endPopupLocked)
+        {
+            // Optional: allow same-reason refresh, but block different reason.
+            if (lockedEndReason.HasValue && lockedEndReason.Value != reason)
+                return;
+
+            // If same reason, you can either return or let it refresh the text.
+            return;
+        }
+
+        endPopupLocked = true;
+        lockedEndReason = reason;
+
         if (winLosePopupRoutine != null)
         {
             StopCoroutine(winLosePopupRoutine);
@@ -122,13 +152,10 @@ public class PopupManager : MonoBehaviour
                 gameUIPopupInstance = Instantiate(prefab, transform);
         }
 
-        // 🆕 Tell the popup that this is a full level completion context
-        if (WinLosePopup.Instance != null && reason == GameOverReason.Won)
-        {
-            WinLosePopup.Instance.SetLevelCompleteContext(true);
-        }
+        // Tell popup context
+        if (WinLosePopup.Instance != null)
+            WinLosePopup.Instance.SetLevelCompleteContext(reason == GameOverReason.Won);
 
-        // Now WinLosePopup.Instance should exist
         PopupMessageCenter.ShowEndPopupMessage(WinLosePopup.Instance, reason);
     }
 
@@ -172,6 +199,46 @@ public class PopupManager : MonoBehaviour
                 mainMenuPopupInstance.SetActive(true);
             }
         }
+    }
+
+    public void BeginSessionDeferred(bool isNewLevel, bool restartmidlevel = false, int warmupFrames = 2)
+    {
+        if (beginSessionRoutine != null)
+            StopCoroutine(beginSessionRoutine);
+
+        beginSessionRoutine = StartCoroutine(BeginSessionDeferredRoutine(isNewLevel, restartmidlevel, warmupFrames));
+    }
+
+    private IEnumerator BeginSessionDeferredRoutine(bool isNewLevel, bool restartmidlevel, int warmupFrames)
+    {
+        int frames = Mathf.Clamp(warmupFrames, 1, 5);
+        for (int i = 0; i < frames; i++)
+            yield return null;
+
+        // Light setup first (cheap)
+        CircleDragInput.Instance?.DisableInput();
+        AdManager.Instance?.LoadBanner();
+        EnemySpawner.Instance?.ClearEnemy();
+        CircleDragInput.Instance?.ClearSpawnContainer();
+        ballSpawner?.BeginSession();
+        BallEventManager.RaiseSessionStarted();
+
+        // ✅ wait 1 more frame before the expensive Addressables spawn
+        yield return null;
+
+        int nextEnemyId = MergeLevelManager.GetCurrentEnemyId();
+        EnemySpawner.Instance?.SpawnEnemy(nextEnemyId, delayEnter: true);
+
+        if (!isNewLevel)
+            BallEventManager.RaiseEnemyAdvanced();
+
+        BallStateSaver.Instance.SaveState(BallRegistry.ActiveBalls.ToArray());
+        BallEventManager.ResetMidLevelLossFlag();
+
+        StartCoroutine(PromoteNextFrame());
+        InitializeProgressBarNow();
+
+        beginSessionRoutine = null;
     }
 
     public void BeginSession(bool isNewLevel, bool restartmidlevel = false)
@@ -292,6 +359,11 @@ public class PopupManager : MonoBehaviour
 
         ShowPauseRestartPopup();
 #endif
+    }
+
+    public void WarmupSession()
+    {
+        ballSpawner?.WarmupPreview();
     }
 }
 

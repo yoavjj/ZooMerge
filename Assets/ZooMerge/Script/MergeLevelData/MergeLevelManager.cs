@@ -57,7 +57,7 @@ public static class MergeLevelManager
     // Public read-only
     public static int CurrentGalaxyId => GetCurrentGalaxy().galaxyId;
     public static string CurrentGalaxyName => GetCurrentGalaxy().name;
-    public static int CurrentLevelInGalaxy => GetCurrentLevel().index; // 1..N from JSON
+    public static int CurrentLevelInGalaxy => currentLevelIndex + 1; // 1..N from JSON
 
     /// <summary>
     /// "Global" level number for UI if you still want Level 1..∞ across galaxies.
@@ -226,7 +226,9 @@ public static class MergeLevelManager
         }
 
         // already at final galaxy final level
-        currentLevelIndex = Mathf.Clamp(currentLevelIndex, 0, (galaxy.levels?.Count ?? 1) - 1);
+        // ✅ already at final galaxy final level -> LOOP back to start
+        ResetLevel();
+
         RaiseLevelChanged();
     }
 

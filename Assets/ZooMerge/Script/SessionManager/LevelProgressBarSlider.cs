@@ -48,6 +48,8 @@ public class LevelProgressBarSlider : MonoBehaviour
 
     public System.Action<int> OnEnemyMarkedDone;
 
+    private int _lastGalaxyId = -1;
+
 
     [ContextMenu("Initialize Current Level")]
 
@@ -69,12 +71,16 @@ public class LevelProgressBarSlider : MonoBehaviour
         if (sliderAnimator == null)
             sliderAnimator = new SliderAnimator(slider, this);
         if (slider == null || widthTarget == null) return;
-
+        
+        int currentGalaxyId = MergeLevelManager.CurrentGalaxyId;
         int currentLevel = MergeLevelManager.CurrentLevelNumber;
         int totalEnemies = Mathf.Max(0, MergeLevelManager.TotalEnemiesInLevel);
         int currentIndex = Mathf.Max(0, MergeLevelManager.CurrentEnemyIndex);
 
-        bool needsRebuild = currentLevel != _lastLevelNumber || totalEnemies != _lastEnemyCount;
+        bool needsRebuild =
+        currentLevel != _lastLevelNumber ||
+        totalEnemies != _lastEnemyCount ||
+        currentGalaxyId != _lastGalaxyId;
 
         slider.wholeNumbers = false;
         slider.minValue = 0f;
@@ -86,6 +92,10 @@ public class LevelProgressBarSlider : MonoBehaviour
 
         float targetW = config.GetWidth(totalEnemies);
         widthTarget.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, targetW);
+
+        // always refresh label (even if layout is cached)
+        if (GalaxylevelNameText != null)
+            GalaxylevelNameText.text = MergeLevelManager.CurrentGalaxyName;
 
         if (needsRebuild)
         {
@@ -133,12 +143,11 @@ public class LevelProgressBarSlider : MonoBehaviour
             _buildingOwner = null;
             _buildingIndex = -1;
 
-
-            /* ⭐️ ADD THIS HERE ⭐️ */
             iconController.SortByPosition();
 
             StartCoroutine(AdjustFillAfterLayout());
 
+            _lastGalaxyId = currentGalaxyId;
             _lastLevelNumber = currentLevel;
             _lastEnemyCount = totalEnemies;
         }

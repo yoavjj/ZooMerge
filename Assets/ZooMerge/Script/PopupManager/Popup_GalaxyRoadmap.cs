@@ -90,8 +90,8 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
             baseGalaxyId += 1;
 
         int id0 = WrapGalaxyId(baseGalaxyId);
-        int id1 = WrapGalaxyId(id0 + 1);
-        int id2 = WrapGalaxyId(id1 + 1);
+        int id1 = WrapGalaxyId(baseGalaxyId + 1);
+        int id2 = WrapGalaxyId(baseGalaxyId + 2);
 
         SpawnGalaxy(id0, currentGalaxyContainer, ref currentInstance, GalaxyRoadmapPrefabConfigurator.Slot.Current);
         SpawnGalaxy(id1, nextGalaxyContainer, ref nextInstance, GalaxyRoadmapPrefabConfigurator.Slot.Next);
@@ -102,28 +102,20 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
 
     private int WrapGalaxyId(int requestedGalaxyId)
     {
-        var db = levelArtController?.Database;
-        if (db == null) return requestedGalaxyId;
+        int count = FirebaseInitializer.MergeScoreData?.galaxies?.Count ?? 0;
+        if (count <= 0) return requestedGalaxyId;
 
-        // If this one exists, use it
-        if (db.GetRoadmapPrefabForGalaxy(requestedGalaxyId) != null)
-            return requestedGalaxyId;
+        int start = ((requestedGalaxyId - 1) % count + count) % count + 1;
 
-        // Otherwise, loop forward until we find something that exists.
-        // (Hard safety cap so we never infinite loop)
-        const int maxSteps = 1000;
-        int id = requestedGalaxyId;
-
-        for (int i = 0; i < maxSteps; i++)
+        // Try up to "count" times, wrapping each time
+        for (int step = 0; step < count; step++)
         {
-            id++;
-
-            if (db.GetRoadmapPrefabForGalaxy(id) != null)
+            int id = ((start - 1 + step) % count) + 1;
+            if (levelArtController?.Database?.GetRoadmapPrefabForGalaxy(id) != null)
                 return id;
         }
 
-        // Fallback: give back requested if nothing found
-        return requestedGalaxyId;
+        return start; // fallback
     }
 
     private void SpawnGalaxy(
@@ -251,8 +243,7 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
 
     public void AE_OnRevealFinished()
     {
-        PopupManager.Instance?.BeginSession(isNewLevel: true);
-        PopupManager.Instance?.InitializeProgressBarNow();
+        PopupManager.Instance?.BeginSessionDeferred(isNewLevel: true);
     }
 
     public void AE_StageReveal()

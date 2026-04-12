@@ -18,6 +18,10 @@ public class MainMenuUI : MonoBehaviour
 
     [SerializeField] private LevelArtController levelArtController;
 
+    [Header("Out Animation Warmup")]
+    [SerializeField, Range(1, 100)] private int outWarmupFrames = 2;
+    private bool playLocked = false;
+
     private int cachedLevelNumber;
     private bool cachedIsNewLevel;
     private bool cacheReady = false;
@@ -50,7 +54,11 @@ public class MainMenuUI : MonoBehaviour
         // ✅ Cache session data ahead of time (avoids jank on click)
         CacheSessionStartData();
 
-        levelArtController?.Refresh();
+        levelArtController?.Refresh(); 
+
+        yield return new WaitForSeconds(1f); // just to let the main menu settle visually before we do more work
+
+        PopupManager.Instance?.WarmupSession();
     }
 
     private void CacheSessionStartData()
@@ -65,29 +73,38 @@ public class MainMenuUI : MonoBehaviour
 
     private void OnPlayPressed()
     {
-        if (playPressedRoutine != null) return; // prevent double taps
+        if (playLocked) return;
+        playLocked = true;
+
+        if (playButton != null)
+            playButton.interactable = false; // prevents spam + extra work
 
         mainMenuAnimator.SetTrigger("Out");
+
+        if (playPressedRoutine != null)
+            StopCoroutine(playPressedRoutine);
 
         playPressedRoutine = StartCoroutine(PlayPressedRoutine());
     }
 
     private IEnumerator PlayPressedRoutine()
     {
-        if (playPressedDelay > 0f)
-            yield return new WaitForSeconds(playPressedDelay);
+        // ✅ Let the Out animation actually start rendering before heavy work
+        int frames = Mathf.Clamp(outWarmupFrames, 1, 5);
+        for (int i = 0; i < frames; i++)
+            yield return null;
 
-        // ✅ If for some reason cache wasn't ready, compute now as fallback
+        // (Optional) tiny real-time slice helps on some devices
+        // yield return new WaitForSecondsRealtime(0.02f);
+
+        // ✅ Ensure cache is ready (cheap)
         if (!cacheReady)
             CacheSessionStartData();
 
-        // Inform progression system (now cheap)
+        // ✅ Do the heavy stuff AFTER animation has started
         MergeLevelManager.SetLevel(cachedLevelNumber);
 
-        // Centralized session begin
         PopupManager.Instance?.BeginSession(cachedIsNewLevel);
-
-        // Initialize the progress bar
         PopupManager.Instance?.InitializeProgressBarNow();
 
         Destroy(gameObject, 2.5f);

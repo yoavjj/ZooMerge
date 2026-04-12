@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -52,6 +53,7 @@ public class WinLosePopup : MonoBehaviour
 
     [SerializeField, Min(0f)] private float levelRevealDuration = 4.5f;      // ✅ how long reveal stays on screen
     [SerializeField, Min(0f)] private float revealOutDuration = 0.6f;        // ✅ how long reveal "Out" takes
+    
     private Coroutine playPressedRoutine;
 
     private bool isContinue = false;
@@ -61,6 +63,10 @@ public class WinLosePopup : MonoBehaviour
 
     private Popup_GalaxyRoadmap roadmapInstance;
     private bool roadmapOpenOrSpawning = false;
+
+    public static event Action OnWinLoseClosed;
+
+    private bool playPressedLocked = false;
 
     [SerializeField] private bool preloadLevelRevealOnStart = true;
     [SerializeField] private bool keepRevealInactiveWhenIdle = true;
@@ -400,6 +406,8 @@ public class WinLosePopup : MonoBehaviour
 
     private void ClosePopup()
     {
+        OnWinLoseClosed?.Invoke();
+
         roadmapOpenOrSpawning = false;
         roadmapInstance = null;
 

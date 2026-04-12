@@ -111,8 +111,7 @@ public class LevelArtRevealController : MonoBehaviour
 
     public void AE_OnRevealFinished()
     {
-        PopupManager.Instance?.BeginSession(isNewLevel: true);
-        PopupManager.Instance?.InitializeProgressBarNow();
+        PopupManager.Instance?.BeginSessionDeferred(isNewLevel: true);
     }
     
     private void OnGalaxyProgressFinished()
