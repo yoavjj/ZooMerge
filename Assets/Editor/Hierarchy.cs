@@ -43,9 +43,20 @@ class Hierarchy
 		Init();
 		EditorApplication.update += Update;
 		EditorApplication.hierarchyWindowItemOnGUI += HierarchyItemCB;
-		//EditorApplication.hierarchyWindowChanged += HierarchyWindowChanged;
+		EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 	}
 
+	private static void OnPlayModeStateChanged(PlayModeStateChange state)
+	{
+		// Force refresh right when play mode changes so icons don't "disappear"
+		if (state == PlayModeStateChange.EnteredPlayMode || state == PlayModeStateChange.EnteredEditMode)
+		{
+			updateCount = 0;
+			hasValidItems = false;
+			GetObjects();                 // do a scan immediately
+			EditorApplication.RepaintHierarchyWindow();
+		}
+	}
 	/*public static Texture2D IconTexture (Type type)
 	{
 		var image = AssetPreview.GetMiniTypeThumbnail (type);
@@ -93,18 +104,18 @@ class Hierarchy
 	{
 		if (Application.isPlaying)
 		{
-			updateCount = (updateCount + 1) % 40;
-			if (updateCount != 0)
+			int skip = Mathf.Max(1, prefrences.frameSkip); // use preference
+			updateCount = (updateCount + 1) % skip;
+
+			// ✅ If we don't have valid items yet, don't throttle (draw icons immediately)
+			if (updateCount != 0 && hasValidItems)
 				return;
 		}
-
-		GameObject[] go = GameObject.FindObjectsOfType(typeof(GameObject)) as GameObject[];
-
+	
+		GameObject[] go = UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+	
 		foreach (var group in groups)
-		{
-			//clear all lists
 			group.objects.Clear();
-		}
 
 		hasValidItems = false;
 
@@ -118,12 +129,10 @@ class Hierarchy
 					if (item.type.IsInstanceOfType(c))
 					{
 						var enabled = true;
-						if (c is Behaviour)
-							enabled = ((Behaviour)c).enabled;
-						else if (c is Renderer)
-							enabled = ((Renderer)c).enabled;
-						else if (c is Collider)
-							enabled = ((Collider)c).enabled;
+						if (c is Behaviour) enabled = ((Behaviour)c).enabled;
+						else if (c is Renderer) enabled = ((Renderer)c).enabled;
+						else if (c is Collider) enabled = ((Collider)c).enabled;
+
 						item.objects.Add(new HierarchyItemObjectState(g.GetInstanceID(), enabled));
 						hasValidItems = true;
 					}

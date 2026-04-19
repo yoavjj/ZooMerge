@@ -22,6 +22,8 @@ public class BallCollisionMerge : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D col)
     {
+        if (BallEventManager.MergesBlocked) return;
+        
         if (!initialized || core == null)
         {
             //Debug.LogWarning("🚫 Merge skipped: Not initialized or core is null.");
@@ -94,9 +96,15 @@ public class BallCollisionMerge : MonoBehaviour
         if (!merged)
         {
             //Debug.Log($"❌ Merge failed between: {self.name} and {other.name}");
+            
+            self.DropController?.ReleasePauseBlockIfActive();
+            other.DropController?.ReleasePauseBlockIfActive();
+
             self.DropController?.ApplyFinalPhysicsImmediately();
             other.DropController?.ApplyFinalPhysicsImmediately();
+            
             TryApplyFriction(self, other);
+            ApplyAntiStackNudge(self, other, col, strength: 0.5f);
         }
         else
         {
@@ -111,6 +119,28 @@ public class BallCollisionMerge : MonoBehaviour
             if (other.DropController != null)
                 SpineSortingOrderManager.ReleaseOrder(other.DropController.GetAssignedOrder());
         }
+    }
+
+    private void ApplyAntiStackNudge(BallInfo a, BallInfo b, Collision2D col, float strength = 0.6f)
+    {
+        var rbA = a.DropController != null ? a.DropController.Rigidbody : null;
+        var rbB = b.DropController != null ? b.DropController.Rigidbody : null;
+        
+        if (rbA == null || rbB == null) return;
+
+        // Separation direction (mostly sideways)
+        Vector2 dir = (Vector2)(a.transform.position - b.transform.position);
+
+        // If almost perfectly vertical stack, force a horizontal split
+        if (Mathf.Abs(dir.x) < 0.05f)
+            dir.x = Random.value < 0.5f ? -1f : 1f;
+
+        dir.y = 0f;
+        dir = dir.normalized;
+
+        // Slight impulse, opposite directions
+        rbA.AddForce(dir * strength, ForceMode2D.Impulse);
+        rbB.AddForce(-dir * strength, ForceMode2D.Impulse);
     }
 
     private void TryApplyFriction(BallInfo a, BallInfo b)

@@ -28,6 +28,10 @@ public class CircleDragInput : MonoBehaviour,
     [SerializeField] private float minPressTimeBeforeDrop = 0.05f; // seconds
     private DragSmoother dragSmoother = new DragSmoother(0.05f);
 
+    [Header("Auto Centering (Optional)")]
+    [SerializeField] private bool recenterOnSessionStart = true;
+    [SerializeField] private float recenterX = 0f;
+
     private bool hasMovedSincePointerDown;
     private float pointerDownX;
 
@@ -37,6 +41,10 @@ public class CircleDragInput : MonoBehaviour,
     [SerializeField] private float entryGap = 0f;     // extra gap above the line
     [SerializeField] private float entryLineWidth = 6f;   // line length in world units
     [SerializeField] private bool centerLineOnSpawnX = true; // center the line on spawnContainer.x
+
+    [Header("Input Blocker (Optional)")]
+    [SerializeField] private GameObject screenBlocker; // full-screen UI panel (raycast target ON)
+    [SerializeField] private bool blockOnSessionEnd = true;
 
     #endregion
 
@@ -75,6 +83,26 @@ public class CircleDragInput : MonoBehaviour,
 
     #region Unity Lifecycle
 
+    private void OnEnable()
+    {
+        BallEventManager.OnEnemySessionEnded += HandleSessionEndedBlock;
+        BallEventManager.OnSessionStarted += HandleSessionStartedUnblock;
+
+        BallEventManager.OnSessionPaused += CancelActivePress;
+        BallEventManager.OnGameOverAnimation += CancelActivePress;
+        BallEventManager.OnReturnToMainMenu += CancelActivePress;
+    }
+
+    private void OnDisable()
+    {
+        BallEventManager.OnEnemySessionEnded -= HandleSessionEndedBlock;
+        BallEventManager.OnSessionStarted -= HandleSessionStartedUnblock;
+
+        BallEventManager.OnSessionPaused -= CancelActivePress;
+        BallEventManager.OnGameOverAnimation -= CancelActivePress;
+        BallEventManager.OnReturnToMainMenu -= CancelActivePress;
+    }
+
     private void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -86,6 +114,38 @@ public class CircleDragInput : MonoBehaviour,
         cam = Camera.main;
         CacheBounds();
         CacheBufferZone();
+    }
+
+    private void HandleSessionEndedBlock()
+    {
+        CancelActivePress();
+        
+        if (!blockOnSessionEnd) return;
+
+        if (screenBlocker != null)
+            screenBlocker.SetActive(true);
+    }
+
+    private void HandleSessionStartedUnblock()
+    {
+        if (screenBlocker != null)
+            screenBlocker.SetActive(false);
+
+        if (recenterOnSessionStart)
+            RecenterPlayerToZero();
+    }
+
+    private void RecenterPlayerToZero()
+    {
+        if (spawnContainer == null) return;
+
+        var pos = spawnContainer.position;
+        pos.x = recenterX;
+        spawnContainer.position = pos;
+
+        // keep tracking consistent
+        pointerDownX = pos.x;
+        hasMovedSincePointerDown = false;
     }
 
     public bool HasActiveBall() => activeBall != null;
@@ -256,6 +316,11 @@ public class CircleDragInput : MonoBehaviour,
         if (!inputEnabled) return;
         if (isSpawnCooldown) return;
         if (eventData.pointerId != activePointerId) return;
+        if (BallEventManager.PauseBlocked || BallEventManager.IsGameOver)
+        {
+            activePointerId = int.MinValue;
+            return;
+        }
 
         // Ignore if released outside the window
         if (!IsWithinScreen(eventData.position))
@@ -579,4 +644,14 @@ public class CircleDragInput : MonoBehaviour,
     }
 
     #endregion
+
+    private void CancelActivePress()
+    {
+        activePointerId = int.MinValue;   // cancels the current pointer
+        spawnedAfterThisPress = false;
+        hasMovedSincePointerDown = false;
+
+        // optional: clear hover visuals
+        shipRayMarker?.DisableHighlight();
+    }
 }

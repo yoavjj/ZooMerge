@@ -12,7 +12,7 @@ public class LevelProgressBarSlider : MonoBehaviour
     [SerializeField] private BallSet ballSet;              // for enemy icons
 
     [Header("Level Info")]
-    [SerializeField] private TextMeshProUGUI levelNameText;
+    [SerializeField] private TextMeshProUGUI GalaxylevelNameText;
 
     [Header("Icon Strip")]
     [SerializeField] private RectTransform iconsContainer; // parent for EnemyLvl_Image / Line_Image
@@ -46,6 +46,10 @@ public class LevelProgressBarSlider : MonoBehaviour
     private SliderAnimator sliderAnimator;
     private EnemyStripBuilder stripBuilder;
 
+    public System.Action<int> OnEnemyMarkedDone;
+
+    private int _lastGalaxyId = -1;
+
 
     [ContextMenu("Initialize Current Level")]
 
@@ -67,12 +71,16 @@ public class LevelProgressBarSlider : MonoBehaviour
         if (sliderAnimator == null)
             sliderAnimator = new SliderAnimator(slider, this);
         if (slider == null || widthTarget == null) return;
-
+        
+        int currentGalaxyId = MergeLevelManager.CurrentGalaxyId;
         int currentLevel = MergeLevelManager.CurrentLevelNumber;
         int totalEnemies = Mathf.Max(0, MergeLevelManager.TotalEnemiesInLevel);
         int currentIndex = Mathf.Max(0, MergeLevelManager.CurrentEnemyIndex);
 
-        bool needsRebuild = currentLevel != _lastLevelNumber || totalEnemies != _lastEnemyCount;
+        bool needsRebuild =
+        currentLevel != _lastLevelNumber ||
+        totalEnemies != _lastEnemyCount ||
+        currentGalaxyId != _lastGalaxyId;
 
         slider.wholeNumbers = false;
         slider.minValue = 0f;
@@ -85,6 +93,10 @@ public class LevelProgressBarSlider : MonoBehaviour
         float targetW = config.GetWidth(totalEnemies);
         widthTarget.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, targetW);
 
+        // always refresh label (even if layout is cached)
+        if (GalaxylevelNameText != null)
+            GalaxylevelNameText.text = MergeLevelManager.CurrentGalaxyName;
+
         if (needsRebuild)
         {
             Debug.Log($"[ProgressBar] Rebuilding layout for Level {currentLevel} with {totalEnemies} enemies.");
@@ -96,9 +108,9 @@ public class LevelProgressBarSlider : MonoBehaviour
                 return;
             }
 
-            if (levelNameText != null)
+            if (GalaxylevelNameText != null)
             {
-                levelNameText.text = level.name;
+                GalaxylevelNameText.text = MergeLevelManager.CurrentGalaxyName;
             }
 
             if (stripBuilder == null)
@@ -107,6 +119,9 @@ public class LevelProgressBarSlider : MonoBehaviour
             // ✅ Clear all existing child GameObjects before building
             foreach (Transform child in iconsContainer)
             {
+                if (child.GetComponent<DoNotDestroyOnRebuild>() != null)
+                    continue; // skip coinPrefabContainer (or any other protected UI)
+
                 Destroy(child.gameObject);
             }
 
@@ -127,8 +142,12 @@ public class LevelProgressBarSlider : MonoBehaviour
 
             _buildingOwner = null;
             _buildingIndex = -1;
+
+            iconController.SortByPosition();
+
             StartCoroutine(AdjustFillAfterLayout());
 
+            _lastGalaxyId = currentGalaxyId;
             _lastLevelNumber = currentLevel;
             _lastEnemyCount = totalEnemies;
         }
@@ -242,7 +261,11 @@ public class LevelProgressBarSlider : MonoBehaviour
         advanceRoutine = null;
     }
 
-    public void MarkEnemyDone(int index) => iconController.MarkEnemyDone(index);
+    public void MarkEnemyDone(int index)
+    {
+        iconController.MarkEnemyDone(index); // triggers grey visual
+        OnEnemyMarkedDone?.Invoke(index); // notify listeners which icon was marked
+    }
 
     public void AnimateSliderTo(float value, float duration, AnimationCurve curve = null)
     {
@@ -250,4 +273,29 @@ public class LevelProgressBarSlider : MonoBehaviour
     }
 
     public void RestartVisuals() => iconController.TriggerRestartAll();
+
+    public RectTransform GetCurrentEnemyIconRect()
+    {
+        int current = Mathf.Clamp(MergeLevelManager.CurrentEnemyIndex, 0, iconController.Icons.Count - 1);
+
+        if (current < 0 || current >= iconController.Icons.Count)
+            return null;
+
+        return iconController.Icons[current].RectTransform;
+    }
+
+    public RectTransform GetFinalEnemyIconRect()
+    {
+        int last = iconController.Icons.Count - 1;
+        if (last < 0) return null;
+        return iconController.Icons[last].RectTransform;
+    }
+
+    public RectTransform GetEnemyIconRect(int index)
+    {
+        if (index < 0 || index >= iconController.Icons.Count)
+            return null;
+
+        return iconController.Icons[index].RectTransform;
+    }
 }

@@ -39,6 +39,9 @@ public class PauseRestartPopup : MonoBehaviour
 
     public void OnMainMenuButtonPressed()
     {
+        // ✅ End session UI immediately
+        BallEventManager.RaiseReturnToMainMenu();
+
         PopupManager.Instance?.ConfirmReturnToMainMenu();
         animator.SetTrigger("Out");
         Destroy(gameObject, 1f);

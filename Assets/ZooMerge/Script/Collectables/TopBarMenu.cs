@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,7 +13,7 @@ public class TopBarMenu : MonoBehaviour
     [Header("Canvas Context")]
     [SerializeField] private Canvas rootCanvas;
 
-    private readonly Dictionary<BallType, TopBarItemUI> itemsByType = new();
+    private readonly Dictionary<BallType, TopBarMergeItemUI> itemsByType = new();
     private Camera uiCam;
 
     private void Awake()
@@ -22,20 +23,33 @@ public class TopBarMenu : MonoBehaviour
             : null;
     }
 
+    public void BuildAllBallTypesUI()
+    {
+        if (MergeSessionTracker.Instance == null) return;
+
+        // Get all configured types from your tracker config
+        List<BallType> allTypes = MergeSessionTracker.Instance
+            .GetTypeConfigs()
+            .ConvertAll(c => c.type);
+
+        PrepareTypes(allTypes);   // creates items even if count is 0
+        RebuildLayoutImmediate();
+    }
+
     /// <summary>
     /// Build from inventory snapshot (used on popup open / resume)
     /// </summary>
-    public void Build()
+    public void BuildCoinUI()
     {
-        Clear();
-
-        foreach (var pair in GameInventory.Instance.Snapshot())
+        if (TryGetOrCreateCoinItem(out TopBarCoinItemUI coinUI))
         {
-            if (pair.Value > 0)
-                CreateItem(pair.Key, pair.Value);
+            coinUI.InjectUICamera(uiCam);
+
+            int coinsFromInventory = GameInventory.Instance.Get(CurrencyType.Coins);
+            coinUI.Initialize(coinUI.GetIcon(), coinsFromInventory);
         }
 
-        //RebuildLayoutImmediate();
+        RebuildLayoutImmediate();
     }
 
     private void RebuildLayoutImmediate()
@@ -78,7 +92,7 @@ public class TopBarMenu : MonoBehaviour
 
         var go = Instantiate(topBarItemPrefab, container);
 
-        if (!go.TryGetComponent(out TopBarItemUI item))
+        if (!go.TryGetComponent(out TopBarMergeItemUI item))
         {
             Destroy(go);
             return;
@@ -98,10 +112,10 @@ public class TopBarMenu : MonoBehaviour
         itemsByType.Clear();
     }
 
-    public bool TryGetItem(BallType type, out TopBarItemUI item)
+    public bool TryGetItem(BallType type, out TopBarMergeItemUI item)
         => itemsByType.TryGetValue(type, out item);
 
-    public bool TryGetOrCreateItem(BallType type, out TopBarItemUI item)
+    public bool TryGetOrCreateItem(BallType type, out TopBarMergeItemUI item)
     {
         if (itemsByType.TryGetValue(type, out item))
             return true;
@@ -144,5 +158,24 @@ public class TopBarMenu : MonoBehaviour
                 TryGetOrCreateItem(type, out _); // Will show item with current count (even if 0)
             }
         }
+    }
+
+    public bool TryGetOrCreateCoinItem(out TopBarCoinItemUI item)
+    {
+        item = GetComponentInChildren<TopBarCoinItemUI>();
+        if (item != null) return true;
+
+        // Optionally create it from prefab if you want
+        return false;
+    }
+
+    public Sprite GetCoinIcon()
+    {
+        if (TryGetOrCreateCoinItem(out var coinItem))
+        {
+            return coinItem.GetIcon();
+        }
+
+        return null;
     }
 }

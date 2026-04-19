@@ -75,6 +75,8 @@ Shader "Cartoon FX/Remaster/Particle Ubershader"
 		[NoScaleOffset] _MainTex ("Texture", 2D) = "white" {}
 		[Toggle(_CFXR_SINGLE_CHANNEL)] _SingleChannel ("Single Channel Texture", Float) = 0
 
+		_Opacity ("Opacity", Range(0,1)) = 1
+
 	//# --------------------------------------------------------
 
 		[KeywordEnum(Off,1x,2x)] _CFXR_OVERLAYTEX ("Enable Overlay Texture", Float) = 0

@@ -14,6 +14,10 @@ public class CollectibleFlightSettings : ScriptableObject
     [Min(0f)] public float holdDuration = 0.3f;
     public float arcHeight = 100f;
 
+    [Header("Spawn Offset")]
+    [Tooltip("Local UI offset applied when collectible is spawned (X,Y)")]
+    public Vector2 spawnOffset;
+
     [Header("Staggering")]
     [Tooltip("Delay between each collectible’s arrival callback (seconds)")]
     public float arrivalStaggerDelay = 0.35f;

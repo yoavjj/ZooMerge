@@ -68,6 +68,7 @@
 		half _SecondColorSmooth;
 
 		half _HdrMultiply;
+		half _Opacity;
 
 		half _ReceivedShadowsStrength;
 
@@ -387,6 +388,9 @@
 			half particleAlpha = mainTex.a * i.color.a;
 		#endif
 
+		particleColor *= _Opacity;
+		particleAlpha *= _Opacity;
+
 		#if _CFXR_SECONDCOLOR_LERP
 			half secondColorMap = tex2D(_SecondColorTex, i.uv_random.xy).r;
 			float time = lerp(-_SecondColorSmooth, 1+_SecondColorSmooth, i.secondColor.a);
@@ -568,6 +572,7 @@
 			half _DissolveSmooth;
 
 			half _HdrMultiply;
+			half _Opacity;
 
 			half _Cutoff;
 
@@ -713,6 +718,9 @@
 
 				half3 particleColor = mainTex.rgb * i.color.rgb;
 				half particleAlpha = mainTex.a * i.color.a;
+
+				particleColor *= _Opacity;   // fades additive glow too
+				particleAlpha *= _Opacity;   // fades alpha-based modes
 
 				// ================================================================
 				// Dissolve

@@ -10,8 +10,6 @@ public class GameHealthManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private AnimationCurve sliderEase = AnimationCurve.Linear(0, 0, 1, 1);
 
-    [SerializeField] private GameObject missZonePrefab;  // assign in Inspector
-    [SerializeField] private Transform missZonePrefabContainer;
     private GameObject activeMissZoneInstance;
 
     private HealthTween healthTween;
@@ -45,7 +43,7 @@ public class GameHealthManager : MonoBehaviour
         OnSessionStarted += ResetHealth;
         OnEnemyAdvanced += ResetHealth;
 
-        Debug.Log($"❤️ Initialized with {currentHealth} HP for Level {currentLevel.level}");
+        Debug.Log($"❤️ Initialized with {currentHealth} HP for Galaxy {MergeLevelManager.CurrentGalaxyId} Level {MergeLevelManager.CurrentLevelInGalaxy}");
     }
 
     private void OnDestroy()
@@ -95,14 +93,6 @@ public class GameHealthManager : MonoBehaviour
                     sessionEnded = true;
                     isAnimatingToZero = false;
 
-                    // ✅ Spawn miss zone only AFTER slider is fully zeroed
-                    if (missZonePrefab != null && activeMissZoneInstance == null)
-                    {
-                        Transform parent = missZonePrefabContainer != null ? missZonePrefabContainer : transform;
-                        activeMissZoneInstance = Instantiate(missZonePrefab, parent);
-                        Debug.Log($"[GameHealthManager] MissZone spawned under: {parent.name}");
-                    }
-
                     if (MergeLevelManager.TryAdvanceEnemy())
                     {
                         Debug.Log("✅ Enemy defeated! Preparing next enemy...");
@@ -111,12 +101,11 @@ public class GameHealthManager : MonoBehaviour
                     else
                     {
                         Debug.Log("🏁 All enemies defeated! Level complete.");
+                        MergeLevelManager.MarkLevelCompletePending(); // flag to indicate level completion
                         BallEventManager.RaiseEnemySessionEnded();
 
                         BallEventManager.RaiseGameOver(null, GameOverReason.Won);
                         BallEventManager.RaiseSessionWonAnimation();
-                        MergeAttemptTracker.ClearAll();
-                        BallRegistry.Clear();
                     }
                 }
             });
@@ -128,7 +117,7 @@ public class GameHealthManager : MonoBehaviour
         BallEventManager.RaiseEnemySessionEnded();
 
         // 2. show popup
-        PopupManager.Instance?.ShowEnemyDefeatedMessage();
+        //PopupManager.Instance?.ShowEnemyDefeatedMessage();
 
         // 3. delay then spawn next
         Invoke(nameof(StartNextEnemy), 1.5f);
@@ -191,7 +180,7 @@ public class GameHealthManager : MonoBehaviour
     }
         );
 
-        Debug.Log($"🔄 Health reset for Level {currentLevel.level} ({currentHealth} HP)");
+        Debug.Log($"🔄 Health reset for Galaxy {MergeLevelManager.CurrentGalaxyId} Level {MergeLevelManager.CurrentLevelInGalaxy} ({currentHealth} HP)");
     }
 
     private float NormalizeHealthToSlider(int health)

@@ -6,6 +6,7 @@ public class CircleDropController : MonoBehaviour
 {
     [Header("Core")]
     [SerializeField] private Rigidbody2D rb;
+    public Rigidbody2D Rigidbody => rb;
     [SerializeField] private float settleDuration = 3f; // seconds to fully settle
     [SerializeField] private Transform motionTarget;
 
@@ -60,11 +61,13 @@ public class CircleDropController : MonoBehaviour
     private bool isSettling = false;
     private bool hasAppliedInstantPhysics;
     private bool hasLanded = false;
+    private bool pauseBlockActive = false;
 
     private float targetGravityScale;
     private float startGravityScale;
     private float prefabGravityScale;
     private int assignedSortingOrder = 5;
+
     public int GetAssignedOrder() => assignedSortingOrder;
 
     // --- Cached animation names (filled once) ---
@@ -115,6 +118,8 @@ public class CircleDropController : MonoBehaviour
             CircleDragInput.Instance.ClearActiveBall(this);
 
         if (introRoutine != null) { StopCoroutine(introRoutine); introRoutine = null; }
+
+        ReleasePauseBlockIfActive();
     }
 
     // ---- Data push from BallInfo ----
@@ -148,6 +153,12 @@ public class CircleDropController : MonoBehaviour
     {
         if (!isDragging) return;
         isDragging = false;
+
+        if (!pauseBlockActive)
+        {
+            pauseBlockActive = true;
+            BallEventManager.PushPauseBlock();
+        }
 
         // ✅ Register the ball to BallRegistry when it goes live
         if (ballInfo != null)
@@ -211,6 +222,8 @@ public class CircleDropController : MonoBehaviour
         if (isDragging) return;
 
         if (hasLanded) return; // ✅ Already landed — skip
+        
+        ReleasePauseBlockIfActive();
 
         hasLanded = true; // ✅ Mark as landed on ANY collision
         CacheAnimNamesIfNeeded();
@@ -233,6 +246,13 @@ public class CircleDropController : MonoBehaviour
                 PlaySpine(animIdle, true);
             }
         }
+    }
+
+    public void ReleasePauseBlockIfActive()
+    {
+        if (!pauseBlockActive) return;
+        pauseBlockActive = false;
+        BallEventManager.PopPauseBlock();
     }
 
     private void OnCollisionExit2D(Collision2D collision)
@@ -316,7 +336,7 @@ public class CircleDropController : MonoBehaviour
             PlaySpine(animTouching, true);
 
         yield return new WaitForSeconds(requiredGameOverContactTime);
-        BallEventManager.RaiseGameOver(ballInfo, GameOverReason.Lost);
+        BallEventManager.RaiseBallTouchedGameOverLine(ballInfo, GameOverReason.Lost);
         gameOverTouchRoutine = null;
     }
 
@@ -469,6 +489,37 @@ public class CircleDropController : MonoBehaviour
         CacheAnimNamesIfNeeded();
         if (spineAnimation != null && !string.IsNullOrEmpty(animIdle) && SpineHasAnimation(animIdle))
             PlaySpine(animIdle, true);
+    }
+
+    public void SetPreviewFreeze(bool freeze)
+    {
+        if (spineAnimation == null) return;
+
+        CacheAnimNamesIfNeeded();
+
+        if (freeze)
+        {
+            // 1) Force a known pose (Idle) onto the skeleton
+            if (!string.IsNullOrEmpty(animIdle) && SpineHasAnimation(animIdle))
+            {
+                var state = spineAnimation.AnimationState;
+
+                // Set idle (loop is fine, we’ll freeze time anyway)
+                state.SetAnimation(0, animIdle, true);
+
+                // Apply immediately so the skeleton has a correct pose THIS frame
+                state.Update(0f);
+                state.Apply(spineAnimation.Skeleton);
+            }
+
+            // 2) Freeze spine playback (keeps the applied pose)
+            spineAnimation.timeScale = 0f;
+        }
+        else
+        {
+            // Unfreeze
+            spineAnimation.timeScale = 1f;
+        }
     }
 
     public void IntroPrep()

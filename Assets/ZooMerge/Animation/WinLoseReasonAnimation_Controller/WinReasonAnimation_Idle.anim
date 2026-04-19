@@ -31,7 +31,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Ribbon_Holder/MISSION_COMPLETE!_title
+    path: PopupEnvironment_Holder/AddCover_Holder/9slice_Gameover_edHolder_bg
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -47,7 +47,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: AnimalImage_Holder/bug_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/bug_complete_art
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -63,7 +63,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: AnimalImage_Holder/owl_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/owl_complete_art
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -79,7 +79,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: AnimalImage_Holder/pug_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/pug_complete_art
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -95,7 +95,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: AnimalImage_Holder/turtle_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/turtle_complete_art
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -111,7 +111,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: AddCover_Holder/9slice_Gameover_edHolder_bg
+    path: PopupEnvironment_Holder/Ribbon_Holder/MISSION_COMPLETE!_title
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -127,8 +127,29 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: WotldImage_Holder/world_complete_bg
-  m_FloatCurves: []
+    path: PopupEnvironment_Holder/WotldImage_Holder/world_complete_bg
+  m_FloatCurves:
+  - serializedVersion: 2
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: material._Opacity
+    path: Rays
+    classID: 199
+    script: {fileID: 0}
+    flags: 0
   m_PPtrCurves: []
   m_SampleRate: 60
   m_WrapMode: 0
@@ -138,7 +159,7 @@ AnimationClip:
   m_ClipBindingConstant:
     genericBindings:
     - serializedVersion: 2
-      path: 1458239242
+      path: 1805482409
       attribute: 3
       script: {fileID: 0}
       typeID: 4
@@ -147,7 +168,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 280987148
+      path: 3110667265
       attribute: 3
       script: {fileID: 0}
       typeID: 4
@@ -156,7 +177,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 4266348073
+      path: 1469959204
       attribute: 3
       script: {fileID: 0}
       typeID: 4
@@ -165,7 +186,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 1899535857
+      path: 3639484412
       attribute: 3
       script: {fileID: 0}
       typeID: 4
@@ -174,7 +195,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 1272755197
+      path: 620866863
       attribute: 3
       script: {fileID: 0}
       typeID: 4
@@ -183,7 +204,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 1447138678
+      path: 3774005917
       attribute: 3
       script: {fileID: 0}
       typeID: 4
@@ -192,11 +213,20 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2316033898
+      path: 601709927
       attribute: 3
       script: {fileID: 0}
       typeID: 4
       customType: 0
+      isPPtrCurve: 0
+      isIntCurve: 0
+      isSerializeReferenceCurve: 0
+    - serializedVersion: 2
+      path: 1050958619
+      attribute: 2282272135
+      script: {fileID: 0}
+      typeID: 199
+      customType: 22
       isPPtrCurve: 0
       isIntCurve: 0
       isSerializeReferenceCurve: 0
@@ -239,7 +269,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.x
-    path: Ribbon_Holder/MISSION_COMPLETE!_title
+    path: PopupEnvironment_Holder/AddCover_Holder/9slice_Gameover_edHolder_bg
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -260,7 +290,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.y
-    path: Ribbon_Holder/MISSION_COMPLETE!_title
+    path: PopupEnvironment_Holder/AddCover_Holder/9slice_Gameover_edHolder_bg
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -281,7 +311,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.z
-    path: Ribbon_Holder/MISSION_COMPLETE!_title
+    path: PopupEnvironment_Holder/AddCover_Holder/9slice_Gameover_edHolder_bg
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -302,7 +332,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.x
-    path: AnimalImage_Holder/bug_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/bug_complete_art
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -323,7 +353,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.y
-    path: AnimalImage_Holder/bug_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/bug_complete_art
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -344,7 +374,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.z
-    path: AnimalImage_Holder/bug_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/bug_complete_art
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -365,7 +395,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.x
-    path: AnimalImage_Holder/owl_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/owl_complete_art
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -386,7 +416,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.y
-    path: AnimalImage_Holder/owl_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/owl_complete_art
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -407,7 +437,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.z
-    path: AnimalImage_Holder/owl_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/owl_complete_art
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -428,7 +458,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.x
-    path: AnimalImage_Holder/pug_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/pug_complete_art
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -449,7 +479,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.y
-    path: AnimalImage_Holder/pug_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/pug_complete_art
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -470,7 +500,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.z
-    path: AnimalImage_Holder/pug_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/pug_complete_art
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -491,7 +521,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.x
-    path: AnimalImage_Holder/turtle_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/turtle_complete_art
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -512,7 +542,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.y
-    path: AnimalImage_Holder/turtle_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/turtle_complete_art
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -533,7 +563,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.z
-    path: AnimalImage_Holder/turtle_complete_art
+    path: PopupEnvironment_Holder/AnimalImage_Holder/turtle_complete_art
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -554,7 +584,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.x
-    path: AddCover_Holder/9slice_Gameover_edHolder_bg
+    path: PopupEnvironment_Holder/Ribbon_Holder/MISSION_COMPLETE!_title
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -575,7 +605,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.y
-    path: AddCover_Holder/9slice_Gameover_edHolder_bg
+    path: PopupEnvironment_Holder/Ribbon_Holder/MISSION_COMPLETE!_title
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -596,7 +626,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.z
-    path: AddCover_Holder/9slice_Gameover_edHolder_bg
+    path: PopupEnvironment_Holder/Ribbon_Holder/MISSION_COMPLETE!_title
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -617,7 +647,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.x
-    path: WotldImage_Holder/world_complete_bg
+    path: PopupEnvironment_Holder/WotldImage_Holder/world_complete_bg
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -638,7 +668,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.y
-    path: WotldImage_Holder/world_complete_bg
+    path: PopupEnvironment_Holder/WotldImage_Holder/world_complete_bg
     classID: 224
     script: {fileID: 0}
     flags: 0
@@ -659,8 +689,29 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalScale.z
-    path: WotldImage_Holder/world_complete_bg
+    path: PopupEnvironment_Holder/WotldImage_Holder/world_complete_bg
     classID: 224
+    script: {fileID: 0}
+    flags: 0
+  - serializedVersion: 2
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: material._Opacity
+    path: Rays
+    classID: 199
     script: {fileID: 0}
     flags: 0
   m_EulerEditorCurves: []

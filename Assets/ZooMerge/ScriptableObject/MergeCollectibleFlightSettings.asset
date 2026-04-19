@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f912eb6bfc7c4b69a475efd8cfbc7a1, type: 3}
   m_Name: MergeCollectibleFlightSettings
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleFlightSettings
-  shortFlyDuration: 1
+  shortFlyDuration: 0.95
   longFlyDuration: 1.55
-  holdDuration: 0.3
+  holdDuration: 0.4
   arcHeight: 100
+  spawnOffset: {x: 0, y: 0}
   arrivalStaggerDelay: 0.35
   easeInCurve:
     serializedVersion: 2

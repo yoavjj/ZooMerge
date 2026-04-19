@@ -34,8 +34,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 56}
-  m_SizeDelta: {x: 92.6811, y: 92.6774}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 47.3243, y: 47.322}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3599849078736159451
 CanvasRenderer:
@@ -109,7 +109,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 70}
+  m_AnchoredPosition: {x: 0, y: 7.7}
   m_SizeDelta: {x: 92.6811, y: 92.6774}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7040765272713982308
@@ -167,7 +167,7 @@ TrailRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 31
+  m_SortingOrder: 40
   m_Time: 0.125
   m_PreviewTimeScale: 1
   m_Parameters:
@@ -178,7 +178,7 @@ TrailRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.41427547
+        value: 0.36376888
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -257,6 +257,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6994849374566267276}
+  - component: {fileID: 6064114723139998841}
   - component: {fileID: 8476614625740034723}
   - component: {fileID: 2886867884524631571}
   m_Layer: 5
@@ -287,6 +288,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 122.6962, y: 121.9849}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &6064114723139998841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7676886677413217522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c83497e4059fe49acbf144e34014244e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FlyingCoinCollectible
+  visualLogic: {fileID: 8476614625740034723}
 --- !u!114 &8476614625740034723
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -340,7 +354,7 @@ Animator:
   m_GameObject: {fileID: 7676886677413217522}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: fd39eadca987249f5ac892b53953152c, type: 2}
+  m_Controller: {fileID: 9100000, guid: 8832c13e4710946819cbc03190ae768c, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

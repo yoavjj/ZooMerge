@@ -7,7 +7,7 @@ using UnityEngine.iOS;
 
 public class ATTRequest : MonoBehaviour
 {
-    void Start()
+    private void Awake()
     {
 #if UNITY_IOS
         var status = ATTrackingStatusBinding.GetAuthorizationTrackingStatus();
@@ -19,11 +19,11 @@ public class ATTRequest : MonoBehaviour
             ATTrackingStatusBinding.RequestAuthorizationTracking();
         }
 
-        Invoke("LogIDFA", 2f);
+        Invoke(nameof(LogIDFA), 2f);
 #endif
     }
 
-    void LogIDFA()
+    private void LogIDFA()
     {
 #if UNITY_IOS
         string idfa = Device.advertisingIdentifier;

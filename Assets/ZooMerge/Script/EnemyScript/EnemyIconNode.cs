@@ -9,6 +9,17 @@ public class EnemyIconNode : MonoBehaviour
     [SerializeField] private string greyTrigger = "Grey";
     [SerializeField] private string restartTrigger = "Restart";
 
+    [SerializeField] private RectTransform rectTransform;
+    public RectTransform RectTransform => rectTransform;
+
+    private void Awake()
+    {
+        if (rectTransform == null)
+            rectTransform = GetComponent<RectTransform>();
+
+        LevelProgressBarSlider.TryRegisterBuildingIcon(this);
+    }
+
     // Called by LevelProgressBarSlider during build via static context.
     internal void TriggerGrey()
     {
@@ -37,8 +48,4 @@ public class EnemyIconNode : MonoBehaviour
     }
 
     // Self-register with whichever LevelProgressBarSlider is currently building.
-    private void Awake()
-    {
-        LevelProgressBarSlider.TryRegisterBuildingIcon(this);
-    }
 }

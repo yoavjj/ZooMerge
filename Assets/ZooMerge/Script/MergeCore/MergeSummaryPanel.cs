@@ -10,7 +10,6 @@ public class MergeSummaryPanel : MonoBehaviour
     [SerializeField] private TopBarMenu topBarMenu;
 
     [Header("Timing")]
-    [SerializeField] private float initialDelay = 0.35f;
     [SerializeField] private float itemSpawnDelay = 0.1f;
     [SerializeField] private float countAnimDuration = 0.4f;
 
@@ -21,7 +20,14 @@ public class MergeSummaryPanel : MonoBehaviour
     private Coroutine buildRoutine;
 
     private int totalCollectiblesPending = 0;
-    private System.Action onAllCollectiblesFinished;
+    public System.Action onAllCollectiblesFinished;
+
+    private bool waitingForOpenSignal = false;
+    private List<MergeSessionTracker.MergeCounterSnapshot> pendingSnapshot;
+
+    private bool isSummaryBusy = false;
+    public bool IsBusy => isSummaryBusy;
+    private int countersAnimating = 0;
 
     public void Build(List<MergeSessionTracker.MergeCounterSnapshot> snapshot)
     {
@@ -37,6 +43,8 @@ public class MergeSummaryPanel : MonoBehaviour
 
         // topBarMenu.PrepareTypes(typesToShow);
 
+        isSummaryBusy = true; // 🔒 BLOCK play button
+
         // ✅ Show ALL configured types, not just the ones in the snapshot
         List<BallType> allTypes = MergeSessionTracker.Instance
             .GetTypeConfigs()
@@ -50,15 +58,21 @@ public class MergeSummaryPanel : MonoBehaviour
         if (buildRoutine != null)
             StopCoroutine(buildRoutine);
 
-        buildRoutine = StartCoroutine(AnimateItemsRoutine(snapshot));
+        pendingSnapshot = snapshot;
+        buildRoutine = StartCoroutine(AnimateItemsRoutine_Part1(snapshot));
+
+        topBarMenu.BuildCoinUI();
     }
 
-    private IEnumerator AnimateItemsRoutine(List<MergeSessionTracker.MergeCounterSnapshot> snapshot)
+    private IEnumerator AnimateItemsRoutine_Part1(
+    List<MergeSessionTracker.MergeCounterSnapshot> snapshot)
     {
         var tracker = MergeSessionTracker.Instance;
         if (tracker == null) yield break;
 
-        // 🔹 1. Instantiate everything immediately (NO delay)
+        spawnedItems.Clear();
+
+        // 🔹 1. Instantiate everything immediately
         foreach (var snap in snapshot)
         {
             Sprite icon = tracker.GetIconForType(snap.type);
@@ -69,20 +83,34 @@ public class MergeSummaryPanel : MonoBehaviour
             if (go.TryGetComponent(out MergeCounterItem item))
             {
                 item.Initialize(icon);
-                item.SetCount(0); // ensure hidden start state
+                item.SetCount(0);
                 item.SetType(snap.type);
-                spawnedItems.Add(item);
-
-                // store target count on the item via closure
                 item.gameObject.SetActive(true);
+                spawnedItems.Add(item);
             }
         }
 
-        // 🔹 2. Wait for popup open animation
-        if (initialDelay > 0f)
-            yield return new WaitForSeconds(initialDelay);
+        // ⏸️ WAIT until animation event tells us to continue
+        waitingForOpenSignal = true;
+        while (waitingForOpenSignal)
+            yield return null;
 
-        // 🔹 3. Stagger ONLY the animation triggers
+        // Continue to phase 2
+        StartCoroutine(AnimateItemsRoutine_Part2(snapshot));
+    }
+
+    private IEnumerator AnimateItemsRoutine_Part2(
+        List<MergeSessionTracker.MergeCounterSnapshot> snapshot)
+    {
+        // ✅ If there are no items to animate, we're done immediately
+        if (spawnedItems.Count == 0)
+        {
+            isSummaryBusy = false;
+            onAllCollectiblesFinished?.Invoke();
+            buildRoutine = null;
+            yield break;
+        }
+
         for (int i = 0; i < spawnedItems.Count; i++)
         {
             var item = spawnedItems[i];
@@ -98,16 +126,26 @@ public class MergeSummaryPanel : MonoBehaviour
         buildRoutine = null;
     }
 
+
+    // 🎬 CALLED BY POPUP OPEN ANIMATION EVENT
+    public void OnPopupOpenAnimationFinished()
+    {
+        waitingForOpenSignal = false;
+    }
+
     private void HandleSummaryCountFinished(MergeCounterItem item)
     {
         // 🔒 Prevent duplicate spawning
         if (item.HasTriggeredCollectibles)
             return;
 
+
         item.MarkCollectiblesTriggered();
 
+        countersAnimating--;
+
         // ✅ Make sure the TopBar item exists
-        if (!topBarMenu.TryGetOrCreateItem(item.Type, out TopBarItemUI itemUI))
+        if (!topBarMenu.TryGetOrCreateItem(item.Type, out TopBarMergeItemUI itemUI))
             return;
 
         Vector2 targetScreen = itemUI.GetFlyTargetScreenPoint();
@@ -143,11 +181,11 @@ public class MergeSummaryPanel : MonoBehaviour
                 GameInventory.Instance.Add(item.Type, count);
                 topBarMenu.RefreshValue(item.Type);
 
-                // 👇 Count down and detect when all collectibles are done
                 totalCollectiblesPending--;
-                if (totalCollectiblesPending <= 0)
+
+                if (totalCollectiblesPending <= 0 && countersAnimating <= 0)
                 {
-                    //Debug.Log("✅ All collectibles finished flying.");
+                    isSummaryBusy = false; // ✅ SAFE TO CONTINUE
                     onAllCollectiblesFinished?.Invoke();
                 }
             }
@@ -167,6 +205,4 @@ public class MergeSummaryPanel : MonoBehaviour
 
         spawnedItems.Clear();
     }
-
-    public bool AreCollectiblesFlying => totalCollectiblesPending > 0;
 }

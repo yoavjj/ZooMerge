@@ -8,14 +8,20 @@ public class ParticleEffectPooler : MonoBehaviour
     {
         public string key;
         public GameObject prefab;
+        
+        public bool useRequestedPosition = true;   // true = move to requested position, false = stay at container
+        public Transform containerOverride;
     }
 
     [Header("Setup")]
     [SerializeField] private List<EffectEntry> effects;
     [SerializeField] private Transform poolContainer;
+    private Dictionary<string, Transform> containerLookup = new();
 
     private Dictionary<string, Queue<GameObject>> pool = new();
     private Dictionary<string, GameObject> prefabLookup = new();
+
+    private Dictionary<string, EffectEntry> entryLookup = new();
 
     private void OnEnable()
     {
@@ -35,6 +41,9 @@ public class ParticleEffectPooler : MonoBehaviour
             {
                 prefabLookup[e.key] = e.prefab;
                 pool[e.key] = new Queue<GameObject>();
+
+                // ✅ ADDED
+                entryLookup[e.key] = e;
             }
         }
     }
@@ -43,8 +52,15 @@ public class ParticleEffectPooler : MonoBehaviour
     {
         if (!prefabLookup.TryGetValue(key, out var prefab)) return;
 
-        var go = GetOrCreateFromPool(key, prefab);
-        go.transform.position = position;
+        // ✅ ADDED
+        entryLookup.TryGetValue(key, out var entry);
+
+        var go = GetOrCreateFromPool(key, prefab, entry);
+
+        // ✅ CHANGED: only move if allowed
+        if (entry == null || entry.useRequestedPosition)
+            go.transform.position = position;
+
         go.SetActive(true);
 
         float duration = 2f;
@@ -54,15 +70,27 @@ public class ParticleEffectPooler : MonoBehaviour
         StartCoroutine(DisableAfter(go, duration, key));
     }
 
-    private GameObject GetOrCreateFromPool(string key, GameObject prefab)
+    private GameObject GetOrCreateFromPool(string key, GameObject prefab, EffectEntry entry)
     {
         if (pool[key].Count > 0)
         {
-            return pool[key].Dequeue();
+            var go = pool[key].Dequeue();
+
+            // ✅ ADDED: ensure correct parent for this effect
+            var parent = (entry != null && entry.containerOverride != null)
+                ? entry.containerOverride
+                : (poolContainer != null ? poolContainer : transform);
+
+            go.transform.SetParent(parent, worldPositionStays: true);
+            return go;
         }
 
-        var parent = poolContainer != null ? poolContainer : transform;
-        return Instantiate(prefab, parent);
+        // ✅ CHANGED: use per-effect container if provided
+        var parentNew = (entry != null && entry.containerOverride != null)
+            ? entry.containerOverride
+            : (poolContainer != null ? poolContainer : transform);
+
+        return Instantiate(prefab, parentNew);
     }
 
     private System.Collections.IEnumerator DisableAfter(GameObject go, float delay, string key)

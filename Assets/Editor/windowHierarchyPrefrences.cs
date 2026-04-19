@@ -112,12 +112,19 @@ public class windowHierarchyPrefrences : EditorWindow
 		GUILayout.BeginVertical();
 		GUILayout.BeginVertical();
 		GUILayout.BeginHorizontal();
-		var runInPlayMode = EditorGUILayout.ToggleLeft("Run in Play mode", prefrences.runInPlayMode);
+		var runInPlayMode = EditorGUILayout.ToggleLeft(
+		new GUIContent("Run in Play mode", "If enabled, icons and toggles will appear during Play Mode"),
+		prefrences.runInPlayMode
+													);
 		if (runInPlayMode != prefrences.runInPlayMode)
 		{
 			prefrences.runInPlayMode = runInPlayMode;
 			prefrences.Save();
 			Hierarchy.Init();
+		}
+		if (EditorApplication.isPlaying && !prefrences.runInPlayMode)
+		{
+			EditorGUILayout.HelpBox("Icons are hidden during Play Mode. Enable 'Run in Play mode' to show them.", MessageType.Info);
 		}
 		var alignedLeft = EditorGUILayout.ToggleLeft("Left aligned components icons", prefrences.alignedLeft);
 		if (alignedLeft != prefrences.alignedLeft)
@@ -275,7 +282,7 @@ public class HierarchyPrefrences
 	private const string SAVE_KEY = "hierarchy_prefrences";
 	private static HierarchyPrefrences instance;
 
-	public bool runInPlayMode = false;
+	public bool runInPlayMode = true;
 
 	public bool alignedLeft = false;
 

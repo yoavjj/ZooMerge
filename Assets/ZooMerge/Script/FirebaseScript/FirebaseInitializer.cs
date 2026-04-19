@@ -10,17 +10,25 @@ using Newtonsoft.Json;
 [Serializable]
 public class MergeLevelData
 {
+    public List<GalaxyData> galaxies = new();
+}
+
+[Serializable]
+public class GalaxyData
+{
+    public int galaxyId;
+    public string name;
     public List<MergeLevel> levels = new();
 }
 
 [Serializable]
 public class MergeLevel
 {
-    public int level;
-    public string name;
+    // inside a galaxy (1..N)
+    public int index;
+    public int stageId;
     public List<EnemyData> enemy_data;
     public List<MergeScoreEntry> scores;
-    internal object enemies;
 }
 
 [Serializable]
@@ -28,12 +36,13 @@ public class EnemyData
 {
     public int id;
     public int health;
+    public int coins;
 }
 
 [Serializable]
 public class MergeScoreEntry
 {
-    public int level;
+    public int level;  // merge level (ball level) for scoring
     public int score;
 }
 
@@ -93,11 +102,11 @@ public static class FirebaseInitializer
     private static async Task InitializeRemoteConfig()
     {
         var defaults = new Dictionary<string, object>
-        {
-            { "base_merge_score", 2 },
-            { "score_multiplier", 1.0f },
-            { "merge_scores", "{\"levels\":[]}" } // Updated default JSON
-        };
+{
+        { "base_merge_score", 2 },
+        { "score_multiplier", 1.0f },
+        { "merge_levels", "{\"galaxies\":[]}" } // ✅ new default
+    };
 
         await FirebaseRemoteConfig.DefaultInstance.SetDefaultsAsync(defaults);
 
@@ -120,7 +129,7 @@ public static class FirebaseInitializer
             MergeScoreData = JsonConvert.DeserializeObject<MergeLevelData>(json);
             MergeLevelManager.Initialize(MergeScoreData);
 
-            Debug.Log($"✅ Loaded {MergeScoreData?.levels?.Count ?? 0} levels.");
+            Debug.Log($"✅ Loaded {MergeScoreData?.galaxies?.Count ?? 0} galaxies.");
         }
         catch (Exception e)
         {
@@ -149,7 +158,7 @@ public static class FirebaseInitializer
             MergeScoreData = JsonConvert.DeserializeObject<MergeLevelData>(json);
             MergeLevelManager.Initialize(MergeScoreData);
 
-            Debug.Log($"🔁 Refreshed: {MergeScoreData?.levels?.Count ?? 0} levels.");
+            Debug.Log($"🔁 Refreshed: {MergeScoreData?.galaxies?.Count ?? 0} galaxies.");
 
             onComplete?.Invoke();
         }
