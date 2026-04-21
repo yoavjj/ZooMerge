@@ -95,12 +95,19 @@ public class GameHealthManager : MonoBehaviour
 
                     if (MergeLevelManager.TryAdvanceEnemy())
                     {
+                        // ✅ analytics: mid-level completion (enemy segment finished)
+                        AnalyticsEvents.MidLevelComplete(MergeLevelManager.CurrentEnemyIndex - 1);
+
                         Debug.Log("✅ Enemy defeated! Preparing next enemy...");
                         ShowEnemyTransitionMessage();
                     }
                     else
                     {
                         Debug.Log("🏁 All enemies defeated! Level complete.");
+                        
+                        // ✅ analytics: full level/galaxy completion + duration
+                        AnalyticsEvents.GalaxyLevelComplete();
+
                         MergeLevelManager.MarkLevelCompletePending(); // flag to indicate level completion
                         BallEventManager.RaiseEnemySessionEnded();
 

@@ -39,6 +39,8 @@ public class PauseRestartPopup : MonoBehaviour
 
     public void OnMainMenuButtonPressed()
     {
+        AnalyticsEvents.MainMenuExit("pause_menu");
+
         // ✅ End session UI immediately
         BallEventManager.RaiseReturnToMainMenu();
 

@@ -88,6 +88,10 @@ public class PopupManager : MonoBehaviour
     private void HandleBallTouchedGameOverLine(BallInfo info)
     {
         isSessionActive = false;
+
+        // ✅ analytics: level ended by losing
+        AnalyticsEvents.LevelEnd("lost");
+        
         ShowEndLvlPopup(GameOverReason.Lost); // or whatever reason you want for this unique case
     }
 
@@ -239,6 +243,8 @@ public class PopupManager : MonoBehaviour
         InitializeProgressBarNow();
 
         beginSessionRoutine = null;
+
+        AnalyticsEvents_OnSessionStarted();
     }
 
     public void BeginSession(bool isNewLevel, bool restartmidlevel = false)
@@ -269,6 +275,8 @@ public class PopupManager : MonoBehaviour
         BallStateSaver.Instance.SaveState(BallRegistry.ActiveBalls.ToArray());
         BallEventManager.ResetMidLevelLossFlag();
         StartCoroutine(PromoteNextFrame());
+
+        AnalyticsEvents_OnSessionStarted();
     }
 
     private IEnumerator PromoteNextFrame()
@@ -364,6 +372,11 @@ public class PopupManager : MonoBehaviour
     public void WarmupSession()
     {
         ballSpawner?.WarmupPreview();
+    }
+
+    private void AnalyticsEvents_OnSessionStarted()
+    {
+        AnalyticsEvents.LevelStart("popup_manager_begin_session");
     }
 }
 

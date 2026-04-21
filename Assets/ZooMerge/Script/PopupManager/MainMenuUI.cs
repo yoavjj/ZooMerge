@@ -34,6 +34,7 @@ public class MainMenuUI : MonoBehaviour
 
     private void Start()
     {
+        AnalyticsEvents.MainMenuEnter("MainMenuUI.Start");
         StartCoroutine(BuildTopBarWhenReady());
     }
 
@@ -83,6 +84,8 @@ public class MainMenuUI : MonoBehaviour
 
         if (playPressedRoutine != null)
             StopCoroutine(playPressedRoutine);
+
+        AnalyticsEvents.MainMenuExit("play_pressed");
 
         playPressedRoutine = StartCoroutine(PlayPressedRoutine());
     }

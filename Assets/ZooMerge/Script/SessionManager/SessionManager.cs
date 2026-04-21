@@ -242,4 +242,14 @@ public class SessionManager : MonoBehaviour
         BallEventManager.RaiseEnemyDefeatedMidLevel();
         PopupManager.Instance?.ShowEnemyDefeatedMessage();
     }
+
+    private void OnApplicationPause(bool pause)
+    {
+        AnalyticsEvents.OnAppPaused(pause);
+    }
+
+    private void OnApplicationQuit()
+    {
+        AnalyticsEvents.OnAppQuit();
+    }
 }

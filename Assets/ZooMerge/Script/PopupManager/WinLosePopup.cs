@@ -251,6 +251,8 @@ public class WinLosePopup : MonoBehaviour
 
     public void OnMainMenuButtonPressed()
     {
+        AnalyticsEvents.MainMenuEnter("from_game");
+        
         PopupManager.Instance?.ConfirmReturnToMainMenu();
         animator.SetTrigger("Out");
         PlayContentOut();
@@ -272,6 +274,15 @@ public class WinLosePopup : MonoBehaviour
         }
 
         deferredAction = DeferredAction.None;
+
+        if (!fromLevelFlow)
+        {
+            AnalyticsEvents.LogRoadmapView(
+            !fromLevelFlow,
+            MergeLevelManager.CurrentGalaxyId.ToString(), // Convert to string if your Log method expects string
+            MergeLevelManager.CurrentLevelNumber
+        );
+        }
 
         // ✅ If we cached an instance but it got destroyed, clear it
         if (roadmapInstance == null)

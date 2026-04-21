@@ -210,7 +210,7 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
         // optional: small delay to let animation play
         yield return new WaitForSeconds(2.5f);
 
-        Destroy(gameObject);
+        Destroy(gameObject, 2.5f);
     }
 
     public void ClosePopup()

@@ -45,6 +45,9 @@ public class SplashScreenController : MonoBehaviour
 
     private IEnumerator Start()
     {
+
+        AnalyticsEvents.SessionStart();
+        
         startTime = Time.time;
         SetProgress(0f);
 

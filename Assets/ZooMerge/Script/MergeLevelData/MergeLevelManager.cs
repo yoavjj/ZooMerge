@@ -227,6 +227,9 @@ public static class MergeLevelManager
 
         // already at final galaxy final level
         // ✅ already at final galaxy final level -> LOOP back to start
+        
+        AnalyticsEvents.GameLoopCompleted();
+
         ResetLevel();
 
         RaiseLevelChanged();
