@@ -11,21 +11,45 @@ public class RemoteConfigEditor : EditorWindow
     private Vector2 scrollPos;
     private Dictionary<object, bool> foldouts = new Dictionary<object, bool>();
 
+    // This is the "ball" / toggle for cascading scores
+    private bool autoCascadeScores = true;
+
     [MenuItem("Tools/Remote Config Manager")]
     public static void ShowWindow() => GetWindow<RemoteConfigEditor>("Remote Config");
+
+    private string GetFilePath()
+    {
+        // This automatically maps to /Users/user/UnityProjects/ZooMerge/Assets/Editor/level.json
+        return Path.Combine(Application.dataPath, "Editor", "level.json");
+    }
 
     private void OnGUI()
     {
         GUILayout.Label("Noah's Ark - Level Balancer", EditorStyles.boldLabel);
 
-        if (GUILayout.Button("Load Current Editor Data", GUILayout.Height(30)))
-            levelData = FirebaseInitializer.MergeScoreData;
+        EditorGUILayout.BeginHorizontal();
+        if (GUILayout.Button("Load level.json", GUILayout.Height(30))) LoadFromFile();
+        if (GUILayout.Button("Save level.json", GUILayout.Height(30))) SaveToFile();
+        EditorGUILayout.EndHorizontal();
 
-        if (levelData == null)
+        if (levelData == null || levelData.galaxies == null)
         {
-            EditorGUILayout.HelpBox("Load data to start.", MessageType.Info);
+            EditorGUILayout.HelpBox("Click 'Load level.json' to open the file from your Editor folder.", MessageType.Info);
             return;
         }
+
+        GUILayout.Space(10);
+
+        // --- THE CASCADE TOGGLE UI ---
+        GUI.backgroundColor = autoCascadeScores ? Color.green : Color.white;
+        if (GUILayout.Button(autoCascadeScores ? "🟢 AUTO-CASCADE SCORES: ON" : "⚪ AUTO-CASCADE SCORES: OFF", GUILayout.Height(25)))
+        {
+            autoCascadeScores = !autoCascadeScores;
+        }
+        GUI.backgroundColor = Color.white;
+        EditorGUILayout.HelpBox(autoCascadeScores ? "When you edit a score, the difference will automatically be added to ALL subsequent scores in the game." : "Score edits will only affect the specific field you change.", MessageType.Info);
+
+        GUILayout.Space(10);
 
         scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
         for (int i = 0; i < levelData.galaxies.Count; i++)
@@ -37,14 +61,9 @@ public class RemoteConfigEditor : EditorWindow
             levelData.galaxies.Add(new GalaxyData { name = "New Galaxy", galaxyId = levelData.galaxies.Count + 1 });
 
         EditorGUILayout.EndScrollView();
-
-        if (GUILayout.Button("GENERATE & OPEN IN TEXT EDITOR", GUILayout.Height(40)))
-        {
-            ExportToJson();
-        }
     }
 
-    private void DrawGalaxy(GalaxyData galaxy, int index)
+    private void DrawGalaxy(GalaxyData galaxy, int gIndex)
     {
         EditorGUILayout.BeginVertical("helpbox");
         EditorGUILayout.BeginHorizontal();
@@ -65,7 +84,7 @@ public class RemoteConfigEditor : EditorWindow
             EditorGUI.indentLevel++;
             for (int j = 0; j < galaxy.levels.Count; j++)
             {
-                DrawLevel(galaxy.levels[j], j, galaxy);
+                DrawLevel(galaxy.levels[j], j, gIndex, galaxy);
             }
             if (GUILayout.Button("+ Add Level"))
                 galaxy.levels.Add(new MergeLevel { index = galaxy.levels.Count + 1 });
@@ -74,7 +93,7 @@ public class RemoteConfigEditor : EditorWindow
         EditorGUILayout.EndVertical();
     }
 
-    private void DrawLevel(MergeLevel level, int index, GalaxyData galaxy)
+    private void DrawLevel(MergeLevel level, int lIndex, int gIndex, GalaxyData galaxy)
     {
         EditorGUILayout.BeginVertical("box");
 
@@ -135,15 +154,23 @@ public class RemoteConfigEditor : EditorWindow
                 var score = level.scores[s];
                 EditorGUILayout.BeginHorizontal();
 
-                // Fixed width for "Ball Lvl:" label and field
                 GUILayout.Label("Ball Lvl:", GUILayout.Width(60));
                 score.level = EditorGUILayout.IntField(score.level, GUILayout.Width(60));
 
                 GUILayout.Space(10);
 
-                // Fixed width for "Score:" label and field
                 GUILayout.Label("Score:", GUILayout.Width(45));
+
+                // --- DETECT SCORE CHANGES FOR CASCADING ---
+                int oldScore = score.score;
                 score.score = EditorGUILayout.IntField(score.score, GUILayout.Width(60));
+
+                // If the score was changed, and cascade is turned on, run the logic
+                if (oldScore != score.score && autoCascadeScores)
+                {
+                    int difference = score.score - oldScore;
+                    ApplyCascade(gIndex, lIndex, s, difference);
+                }
 
                 if (GUILayout.Button("-", GUILayout.Width(20))) { level.scores.RemoveAt(s); break; }
                 GUILayout.FlexibleSpace();
@@ -154,6 +181,34 @@ public class RemoteConfigEditor : EditorWindow
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndVertical();
+    }
+
+    // --- CASCADING LOGIC ---
+    // --- CASCADING LOGIC ---
+    private void ApplyCascade(int startG, int startL, int targetScoreIndex, int delta)
+    {
+        for (int g = startG; g < levelData.galaxies.Count; g++)
+        {
+            var gal = levelData.galaxies[g];
+
+            // If we are in the edited galaxy, start cascading from the NEXT level (startL + 1).
+            // If we are in a future galaxy, start from the first level (0).
+            int lStart = (g == startG) ? startL + 1 : 0;
+
+            for (int l = lStart; l < gal.levels.Count; l++)
+            {
+                var lvl = gal.levels[l];
+
+                // Ensure this level actually has this Ball Lvl to prevent errors
+                if (lvl.scores != null && targetScoreIndex < lvl.scores.Count)
+                {
+                    // Only update the exact same Ball Lvl index!
+                    lvl.scores[targetScoreIndex].score += delta;
+                }
+            }
+        }
+        // Force the editor to repaint immediately so you see the numbers change
+        Repaint();
     }
 
     private void FillDefaultScores(MergeLevel level)
@@ -168,13 +223,41 @@ public class RemoteConfigEditor : EditorWindow
         };
     }
 
+    private void LoadFromFile()
+    {
+        string path = GetFilePath();
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            levelData = JsonConvert.DeserializeObject<MergeLevelData>(json);
+            Debug.Log($"Loaded level data directly from: {path}");
+        }
+        else
+        {
+            Debug.LogWarning($"File not found at {path}. Creating a new blank layout.");
+            levelData = new MergeLevelData { galaxies = new List<GalaxyData>() };
+        }
+    }
+
+    private void SaveToFile()
+    {
+        if (levelData == null) return;
+        string path = GetFilePath();
+
+        // Let Newtonsoft handle the standard pretty-print formatting automatically
+        string json = JsonConvert.SerializeObject(levelData, Formatting.Indented);
+
+        File.WriteAllText(path, json);
+
+        // Forces Unity to refresh and notice the file changed
+        AssetDatabase.Refresh();
+        Debug.Log($"Saved cleanly to: {path}");
+    }
+
     private void ExportToJson()
     {
+        // Standard pretty-print formatting here as well
         string json = JsonConvert.SerializeObject(levelData, Formatting.Indented);
-        json = Regex.Replace(json, @"(?<=\[)\s+(?=\{)", " ");
-        json = Regex.Replace(json, @"(?<=\})\s+(?=\])", " ");
-        json = Regex.Replace(json, @"(?<=\})\s*,\s*(?=\{)", ", ");
-        json = Regex.Replace(json, @"(?<=\{)\s+""(\w+)""\s*:\s*", "\"$1\":");
 
         string path = Path.Combine(Application.temporaryCachePath, "ark_levels.json");
         File.WriteAllText(path, json);

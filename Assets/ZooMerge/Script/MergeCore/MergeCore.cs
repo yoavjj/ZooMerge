@@ -1,5 +1,7 @@
 using Solo.MOST_IN_ONE;
 using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// Pure merge logic: only merges when SAME TYPE and SAME LEVEL,
@@ -8,6 +10,11 @@ using UnityEngine;
 public class MergeCore
 {
     private readonly IBallFactory factory;
+
+    // --- CACHE VARIABLES ---
+    private int cachedMaxLevel = -1;
+    private Dictionary<int, int> cachedScores;
+
     public MergeCore(IBallFactory factory) => this.factory = factory;
 
     private static float lastHapticTime = -1f;
@@ -16,10 +23,7 @@ public class MergeCore
     public bool TryMerge(BallInfo a, BallInfo b)
     {
         if (!CanMerge(a, b, out string reason))
-        {
-            //Debug.LogWarning($"❌ Merge failed: {reason}\n→ A: {FormatBall(a)}\n→ B: {FormatBall(b)}");
             return false;
-        }
 
         var mid = (a.transform.position + b.transform.position) * 0.5f;
         return TryMergeAt(a, b, new Vector3(mid.x, mid.y, mid.z));
@@ -43,110 +47,103 @@ public class MergeCore
         var rootB = GetInstanceRoot(b);
 
         var type = a.Type;
-        var nextLevel = a.Level + 1;
+        int currentLevel = a.Level;
+        int nextLevel = currentLevel + 1;
 
         factory.Despawn(rootA);
         factory.Despawn(rootB);
 
-        var spawned = BallFactoryAddressables.Instance.SpawnLevelWithRefs(type, nextLevel, spawnPos);
-        var merged = spawned.info;
-
-        if (merged != null)
+        // --- ONE-TIME CACHE INITIALIZATION ---
+        if (cachedMaxLevel == -1)
         {
-            var anim = BallFactoryAddressables.Instance.BallSet.GetAnimationForLevel(nextLevel);
+            CacheLevelData();
+        }
 
-            bool hasSpine = merged.Controller != null &&
-                            merged.Controller.Spine != null &&
-                            anim != null &&
-                            !string.IsNullOrEmpty(anim.mergeAnimation);
+        bool isFinalMerge = currentLevel >= cachedMaxLevel;
 
-            if (hasSpine)
+        // Fast O(1) dictionary lookup for the score
+        int score = cachedScores.TryGetValue(currentLevel, out int cachedScore)
+            ? cachedScore
+            : FirebaseInitializer.BaseMergeScore;
+
+        if (isFinalMerge)
+        {
+            // 🌟 MAX LEVEL BEHAVIOR: Pop and reward!
+            TryHapticOnMerge();
+            BallEventManager.RaiseMergeScore(spawnPos, score, level: currentLevel);
+            ParticleEvents.Request("merge", spawnPos);
+        }
+        else
+        {
+            // 🔄 NORMAL BEHAVIOR: Spawn the next level ball
+            var spawned = BallFactoryAddressables.Instance.SpawnLevelWithRefs(type, nextLevel, spawnPos);
+            var merged = spawned.info;
+
+            if (merged != null)
             {
-                // STEP A: Play intro / pop effect if you have one.
-                merged.Controller.PlayIntroMerged();
+                var anim = BallFactoryAddressables.Instance.BallSet.GetAnimationForLevel(nextLevel);
 
-                // STEP B: Play the merge animation (non‑looping).
-                merged.Controller.PlaySpine(anim.mergeAnimation, false);
+                bool hasSpine = merged.Controller != null &&
+                                merged.Controller.Spine != null &&
+                                anim != null &&
+                                !string.IsNullOrEmpty(anim.mergeAnimation);
 
-                // STEP C: Subscribe to completion to then play idle.
-                merged.Controller.Spine.AnimationState.Complete += OnComplete;
-
-                void OnComplete(Spine.TrackEntry entry)
+                if (hasSpine)
                 {
-                    if (entry.Animation != null && entry.Animation.Name == anim.mergeAnimation)
-                    {
-                        // Play idle with loop = true
-                        merged.Controller.PlaySpine(anim.idleAnimation, true);
+                    merged.Controller.PlayIntroMerged();
+                    merged.Controller.PlaySpine(anim.mergeAnimation, false);
+                    merged.Controller.Spine.AnimationState.Complete += OnComplete;
 
-                        // Unsubscribe
-                        merged.Controller.Spine.AnimationState.Complete -= OnComplete;
+                    void OnComplete(Spine.TrackEntry entry)
+                    {
+                        if (entry.Animation != null && entry.Animation.Name == anim.mergeAnimation)
+                        {
+                            merged.Controller.PlaySpine(anim.idleAnimation, true);
+                            merged.Controller.Spine.AnimationState.Complete -= OnComplete;
+                        }
                     }
                 }
+                else
+                {
+                    merged.Controller?.PlayIntroMerged();
+                }
+
+                BallEventManager.RaiseBallMerged(merged);
+                TryHapticOnMerge();
+                BallEventManager.RaiseMergeScore(spawnPos, score, level: currentLevel);
+                ParticleEvents.Request("merge", spawnPos);
             }
-            else
-            {
-                // Fallback path if no spine animation exists.
-                merged.Controller?.PlayIntroMerged();
-            }
-
-            // Raise events, scoring, etc
-            BallEventManager.RaiseBallMerged(merged);
-
-            // ✅ Trigger subtle haptic with cooldown
-            TryHapticOnMerge();
-
-            int score = MergeLevelManager.GetCurrentLevel().scores
-                ?.Find(s => s.level == a.Level)?.score
-                ?? FirebaseInitializer.BaseMergeScore;
-
-            BallEventManager.RaiseMergeScore(spawnPos, score, level: a.Level);
-            ParticleEvents.Request("merge", spawnPos);
         }
 
         return true;
     }
 
+    private void CacheLevelData()
+    {
+        var currentStageScores = MergeLevelManager.GetCurrentLevel()?.scores;
+
+        if (currentStageScores != null && currentStageScores.Count > 0)
+        {
+            cachedMaxLevel = currentStageScores.Max(s => s.level);
+            // Convert the list into a fast lookup dictionary
+            cachedScores = currentStageScores.ToDictionary(s => s.level, s => s.score);
+        }
+        else
+        {
+            cachedMaxLevel = 5; // Safe fallback
+            cachedScores = new Dictionary<int, int>();
+        }
+    }
 
     private static bool CanMerge(BallInfo a, BallInfo b, out string reason)
     {
         reason = "";
-
-        if (a == null || b == null)
-        {
-            reason = "One or both balls are null";
-            return false;
-        }
-
-        if (a == b)
-        {
-            reason = "Attempting to merge a ball with itself";
-            return false;
-        }
-
-        if (a.IsMerging || b.IsMerging)
-        {
-            reason = "One or both balls are already merging";
-            return false;
-        }
-
-        if (!a.IsMergeReady || !b.IsMergeReady)
-        {
-            reason = "One or both balls are not merge-ready";
-            return false;
-        }
-
-        if (a.Level != b.Level)
-        {
-            reason = $"Levels don't match (A: {a.Level}, B: {b.Level})";
-            return false;
-        }
-
-        if (a.Type != b.Type)
-        {
-            reason = $"Types don't match (A: {a.Type}, B: {b.Type})";
-            return false;
-        }
-
+        if (a == null || b == null) { reason = "One or both balls are null"; return false; }
+        if (a == b) { reason = "Attempting to merge a ball with itself"; return false; }
+        if (a.IsMerging || b.IsMerging) { reason = "One or both balls are already merging"; return false; }
+        if (!a.IsMergeReady || !b.IsMergeReady) { reason = "One or both balls are not merge-ready"; return false; }
+        if (a.Level != b.Level) { reason = $"Levels don't match (A: {a.Level}, B: {b.Level})"; return false; }
+        if (a.Type != b.Type) { reason = $"Types don't match (A: {a.Type}, B: {b.Type})"; return false; }
         return true;
     }
 
@@ -157,11 +154,8 @@ public class MergeCore
 
     private static void TryHapticOnMerge()
     {
-        if (!MOST_HapticFeedback.HapticsEnabled)
-            return;
-
+        if (!MOST_HapticFeedback.HapticsEnabled) return;
         float time = Time.unscaledTime;
-
         if (time - lastHapticTime >= hapticCooldown)
         {
             MOST_HapticFeedback.Generate(MOST_HapticFeedback.HapticTypes.LightImpact);
