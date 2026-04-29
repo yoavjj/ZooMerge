@@ -10,6 +10,12 @@ public class GameHealthManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private AnimationCurve sliderEase = AnimationCurve.Linear(0, 0, 1, 1);
 
+#if UNITY_EDITOR
+    [Header("DEBUG (Editor Only)")]
+    [SerializeField] private bool debugOverrideHealth = false;
+    [SerializeField] private int debugHealthValue = 1;
+#endif
+
     private GameObject activeMissZoneInstance;
 
     private HealthTween healthTween;
@@ -30,6 +36,11 @@ public class GameHealthManager : MonoBehaviour
         // ✅ Use current level data instead of global enemy_health
         var currentLevel = MergeLevelManager.GetCurrentLevel();
         currentHealth = MergeLevelManager.GetCurrentEnemyHealth();
+
+#if UNITY_EDITOR
+        if (debugOverrideHealth)
+            currentHealth = Mathf.Max(0, debugHealthValue);
+#endif
 
         // ✅ Setup UI slider
         healthSlider.minValue = 0f;
@@ -93,6 +104,8 @@ public class GameHealthManager : MonoBehaviour
                     sessionEnded = true;
                     isAnimatingToZero = false;
 
+                    StartCoroutine(StopAndDestroyGameOverBallsAfterWin(3f));
+
                     if (MergeLevelManager.TryAdvanceEnemy())
                     {
                         // ✅ analytics: mid-level completion (enemy segment finished)
@@ -104,11 +117,13 @@ public class GameHealthManager : MonoBehaviour
                     else
                     {
                         Debug.Log("🏁 All enemies defeated! Level complete.");
-                        
-                        // ✅ analytics: full level/galaxy completion + duration
+
+                        // ✅ If a loss already happened, don't continue the win flow
+                        if (BallEventManager.IsGameOver) return;
+
                         AnalyticsEvents.GalaxyLevelComplete();
 
-                        MergeLevelManager.MarkLevelCompletePending(); // flag to indicate level completion
+                        MergeLevelManager.MarkLevelCompletePending();
                         BallEventManager.RaiseEnemySessionEnded();
 
                         BallEventManager.RaiseGameOver(null, GameOverReason.Won);
@@ -116,6 +131,35 @@ public class GameHealthManager : MonoBehaviour
                     }
                 }
             });
+    }
+
+    private IEnumerator StopAndDestroyGameOverBallsAfterWin(float delay)
+    {
+        // 1) stop countdown immediately
+        var toDestroy = new System.Collections.Generic.List<BallInfo>();
+
+        foreach (var ball in BallRegistry.ActiveBalls)
+        {
+            if (ball == null) continue;
+
+            var dc = ball.DropController;
+            if (dc != null && dc.IsTouchingGameOver)
+            {
+                dc.CancelGameOverCountdown();
+                toDestroy.Add(ball);
+            }
+        }
+
+        // 2) wait (so win popup/anim can play)
+        yield return new WaitForSeconds(delay);
+
+        // 3) destroy them
+        foreach (var ball in toDestroy)
+        {
+            if (ball == null) continue;
+            BallRegistry.Unregister(ball);
+            Destroy(ball.gameObject);
+        }
     }
 
     private void ShowEnemyTransitionMessage()
@@ -160,6 +204,11 @@ public class GameHealthManager : MonoBehaviour
         var currentLevel = MergeLevelManager.GetCurrentLevel();
         currentHealth = MergeLevelManager.GetCurrentEnemyHealth();
 
+#if UNITY_EDITOR
+        if (debugOverrideHealth)
+            currentHealth = Mathf.Max(0, debugHealthValue);
+#endif
+
         // ✅ Hardcode the slider to always animate from 0.2 to 1
         float fromSlider = 0f;
         int fromHealth = Mathf.RoundToInt(currentHealth * fromSlider); // optional, could be 0
@@ -196,4 +245,21 @@ public class GameHealthManager : MonoBehaviour
         float normalized = Mathf.Clamp01((float)health / MergeLevelManager.GetCurrentEnemyHealth());
         return Mathf.Lerp(minVisual, 1f, normalized);
     }
+
+#if UNITY_EDITOR
+    [ContextMenu("DEBUG/Set Enemy HP To Debug Value Now")]
+    private void Debug_SetHpNow()
+    {
+        currentHealth = Mathf.Max(0, debugHealthValue);
+        isAnimatingToZero = false;
+        sessionEnded = false;
+
+        // Update UI instantly
+        UpdateHealthText();
+        if (healthSlider != null)
+            healthSlider.value = NormalizeHealthToSlider(currentHealth);
+
+        Debug.Log($"[DEBUG] Enemy HP forced to {currentHealth}");
+    }
+#endif
 }

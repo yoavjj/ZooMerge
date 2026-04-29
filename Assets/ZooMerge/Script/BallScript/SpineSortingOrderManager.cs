@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 public static class SpineSortingOrderManager
 {
@@ -33,6 +34,14 @@ public static class SpineSortingOrderManager
         }
     }
 
+    public static void ClaimOrder(int order)
+    {
+        usedOrders.Add(order);
+
+        // Keep currentMax updated so we don't accidentally reuse this number later
+        currentMax = Mathf.Max(currentMax, order);
+    }
+    
     public static void ResetAll()
     {
         usedOrders.Clear();

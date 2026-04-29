@@ -361,13 +361,20 @@ public class WinLosePopup : MonoBehaviour
 
     public void OnPlayPressed()
     {
+        // 1. Check if the button has already been pressed successfully
+        if (playPressedLocked)
+            return;
+
         if (IsSummaryBusy())
         {
             deferredAction = DeferredAction.PlayPressed; // last wins
             return;
         }
 
-        deferredAction = DeferredAction.None; // optional: clear if you want
+        // 2. Lock the button so it cannot be pressed again
+        playPressedLocked = true;
+
+        deferredAction = DeferredAction.None; // clear if you want
         HandleContinue();
 
         if (!IsNewLevel())
@@ -377,6 +384,7 @@ public class WinLosePopup : MonoBehaviour
         }
 
         StartNextLevelFlow();
+        OnWinLoseClosed?.Invoke();
     }
 
     private bool IsSummaryBusy()
@@ -424,7 +432,7 @@ public class WinLosePopup : MonoBehaviour
 
         PlayContentOut();
         animator?.SetTrigger("Out");
-        Destroy(gameObject, 1.5f);
+        Destroy(gameObject, 2.5f);
     }
 
     private void StartNextLevelFlow()
@@ -503,7 +511,7 @@ public class WinLosePopup : MonoBehaviour
         if (!isGalaxyEnd && keepRevealInactiveWhenIdle && levelArtRevealInstance != null)
             levelArtRevealInstance.gameObject.SetActive(false);
 
-        Destroy(gameObject, 4.8f);
+        Destroy(gameObject, 6f);
         playPressedRoutine = null;
     }
 

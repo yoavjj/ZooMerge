@@ -11,6 +11,9 @@ public class BallStateSaver
 
     public void SaveState(BallInfo[] balls)
     {
+        // ✅ NEW: remove "danger" balls before saving mid-level state
+        DestroyBallsTouchingGameOver();
+
         BallRegistry.SaveState(balls);
 
         if (MergeSessionTracker.Instance != null)
@@ -36,5 +39,26 @@ public class BallStateSaver
     {
         // Only clears the saved list, doesn't touch live scene balls
         BallRegistry.Clear();
+    }
+
+    private void DestroyBallsTouchingGameOver()
+    {
+        var toDestroy = new List<BallInfo>();
+
+        foreach (var ball in BallRegistry.ActiveBalls)
+        {
+            if (ball == null) continue;
+
+            var dc = ball.DropController;
+            if (dc != null && dc.IsTouchingGameOver)
+                toDestroy.Add(ball);
+        }
+
+        foreach (var ball in toDestroy)
+        {
+            BallRegistry.Unregister(ball);   // keep registry clean
+            if (ball != null)
+                Object.Destroy(ball.gameObject);
+        }
     }
 }

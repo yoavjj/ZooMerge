@@ -45,12 +45,14 @@ public class ScorePopupInstance : MonoBehaviour
     private void OnEnable()
     {
         BallEventManager.OnEnemySessionEnded += HandleEnemySessionEndedGlobal;
+        BallEventManager.OnBallTouchedGameOverLine += HandleBallTouchedGameOverLine;
         BallEventManager.OnEnemyDefeatImminent += HandleEnemyDefeatImminent;
     }
 
     private void OnDisable()
     {
         BallEventManager.OnEnemySessionEnded -= HandleEnemySessionEndedGlobal;
+        BallEventManager.OnBallTouchedGameOverLine -= HandleBallTouchedGameOverLine;
         BallEventManager.OnEnemyDefeatImminent -= HandleEnemyDefeatImminent;
 
         if (flyRoutine != null) StopCoroutine(flyRoutine);
@@ -242,6 +244,11 @@ public class ScorePopupInstance : MonoBehaviour
         yield return new WaitForSeconds(delay);
         InUse = false;
         onComplete?.Invoke(this);
+    }
+
+    private void HandleBallTouchedGameOverLine(BallInfo _)
+    {
+        HandleEnemySessionEndedGlobal(); // calls CancelAndReturn()
     }
 
     private void HandleEnemySessionEndedGlobal()

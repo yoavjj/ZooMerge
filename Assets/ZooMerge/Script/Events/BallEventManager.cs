@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Linq;
+using NUnit.Framework;
 
 /// <summary>
 /// Central manager for all game-wide merge/ball/enemy-related events.
@@ -23,7 +24,10 @@ public static class BallEventManager
 
     public static void RaiseSessionStarted()
     {
+        IsGameOver = false;
+        IsGameOverCountdownActive = false;
         SetMergesBlocked(false);
+        ResetEndLock();
         OnSessionStarted?.Invoke();
     }
     public static void RaiseSessionWonAnimation() => OnSessionWonAnimation?.Invoke();
@@ -82,6 +86,10 @@ public static class BallEventManager
 
     public static void RaiseEnemySessionEnded()
     {
+        // ✅ If the session already ended (Lost or Won), don't run enemy-end flow.
+        // This prevents late win-side effects after a loss popup already started.
+        if (endLocked || IsGameOver) return;
+
         SetMergesBlocked(true);
         OnEnemySessionEnded?.Invoke();
     }
@@ -90,6 +98,43 @@ public static class BallEventManager
     // 📌 Game Over
     /// <summary>Fired when the game ends (won or lost).</summary>
     /// 
+
+    private static bool endLocked = false;
+    private static GameOverReason endReason = GameOverReason.Unknown;
+
+    public static bool TryLockEnd(GameOverReason reason)
+    {
+        if (endLocked) return false;
+        endLocked = true;
+        endReason = reason;
+        return true;
+    }
+
+    public static void ResetEndLock()
+    {
+        endLocked = false;
+        endReason = GameOverReason.Unknown;
+    }
+
+    public static event Action<BallInfo> OnBallGameOverSaved;
+
+    public static event Action<BallInfo, float> OnBallGameOverAlertStarted;
+
+    public static void RaiseBallGameOverAlertStarted(BallInfo info, float countdownSeconds)
+    {
+        IsGameOverCountdownActive = true;
+        OnBallGameOverAlertStarted?.Invoke(info, countdownSeconds);
+    }
+
+    public static void RaiseBallGameOverSaved(BallInfo info)
+    {
+        // We’ll clear this when ALL balls are saved (see bridge below),
+        // but we can also clear it if you only ever allow one ball at a time.
+        IsGameOverCountdownActive = false;
+        OnBallGameOverSaved?.Invoke(info);
+    }
+
+    public static bool IsGameOverCountdownActive { get; private set; } = false;
 
     public static bool IsGameOver { get; private set; } = false;
     public static bool WasMidLevelLoss { get; private set; }
@@ -102,7 +147,12 @@ public static class BallEventManager
 
     public static void RaiseGameOver(BallInfo info, GameOverReason reason)
     {
+        // ✅ Only first end wins
+        if (!TryLockEnd(reason)) return;
+
         SetMergesBlocked(true);
+        IsGameOver = true;
+
         OnGameOver?.Invoke(info, reason);
         OnGameOverAnimation?.Invoke();
     }
@@ -111,6 +161,14 @@ public static class BallEventManager
 
     public static void RaiseBallTouchedGameOverLine(BallInfo info, GameOverReason reason)
     {
+        // ✅ if already ended (won or lost), don't do anything
+        if (IsGameOver) return;
+
+        if (!TryLockEnd(reason)) return;
+
+        IsGameOverCountdownActive = false;
+        IsGameOver = true;
+
         SetMergesBlocked(true);
         OnGameOver?.Invoke(info, reason);
         OnGameOverAnimation?.Invoke();

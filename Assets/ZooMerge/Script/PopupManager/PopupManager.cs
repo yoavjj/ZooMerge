@@ -66,12 +66,20 @@ public class PopupManager : MonoBehaviour
     {
         BallEventManager.OnBallTouchedGameOverLine += HandleBallTouchedGameOverLine;
         WinLosePopup.OnWinLoseClosed += UnlockEndPopup;
+
+        BallEventManager.OnSessionStarted += HandleSessionStarted;
+        BallEventManager.OnReturnToMainMenu += HandleReturnToMainMenu;
+        BallEventManager.OnGameOver += HandleSessionOver;
     }
 
     private void OnDisable()
     {
         BallEventManager.OnBallTouchedGameOverLine -= HandleBallTouchedGameOverLine;
         WinLosePopup.OnWinLoseClosed -= UnlockEndPopup;
+
+        BallEventManager.OnSessionStarted -= HandleSessionStarted;
+        BallEventManager.OnReturnToMainMenu -= HandleReturnToMainMenu;
+        BallEventManager.OnGameOver -= HandleSessionOver;
 
         if (winLosePopupRoutine != null) { StopCoroutine(winLosePopupRoutine); winLosePopupRoutine = null; }
     }
@@ -95,15 +103,11 @@ public class PopupManager : MonoBehaviour
         ShowEndLvlPopup(GameOverReason.Lost); // or whatever reason you want for this unique case
     }
 
-    private void HandleGameOver(BallInfo info, GameOverReason reason)
-    {
-        isSessionActive = false;
-        ShowEndLvlPopup(reason);
-    }
-
     public void ShowPauseRestartPopup()
     {
         if (BallEventManager.PauseBlocked) return;
+
+        if (BallEventManager.IsGameOverCountdownActive) return;
         
         if (MergeScoreDisplayController.Instance != null &&
             MergeScoreDisplayController.Instance.HasActiveScorePopups)
@@ -255,7 +259,7 @@ public class PopupManager : MonoBehaviour
         AdManager.Instance?.LoadBanner();
 
         // ✅ Ensure no duplicate enemy exists
-        EnemySpawner.Instance?.ClearEnemy();
+        EnemySpawner.Instance?.ClearEnemy(delay: 0.2f);
 
         // Clean up any hanging preview or active ball
         CircleDragInput.Instance?.ClearSpawnContainer();
@@ -324,6 +328,11 @@ public class PopupManager : MonoBehaviour
     private void HandleSessionStarted()
     {
         isSessionActive = true;
+    }
+
+    private void HandleSessionOver(BallInfo info, GameOverReason reason)
+    {
+        isSessionActive = false;
     }
 
     private void HandleReturnToMainMenu()
