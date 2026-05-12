@@ -5,6 +5,7 @@ using Firebase;
 using Firebase.Extensions;
 using Firebase.RemoteConfig;
 using Firebase.Analytics;
+using Firebase.Auth;
 using UnityEngine;
 using Newtonsoft.Json;
 
@@ -60,6 +61,8 @@ public static class FirebaseInitializer
 
     public static MergeLevelData MergeScoreData { get; private set; } = new();
 
+    public static string UserId { get; private set; }
+
     public static void WaitForFirebase(Action onReady, Action<string> onError = null)
     {
         if (IsReady)
@@ -87,18 +90,49 @@ public static class FirebaseInitializer
                 return;
             }
 
-            Debug.Log("✅ Firebase dependencies resolved. Initializing Remote Config...");
+            // --- NEW: ANONYMOUS AUTH ---
+            try
+            {
+                var auth = FirebaseAuth.DefaultInstance;
+
+                // ✅ Reuse existing session if available
+                if (auth.CurrentUser != null)
+                {
+                    UserId = auth.CurrentUser.UserId;
+                }
+                else
+                {
+                    var result = await auth.SignInAnonymouslyAsync();
+                    UserId = result.User.UserId;
+
+                    // only “new persona” logic belongs here (only when we actually created a new user)
+                    if (result.User.Metadata.CreationTimestamp == result.User.Metadata.LastSignInTimestamp)
+                        AnalyticsEvents.SetInitialUserPersona(UserId);
+                }
+
+                // Cache for display/debug if you want (does not restore auth by itself)
+                PlayerPrefs.SetString("CachedUserId", UserId);
+                PlayerPrefs.Save();
+
+                // Set the ID in Analytics so all events are linked to this persona
+                FirebaseAnalytics.SetUserId(UserId);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Auth failed, but continuing: {e.Message}");
+            }
+            // ---------------------------
 
             await InitializeRemoteConfig();
             IsReady = true;
 
             FirebaseAnalytics.SetAnalyticsCollectionEnabled(true);
 
+            AnalyticsEvents.SessionStart();
+
             foreach (var a in onReadyQueue) a?.Invoke();
             onReadyQueue.Clear();
             onErrorQueue.Clear();
-
-            Debug.Log("🔥 Firebase + Remote Config Ready");
         });
     }
 

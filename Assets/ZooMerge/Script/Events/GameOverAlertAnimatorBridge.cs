@@ -178,6 +178,10 @@ public class GameOverAlertAnimatorBridge : MonoBehaviour
         touchingBalls.Clear();
         StopCountdown();
 
+        // ✅ Force both animators back to "Saved" state so Alert can't stay stuck
+        TriggerSaved(alertAnimator);
+        TriggerSaved(timerAnimator);
+
         if (timerText != null)
             timerText.text = "00:00";
     }

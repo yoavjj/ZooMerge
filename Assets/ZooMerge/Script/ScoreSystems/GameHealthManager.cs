@@ -10,11 +10,9 @@ public class GameHealthManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private AnimationCurve sliderEase = AnimationCurve.Linear(0, 0, 1, 1);
 
-#if UNITY_EDITOR
     [Header("DEBUG (Editor Only)")]
     [SerializeField] private bool debugOverrideHealth = false;
     [SerializeField] private int debugHealthValue = 1;
-#endif
 
     private GameObject activeMissZoneInstance;
 
@@ -122,6 +120,7 @@ public class GameHealthManager : MonoBehaviour
                         if (BallEventManager.IsGameOver) return;
 
                         AnalyticsEvents.GalaxyLevelComplete();
+                        CloudSaveManager.AddGalaxyLevelComplete();
 
                         MergeLevelManager.MarkLevelCompletePending();
                         BallEventManager.RaiseEnemySessionEnded();
@@ -246,20 +245,14 @@ public class GameHealthManager : MonoBehaviour
         return Mathf.Lerp(minVisual, 1f, normalized);
     }
 
-#if UNITY_EDITOR
-    [ContextMenu("DEBUG/Set Enemy HP To Debug Value Now")]
-    private void Debug_SetHpNow()
+    public void Debug_SetHpNow()
     {
         currentHealth = Mathf.Max(0, debugHealthValue);
         isAnimatingToZero = false;
         sessionEnded = false;
 
-        // Update UI instantly
         UpdateHealthText();
         if (healthSlider != null)
             healthSlider.value = NormalizeHealthToSlider(currentHealth);
-
-        Debug.Log($"[DEBUG] Enemy HP forced to {currentHealth}");
     }
-#endif
 }

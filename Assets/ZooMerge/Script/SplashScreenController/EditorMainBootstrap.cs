@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class EditorMainBootstrap : MonoBehaviour
@@ -6,19 +7,42 @@ public class EditorMainBootstrap : MonoBehaviour
     [Header("Assign the same prefab you use in Splash")]
     [SerializeField] private AdManager adManagerPrefab;
 
-    private void Awake()
+    private IEnumerator Start()
     {
-        // If you pressed Play from Main, Firebase might not have been kicked off yet.
+        // 1) Local fast resume (same as Splash)
+        GameInventory.Instance.LoadFromPrefs();
+
+        int g = PlayerPrefs.GetInt("PROG_LastGalaxyId", 1);
+        int l = PlayerPrefs.GetInt("PROG_LastLevelInGalaxy", 1);
+        MergeLevelManager.SetProgress(g, l);
+
+        // 2) Ensure AdManager exists (ATTRequest is on the same prefab)
+        if (adManagerPrefab != null && AdManager.Instance == null)
+            Instantiate(adManagerPrefab);
+
+        // 3) Firebase + RemoteConfig + MergeLevelManager.Initialize happens inside FirebaseInitializer
+        bool firebaseReady = false;
         FirebaseInitializer.WaitForFirebase(
-            onReady: () => { },
-            onError: err => Debug.LogError($"[EditorMainBootstrap] Firebase failed: {err}")
+            onReady: () => { firebaseReady = true; },
+            onError: err =>
+            {
+                Debug.LogError($"[EditorMainBootstrap] Firebase failed: {err}");
+                firebaseReady = true; // still continue offline
+            }
         );
 
-        // Ensure AdManager exists (ATTRequest is on the same prefab)
-        if (adManagerPrefab != null && AdManager.Instance == null)
-        {
-            Instantiate(adManagerPrefab);
-        }
+        // Wait until Firebase is ready (and JSON is parsed/initialized inside FirebaseInitializer)
+        while (!firebaseReady)
+            yield return null;
+
+        // 4) Now sync progress from Firestore (same idea as Splash)
+        bool synced = false;
+        CloudSaveManager.SyncProgressFromCloud(() => synced = true);
+
+        while (!synced)
+            yield return null;
+
+        Debug.Log("[EditorMainBootstrap] Boot complete (local + firebase + cloud progress sync).");
     }
 #endif
 }

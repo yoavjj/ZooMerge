@@ -225,7 +225,7 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
     {
         if (galaxyProgress == null) return;
 
-        galaxyProgress.SetCompletedProgress(cachedCompleted, cachedTotal, animate: true);
+        galaxyProgress.SetCompletedProgress(cachedCompleted, cachedTotal, animate: true, updateTexts: false);
 
         // ✅ IMPORTANT — same as working script
         galaxyProgress.OnAnimationComplete = null;

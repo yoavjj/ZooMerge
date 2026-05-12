@@ -42,6 +42,11 @@ public class TopBarCoinItemUI : TopBarCurrencyItemUI
     // 🔔 CALLED BY ANIMATION EVENT
     public void ApplyAddCoins()
     {
+        // 1) Update Inventory FIRST (source of truth)
+        if (pendingAddAmount > 0)
+            GameInventory.Instance.Add(CurrencyType.Coins, pendingAddAmount);
+
+        // 2) Then update the UI
         count = targetCount;
         pendingAddAmount = 0;
 

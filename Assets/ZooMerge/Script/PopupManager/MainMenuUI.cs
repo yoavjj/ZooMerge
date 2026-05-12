@@ -80,6 +80,9 @@ public class MainMenuUI : MonoBehaviour
         if (playButton != null)
             playButton.interactable = false; // prevents spam + extra work
 
+        // ⏱️ Start the cloud save stopwatch!
+        CloudSaveManager.StartPlayTimer();
+
         mainMenuAnimator.SetTrigger("Out");
 
         if (playPressedRoutine != null)
@@ -111,5 +114,14 @@ public class MainMenuUI : MonoBehaviour
         PopupManager.Instance?.InitializeProgressBarNow();
 
         Destroy(gameObject, 2.5f);
+    }
+
+    public void ForceRefreshProgressUIAndCache()
+    {
+        // Refresh any level art / display
+        levelArtController?.Refresh();
+
+        // Re-cache which level should start when Play is pressed
+        CacheSessionStartData();
     }
 }

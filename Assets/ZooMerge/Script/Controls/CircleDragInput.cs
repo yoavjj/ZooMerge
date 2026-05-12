@@ -47,6 +47,10 @@ public class CircleDragInput : MonoBehaviour,
     [SerializeField] private GameObject screenBlocker; // full-screen UI panel (raycast target ON)
     [SerializeField] private bool blockOnSessionEnd = true;
 
+    [SerializeField] private float minTimeBetweenDrops = 0.12f; // tweak (0.08–0.15 feels good)
+    private float nextAllowedDropTime = 0f;
+    private bool pendingDrop = false;
+
     #endregion
 
     #region Runtime State
@@ -361,7 +365,7 @@ public class CircleDragInput : MonoBehaviour,
         if (Time.unscaledTime - pointerDownTime < minPressTimeBeforeDrop) return;
 
         dragSmoother.Reset();
-        DropAndSpawn();
+        RequestDrop();
     }
 
     #endregion
@@ -666,5 +670,25 @@ public class CircleDragInput : MonoBehaviour,
 
         // optional: clear hover visuals
         shipRayMarker?.DisableHighlight();
+    }
+
+    private void RequestDrop()
+    {
+        // If we’re still within the “too fast” window, queue it (no re-press needed)
+        if (Time.unscaledTime < nextAllowedDropTime)
+        {
+            pendingDrop = true;
+            return;
+        }
+
+        DoDropNow();
+    }
+
+    private void DoDropNow()
+    {
+        nextAllowedDropTime = Time.unscaledTime + minTimeBetweenDrops;
+        pendingDrop = false;
+
+        DropAndSpawn();
     }
 }

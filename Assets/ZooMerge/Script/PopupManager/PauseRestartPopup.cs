@@ -9,12 +9,16 @@ public class PauseRestartPopup : MonoBehaviour
     {
         BallEventManager.OnGameOver += HandleGameOver;
         BallEventManager.OnEnemySessionEnded += HandleEnemySessionEnded;
+
+        PopupManager.OnForceClosePausePopup += CloseFromSystem;
     }
 
     private void OnDisable()
     {
         BallEventManager.OnGameOver -= HandleGameOver;
         BallEventManager.OnEnemySessionEnded -= HandleEnemySessionEnded;
+
+        PopupManager.OnForceClosePausePopup -= CloseFromSystem;
     }
 
     private void HandleGameOver(BallInfo _, GameOverReason __)
@@ -35,6 +39,11 @@ public class PauseRestartPopup : MonoBehaviour
         animator.SetTrigger("Out");
         Destroy(gameObject, 1f);
         PopupManager.Instance.ClearPausePopupReference();
+    }
+
+    public void CloseFromSystem()
+    {
+        Destroy(gameObject, 1f);
     }
 
     public void OnMainMenuButtonPressed()

@@ -464,6 +464,7 @@ public class WinLosePopup : MonoBehaviour
 
                 // Advance level only after reveal is done showing
                 MergeLevelManager.AdvanceLevel();
+                PlayerProgress.CaptureFromManagers();
                 BallEventManager.RaiseResetCounters(keepUI: false);
                 levelArtRevealInstance.updateProgressBarSlider();
             }
@@ -483,6 +484,7 @@ public class WinLosePopup : MonoBehaviour
 
             // ✅ 2. THEN advance level
             MergeLevelManager.AdvanceLevel();
+            PlayerProgress.CaptureFromManagers();
             BallEventManager.RaiseResetCounters(keepUI: false);
         }
 
@@ -642,6 +644,23 @@ public class WinLosePopup : MonoBehaviour
 
         playButtonAnimator.ResetTrigger(readyTrigger);
         playButtonAnimator.SetTrigger(readyTrigger);
+
+        if (currentReason == GameOverReason.Won)
+        {
+            MergeLevelManager.PeekNextProgress(out int nextG, out int nextL);
+            PlayerProgress.SetResumePoint(nextG, nextL);
+        }
+        else
+        {
+            // optional: keep resume point as current when lost
+            PlayerProgress.CaptureFromManagers();
+        }
+
+        // ☁️ THE PERFECT CLOUD SAVE:
+        // The coins are in the inventory, and the animations are done.
+        // We pass 'levelCompleteContext' to tell the save manager if it should 
+        // keep accumulating merges (false) or reset its memory for a new level (true).
+        CloudSaveManager.SaveSnapshot(currentReason == GameOverReason.Won);
 
         // ✅ run last cached action (only one)
         var action = deferredAction;

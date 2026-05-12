@@ -18,7 +18,20 @@ public static class AnalyticsEvents
 
     public static void SessionStart()
     {
-        Log("session_start_custom");
+        // Get the join date from PlayerPrefs (save it during SetInitialUserPersona)
+        string joinDateStr = PlayerPrefs.GetString("UserJoinDate", DateTime.UtcNow.ToString("yyyy-MM-dd"));
+        DateTime joinDate = DateTime.Parse(joinDateStr);
+        int daysSinceJoin = (DateTime.UtcNow - joinDate).Days;
+
+        Log("session_start_custom",
+            new Parameter("days_since_join", daysSinceJoin),
+            new Parameter("level_at_session_start", MergeLevelManager.CurrentLevelNumber)
+        );
+
+        // Explicitly log retention milestones
+        if (daysSinceJoin == 1) Log("retention_d1");
+        if (daysSinceJoin == 3) Log("retention_d3");
+        if (daysSinceJoin == 7) Log("retention_d7");
     }
 
     public static void GameLoopCompleted()
@@ -166,7 +179,7 @@ public static class AnalyticsEvents
             new Parameter("galaxy_id", MergeLevelManager.CurrentGalaxyId),
             new Parameter("galaxy_name", MergeLevelManager.CurrentGalaxyName),
             new Parameter("level_in_galaxy", MergeLevelManager.CurrentLevelInGalaxy),
-            new Parameter("global_level", MergeLevelManager.CurrentLevelNumber),
+            new Parameter("level", MergeLevelManager.CurrentLevelNumber),
             new Parameter("level_duration_sec", levelSec)
         );
     }
@@ -185,7 +198,7 @@ public static class AnalyticsEvents
             new Parameter("reason", reason),
             new Parameter("galaxy_id", MergeLevelManager.CurrentGalaxyId),
             new Parameter("level_in_galaxy", MergeLevelManager.CurrentLevelInGalaxy),
-            new Parameter("global_level", MergeLevelManager.CurrentLevelNumber),
+            new Parameter("level", MergeLevelManager.CurrentLevelNumber),
             new Parameter("level_duration_sec", levelSec)
         );
     }
@@ -200,6 +213,29 @@ public static class AnalyticsEvents
             new Parameter("source", source),
             new Parameter("galaxy_id", galaxyId),
             new Parameter("global_level", globalLevel)
+        );
+    }
+
+    public static void SetInitialUserPersona(string uid)
+    {
+        if (Application.isEditor) return;
+
+        // 1. Create a sortable timestamp
+        string joinDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
+
+        // 2. Save locally so we can calculate 'daysSinceJoin' later
+        PlayerPrefs.SetString("UserJoinDate", joinDate);
+        PlayerPrefs.Save();
+
+        // 3. Set permanent User Properties
+        FirebaseAnalytics.SetUserProperty("persona_id", uid);
+        FirebaseAnalytics.SetUserProperty("join_date", joinDate);
+        FirebaseAnalytics.SetUserProperty("acquisition_platform", Application.platform.ToString());
+
+        // 4. Log a specific "Profile Created" event for funnel tracking
+        Log("first_profile_created",
+            new Parameter("user_id", uid),
+            new Parameter("date", joinDate)
         );
     }
 }

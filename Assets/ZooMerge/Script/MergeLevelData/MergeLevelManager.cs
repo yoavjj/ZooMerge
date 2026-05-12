@@ -13,6 +13,10 @@ public static class MergeLevelManager
     private static int currentEnemyIndex = 0;
     private static int pendingEnemyCoins = 0;
 
+    private static bool hasPendingProgress;
+    private static int pendingGalaxyId = 1;
+    private static int pendingLevelInGalaxy = 1;
+
     public static bool LevelCompletePending { get; private set; } = false;
     public static int LevelsInCurrentGalaxy => GetCurrentGalaxy().levels?.Count ?? 0;
 
@@ -24,6 +28,14 @@ public static class MergeLevelManager
         currentLevelIndex = 0;
         currentEnemyIndex = 0;
         LevelCompletePending = false;
+
+        // ✅ apply queued progress if Splash/Cloud set it early
+        if (hasPendingProgress)
+        {
+            hasPendingProgress = false;
+            SetProgressByIds(pendingGalaxyId, pendingLevelInGalaxy);
+            return; // SetProgressByIds already calls RaiseLevelChanged()
+        }
 
         RaiseLevelChanged();
     }
@@ -83,6 +95,55 @@ public static class MergeLevelManager
     /// Backwards compatible: set by GLOBAL level number.
     /// If you still call SetLevel(CurrentLevelNumber) from main menu, this will work.
     /// </summary>
+
+    public static void SetProgressByIds(int galaxyId, int levelInGalaxy1Based)
+    {
+        if (data == null || data.galaxies == null || data.galaxies.Count == 0)
+        {
+            Debug.LogWarning("[MergeLevelManager] SetProgressByIds called before data initialized.");
+            return;
+        }
+
+        // Find galaxy index by galaxyId
+        int gIndex = data.galaxies.FindIndex(g => g.galaxyId == galaxyId);
+        if (gIndex < 0) gIndex = 0;
+
+        currentGalaxyIndex = gIndex;
+
+        int levelsCount = data.galaxies[currentGalaxyIndex].levels?.Count ?? 0;
+        if (levelsCount <= 0)
+        {
+            currentLevelIndex = 0;
+        }
+        else
+        {
+            int lvlIndex0 = Mathf.Clamp(levelInGalaxy1Based - 1, 0, levelsCount - 1);
+            currentLevelIndex = lvlIndex0;
+        }
+
+        // Reset enemy/session state safely
+        currentEnemyIndex = 0;
+        pendingEnemyCoins = 0;
+        LevelCompletePending = false;
+
+        RaiseLevelChanged();
+    }
+
+    public static void SetProgress(int galaxyId, int levelInGalaxy)
+    {
+        // If data not ready yet, store and apply later
+        if (data == null || data.galaxies == null || data.galaxies.Count == 0)
+        {
+            hasPendingProgress = true;
+            pendingGalaxyId = Mathf.Max(1, galaxyId);
+            pendingLevelInGalaxy = Mathf.Max(1, levelInGalaxy);
+            return;
+        }
+
+        // Data is ready -> apply now
+        SetProgressByIds(galaxyId, levelInGalaxy);
+    }
+
     public static void SetLevel(int globalLevelNumber)
     {
         if (data == null || data.galaxies == null || data.galaxies.Count == 0)
@@ -230,9 +291,34 @@ public static class MergeLevelManager
         
         AnalyticsEvents.GameLoopCompleted();
 
+        // ☁️ CLOUD SAVE: Permanently record the loop completion!
+        CloudSaveManager.AddGameLoop();
+
         ResetLevel();
 
         RaiseLevelChanged();
+    }
+
+    public static void PeekNextProgress(out int nextGalaxyId, out int nextLevelInGalaxy)
+    {
+        // Default: go to next level in same galaxy
+        nextGalaxyId = CurrentGalaxyId;
+        nextLevelInGalaxy = CurrentLevelInGalaxy + 1;
+
+        // If last level in galaxy, move to next galaxy level 1
+        if (IsLastLevelInCurrentGalaxy)
+        {
+            int curIndex = currentGalaxyIndex; // whatever your internal index is called
+            int nextIndex = Mathf.Min(curIndex + 1, data.galaxies.Count - 1);
+
+            nextGalaxyId = data.galaxies[nextIndex].galaxyId;
+            nextLevelInGalaxy = 1;
+        }
+        else
+        {
+            // clamp to galaxy length
+            nextLevelInGalaxy = Mathf.Min(nextLevelInGalaxy, LevelsInCurrentGalaxy);
+        }
     }
 
     public static void ResetLevel()

@@ -20,6 +20,9 @@ public class SplashScreenController : MonoBehaviour
     [SerializeField] private Slider progressSlider;
     [SerializeField] private TextMeshProUGUI progressText;
 
+    [Header("User Persona UI")]
+    [SerializeField] private TextMeshProUGUI userIdText;
+
     [Header("Optional")]
     [SerializeField] private float minSplashTime = 1.0f;
     [SerializeField] private float maxWaitTime = 8.0f;
@@ -34,6 +37,7 @@ public class SplashScreenController : MonoBehaviour
     private bool firebaseDone = false;
     private bool adManagerCreated = false;
     private bool attDone = false;
+    private bool progressSynced = false;
 
     private float startTime;
     private float displayed = 0f;
@@ -45,11 +49,24 @@ public class SplashScreenController : MonoBehaviour
 
     private IEnumerator Start()
     {
-
         AnalyticsEvents.SessionStart();
         
         startTime = Time.time;
         SetProgress(0f);
+
+        // 1) Local fast resume
+        GameInventory.Instance.LoadFromPrefs();
+
+        int g = PlayerPrefs.GetInt("PROG_LastGalaxyId", 1);
+        int l = PlayerPrefs.GetInt("PROG_LastLevelInGalaxy", 1);
+        MergeLevelManager.SetProgress(g, l);
+
+        if (userIdText != null)
+        {
+            // Instantly grab the saved ID. If it's a brand new player, it says "Connecting..."
+            string cachedId = PlayerPrefs.GetString("CachedUserId", "Connecting...");
+            userIdText.text = $"User ID: {cachedId}";
+        }
 
         // ✅ Short delay so the splash UI fully appears before heavy work starts
         if (startDelay > 0f)
@@ -57,11 +74,22 @@ public class SplashScreenController : MonoBehaviour
 
         // 1) Firebase
         FirebaseInitializer.WaitForFirebase(
-            onReady: () => { firebaseDone = true; },
+            onReady: () =>
+            {
+                // Sync progress from Firestore BEFORE we allow the splash to continue
+                CloudSaveManager.SyncProgressFromCloud(() =>
+                {
+                    progressSynced = true;
+                    firebaseDone = true;
+                });
+            },
             onError: (error) =>
             {
                 Debug.LogError($"[Splash] Firebase failed: {error}");
-                firebaseDone = true; // still continue
+
+                // If Firebase failed, we can't sync → continue using local prefs
+                progressSynced = true;
+                firebaseDone = true;
             }
         );
 
@@ -105,14 +133,14 @@ public class SplashScreenController : MonoBehaviour
                 attTimedOut = true;
 #endif
 
-            // 🌟 THE FIX IS HERE: We check if the JSON is actually parsed!
+            // We check if the JSON is actually parsed!
             bool isJsonParsed = FirebaseInitializer.MergeScoreData != null && FirebaseInitializer.MergeScoreData.galaxies != null;
 
             // Stop waiting if it takes too long (e.g., bad internet connection)
             bool firebaseTimedOut = (!firebaseDone || !isJsonParsed) && (Time.time - phaseStart) >= maxWaitTime;
 
-            // 🌟 THE FIX PART 2: Require BOTH the SDK to be done AND the JSON to be parsed
-            bool isDataFullyLoaded = (firebaseDone && isJsonParsed);
+            // Require BOTH the SDK to be done AND the JSON to be parsed AND the progress to be synced
+            bool isDataFullyLoaded = (firebaseDone && isJsonParsed && progressSynced);
 
             // Progress target
             float target = 0f;
@@ -142,6 +170,12 @@ public class SplashScreenController : MonoBehaviour
             displayed = Mathf.Lerp(_stepFrom, _stepTo, Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_stepT)));
             SetProgress(displayed);
 
+            // The moment Firebase grabs the real ID, update the UI (replaces "Connecting..." for new players)
+            if (userIdText != null && !string.IsNullOrEmpty(FirebaseInitializer.UserId))
+            {
+                userIdText.text = $"User ID: {FirebaseInitializer.UserId}";
+            }
+
 #if UNITY_IOS
             bool canProceed = (attDone || attTimedOut);
 #else
@@ -153,6 +187,12 @@ public class SplashScreenController : MonoBehaviour
                 break;
 
             yield return null;
+        }
+
+        if (userIdText != null)
+        {
+            // Use the static UserId we added to the FirebaseInitializer
+            userIdText.text = $"User ID: {FirebaseInitializer.UserId}";
         }
 
         // Ensure minimum splash time
@@ -209,5 +249,30 @@ public class SplashScreenController : MonoBehaviour
 #else
         return true; // Android/Editor
 #endif
+    }
+
+    public void CopyUserIdToClipboard()
+    {
+        if (!string.IsNullOrEmpty(FirebaseInitializer.UserId))
+        {
+            // Copy the persistent ID to the system clipboard
+            GUIUtility.systemCopyBuffer = FirebaseInitializer.UserId;
+
+            Debug.Log($"[Splash] Copied User ID: {FirebaseInitializer.UserId}");
+
+            // Provide visual feedback
+            if (userIdText != null)
+            {
+                StartCoroutine(FlashFeedbackRoutine());
+            }
+        }
+    }
+
+    private IEnumerator FlashFeedbackRoutine()
+    {
+        string originalText = userIdText.text;
+        userIdText.text = "<color=green>Copied to Clipboard!</color>";
+        yield return new WaitForSeconds(1.5f);
+        userIdText.text = originalText;
     }
 }

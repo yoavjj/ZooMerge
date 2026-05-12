@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
@@ -14,7 +15,10 @@ public class PopupManager : MonoBehaviour
     private const string MAIN_MENU = "MainMenuPopup";
     private const string WIN_LOSE = "WinLosePopup";
     private const string PAUSE = "PauseRestartPopup";
-    
+
+    private PauseRestartPopup pausePopup;
+    public static event Action OnForceClosePausePopup;
+
     [SerializeField] private BallSpawner ballSpawner;
     [SerializeField] LevelProgressBarSlider levelProgressBarSlider;
 
@@ -60,6 +64,21 @@ public class PopupManager : MonoBehaviour
                 mainMenuPopupInstance.SetActive(true);
             }
         }
+    }
+
+    private void Update()
+    {
+        // Editor-only hotkey to open pause popup
+#if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
+        {
+            // Only during active gameplay + not game over
+            if (!isSessionActive) return;
+            if (BallEventManager.IsGameOver) return;
+
+            ShowPauseRestartPopup();
+        }
+#endif
     }
 
     private void OnEnable()
@@ -132,6 +151,10 @@ public class PopupManager : MonoBehaviour
 
     public void ShowEndLvlPopup(GameOverReason reason)
     {
+        isSessionActive = false;
+
+        ForceClosePausePopup(); // Ensure any open pause popup is closed immediately
+
         // ✅ If an end popup is already showing/locked, ignore any other attempt.
         if (endPopupLocked)
         {
@@ -169,6 +192,7 @@ public class PopupManager : MonoBehaviour
 
     public void ShowEnemyDefeatedMessage()
     {
+        ForceClosePausePopup();
         if (winLosePopupRoutine != null) StopCoroutine(winLosePopupRoutine);
         winLosePopupRoutine = StartCoroutine(ShowWinLosePopupAfterDelay(winLosePopupDelay, () =>
         {
@@ -183,6 +207,8 @@ public class PopupManager : MonoBehaviour
 
     private IEnumerator ShowWinLosePopupAfterDelay(float delay, System.Action showBody)
     {
+        isSessionActive = false;
+
         if (delay > 0f) yield return new WaitForSeconds(delay);
 
         if (gameUIPopupInstance == null)
@@ -332,7 +358,14 @@ public class PopupManager : MonoBehaviour
 
     private void HandleSessionOver(BallInfo info, GameOverReason reason)
     {
+        // ✅ Session is officially over
         isSessionActive = false;
+
+        // ✅ If pause is open for any reason, kill it immediately
+        ForceClosePausePopup();
+
+        // ✅ Optional: extra hard block for system pause calls
+        lockedEndReason = reason;  // keeps consistency with your end popup lock
     }
 
     private void HandleReturnToMainMenu()
@@ -365,17 +398,15 @@ public class PopupManager : MonoBehaviour
 
     private void TryShowPausePopupFromSystem()
     {
-#if UNITY_EDITOR
-        return; // 👈 Skip showing pause popup in the Unity Editor
-#else
         if (pauseRestartPopupInstance != null) return;
 
         // Optional: Skip if main menu is active
         if (mainMenuPopupInstance != null && mainMenuPopupInstance.activeInHierarchy)
             return;
 
+        if (endPopupLocked) return;
+
         ShowPauseRestartPopup();
-#endif
     }
 
     public void WarmupSession()
@@ -386,6 +417,15 @@ public class PopupManager : MonoBehaviour
     private void AnalyticsEvents_OnSessionStarted()
     {
         AnalyticsEvents.LevelStart("popup_manager_begin_session");
+    }
+
+    public void ForceClosePausePopup()
+    {
+        // Tell the pause popup (if it exists) to close itself properly
+        OnForceClosePausePopup?.Invoke();
+
+        // Extra safety: clear reference even if popup was already destroyed
+        ClearPausePopupReference();
     }
 }
 

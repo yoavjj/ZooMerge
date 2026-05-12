@@ -402,7 +402,8 @@ public class CircleDropController : MonoBehaviour
             yield break;
         }
 
-        BallEventManager.RaiseBallTouchedGameOverLine(ballInfo, GameOverReason.Lost);
+        BallEventManager.RaiseBallTouchedGameOverLine(ballInfo, BallEventManager.GameOverReason.Lost);
+        CloudSaveManager.AddLoss(BallEventManager.GameOverReason.Lost);
         gameOverTouchRoutine = null;
     }
 
