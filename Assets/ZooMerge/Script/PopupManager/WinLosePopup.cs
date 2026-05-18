@@ -647,12 +647,21 @@ public class WinLosePopup : MonoBehaviour
 
         if (currentReason == GameOverReason.Won)
         {
-            MergeLevelManager.PeekNextProgress(out int nextG, out int nextL);
-            PlayerProgress.SetResumePoint(nextG, nextL);
+            // ✅ Only advance to NEXT LEVEL when the whole level is complete
+            if (levelCompleteContext)   // this is already set by ApplyProgressAdvance(toLevelEnd)
+            {
+                MergeLevelManager.PeekNextProgress(out int nextG, out int nextL);
+                PlayerProgress.SetResumePoint(nextG, nextL, 0); // new level always starts at enemy 0
+            }
+            else
+            {
+                // ✅ Mid-level enemy win: DO NOT jump levels
+                // GameHealthManager.TryAdvanceEnemy() already advanced CurrentEnemyIndex
+                PlayerProgress.CaptureFromManagers();
+            }
         }
         else
         {
-            // optional: keep resume point as current when lost
             PlayerProgress.CaptureFromManagers();
         }
 

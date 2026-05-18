@@ -246,10 +246,12 @@ public class SessionManager : MonoBehaviour
     private void OnApplicationPause(bool pause)
     {
         AnalyticsEvents.OnAppPaused(pause);
+        CloudSaveManager.OnAppPaused(pause);
     }
 
     private void OnApplicationQuit()
     {
         AnalyticsEvents.OnAppQuit();
+        CloudSaveManager.OnAppQuit();
     }
 }

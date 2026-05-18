@@ -106,6 +106,9 @@ public class GameHealthManager : MonoBehaviour
 
                     if (MergeLevelManager.TryAdvanceEnemy())
                     {
+                        // ✅ Save resume point immediately (same galaxy/level, next enemy)
+                        PlayerProgress.CaptureFromManagers();
+
                         // ✅ analytics: mid-level completion (enemy segment finished)
                         AnalyticsEvents.MidLevelComplete(MergeLevelManager.CurrentEnemyIndex - 1);
 
@@ -115,6 +118,8 @@ public class GameHealthManager : MonoBehaviour
                     else
                     {
                         Debug.Log("🏁 All enemies defeated! Level complete.");
+
+                        PlayerProgress.CaptureFromManagers();
 
                         // ✅ If a loss already happened, don't continue the win flow
                         if (BallEventManager.IsGameOver) return;

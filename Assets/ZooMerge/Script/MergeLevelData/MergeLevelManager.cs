@@ -16,6 +16,7 @@ public static class MergeLevelManager
     private static bool hasPendingProgress;
     private static int pendingGalaxyId = 1;
     private static int pendingLevelInGalaxy = 1;
+    private static int pendingEnemyIndex = 0;
 
     public static bool LevelCompletePending { get; private set; } = false;
     public static int LevelsInCurrentGalaxy => GetCurrentGalaxy().levels?.Count ?? 0;
@@ -33,11 +34,55 @@ public static class MergeLevelManager
         if (hasPendingProgress)
         {
             hasPendingProgress = false;
+
             SetProgressByIds(pendingGalaxyId, pendingLevelInGalaxy);
-            return; // SetProgressByIds already calls RaiseLevelChanged()
+
+            // Restore enemy index after level set
+            int maxEnemy = Mathf.Max(0, TotalEnemiesInLevel - 1);
+            currentEnemyIndex = Mathf.Clamp(pendingEnemyIndex, 0, maxEnemy);
+
+            RaiseLevelChanged();
+            return;
         }
 
         RaiseLevelChanged();
+    }
+
+    public static void SetProgress(int galaxyId, int levelInGalaxy, int enemyIndex)
+    {
+        // If data not ready yet, store and apply later (extend your pending system)
+        if (data == null || data.galaxies == null || data.galaxies.Count == 0)
+        {
+            hasPendingProgress = true;
+            pendingGalaxyId = Mathf.Max(1, galaxyId);
+            pendingLevelInGalaxy = Mathf.Max(1, levelInGalaxy);
+
+            // NEW pending enemy
+            pendingEnemyIndex = Mathf.Max(0, enemyIndex);
+            return;
+        }
+
+        // Apply galaxy + level first
+        SetProgressByIds(galaxyId, levelInGalaxy);
+
+        // Then restore enemy progress INSIDE the level
+        int maxEnemy = Mathf.Max(0, TotalEnemiesInLevel - 1);
+        currentEnemyIndex = Mathf.Clamp(enemyIndex, 0, maxEnemy);
+
+        // Also clear “pending” states (safe resume)
+        pendingEnemyCoins = 0;
+        LevelCompletePending = false;
+
+        RaiseLevelChanged();
+    }
+
+    public static void SetEnemyIndex(int enemyIndex)
+    {
+        // Clamp to valid range for the current level
+        int max = Mathf.Max(0, TotalEnemiesInLevel - 1); // or however you compute enemies count
+        currentEnemyIndex = Mathf.Clamp(enemyIndex, 0, max);
+
+        RaiseLevelChanged(); // if you need UI refresh
     }
 
     private static void RaiseLevelChanged()

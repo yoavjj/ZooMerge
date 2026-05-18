@@ -12,9 +12,11 @@ public class EditorMainBootstrap : MonoBehaviour
         // 1) Local fast resume (same as Splash)
         GameInventory.Instance.LoadFromPrefs();
 
-        int g = PlayerPrefs.GetInt("PROG_LastGalaxyId", 1);
-        int l = PlayerPrefs.GetInt("PROG_LastLevelInGalaxy", 1);
-        MergeLevelManager.SetProgress(g, l);
+        int g = PlayerProgress.LastGalaxyId;
+        int l = PlayerProgress.LastLevelInGalaxy;
+        int e = PlayerProgress.LastEnemyIndex;
+
+        MergeLevelManager.SetProgress(g, l, e);
 
         // 2) Ensure AdManager exists (ATTRequest is on the same prefab)
         if (adManagerPrefab != null && AdManager.Instance == null)

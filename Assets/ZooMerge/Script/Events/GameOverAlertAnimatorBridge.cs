@@ -157,6 +157,11 @@ public class GameOverAlertAnimatorBridge : MonoBehaviour
         if (timerText != null)
             timerText.text = FormatSeconds(0f);
 
+        // ✅ Auto-trigger Saved when the countdown ends
+        touchingBalls.Clear();
+        TriggerSaved(alertAnimator);
+        TriggerSaved(timerAnimator);
+
         countdownRoutine = null;
     }
 

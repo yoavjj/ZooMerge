@@ -384,7 +384,6 @@ public class PopupManager : MonoBehaviour
         TryShowPausePopupFromSystem();
     }
 
-    // ✅ CHANGED
     private void OnApplicationFocus(bool hasFocus)
     {
         if (hasFocus) return;

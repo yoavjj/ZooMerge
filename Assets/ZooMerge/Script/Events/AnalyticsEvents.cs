@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using Firebase.Analytics;
+using System.Collections.Generic;
 
 public static class AnalyticsEvents
 {
@@ -11,10 +12,37 @@ public static class AnalyticsEvents
 
     // --- GAMEPLAY TIME TRACKING (per level / per segment) ---
 
-    static float levelStartTime = -1f;
     static bool levelActive = false;
 
+    // --- LEVEL TIMER STATE (exclude background time) ---
+    static float levelAccumulated = 0f;      // seconds actually spent in-app
+    static float levelResumeTime = -1f;      // realtimeSinceStartup when we last resumed
+    static bool levelPausedByApp = false;
+
     // ---- Helpers ----
+
+    static bool ShouldSend()
+    {
+        // Gate analytics globally and avoid sending in editor
+        if (!Enabled) return false;
+        if (Application.isEditor) return false;
+
+        return true;
+    }
+
+    static Parameter[] WithDeviceParams(params Parameter[] parameters)
+    {
+        var list = new List<Parameter>(parameters ?? Array.Empty<Parameter>());
+
+        // Add common device/app params to every event
+        list.Add(new Parameter("platform", Application.platform.ToString()));
+        list.Add(new Parameter("app_version", Application.version));
+        list.Add(new Parameter("unity_version", Application.unityVersion));
+        list.Add(new Parameter("device_model", SystemInfo.deviceModel));
+        list.Add(new Parameter("os", SystemInfo.operatingSystem));
+
+        return list.ToArray();
+    }
 
     public static void SessionStart()
     {
@@ -44,47 +72,27 @@ public static class AnalyticsEvents
 );
     }
 
-    private static bool ShouldSend()
+    static float GetLevelDurationSeconds()
     {
-        if (!Enabled) return false;
+        if (!levelActive) return 0f;
 
-        // ✅ Never send from Editor
-        if (Application.isEditor) return false;
+        float total = levelAccumulated;
 
-        return true;
-    }
+        // If currently running (not paused), add current segment
+        if (!levelPausedByApp && levelResumeTime >= 0f)
+            total += (Time.realtimeSinceStartup - levelResumeTime);
 
-    private static Parameter[] WithDeviceParams(Parameter[] parameters)
-    {
-        // Add a few useful fields for filtering/QA/“investor” reporting
-        // Keep names short + consistent.
-        var extra = new[]
-        {
-            new Parameter("platform", Application.platform.ToString()),                 // Android / IPhonePlayer
-            new Parameter("device_model", SystemInfo.deviceModel ?? "unknown"),        // iPhone15,3 / Pixel 7 / etc.
-            new Parameter("os", SystemInfo.operatingSystem ?? "unknown"),              // iOS 17.x / Android 14 / etc.
-            new Parameter("app_version", Application.version ?? "unknown"),            // your app version
-        };
-
-        if (parameters == null || parameters.Length == 0)
-            return extra;
-
-        var merged = new Parameter[parameters.Length + extra.Length];
-        Array.Copy(parameters, merged, parameters.Length);
-        Array.Copy(extra, 0, merged, parameters.Length, extra.Length);
-        return merged;
+        return Mathf.Max(0f, total);
     }
 
     public static void Log(string eventName, params Parameter[] parameters)
     {
 #if UNITY_EDITOR
-        // ✅ In Editor: don’t send, just log so you can test flows.
         Debug.Log($"[ANALYTICS-EDITOR] {eventName}");
         return;
 #else
-        if (!ShouldSend()) return;
-
-        FirebaseAnalytics.LogEvent(eventName, WithDeviceParams(parameters));
+    if (!ShouldSend()) return;
+    FirebaseAnalytics.LogEvent(eventName, WithDeviceParams(parameters));
 #endif
     }
 
@@ -116,21 +124,63 @@ public static class AnalyticsEvents
 
     public static void OnAppPaused(bool paused)
     {
+        // Existing main menu behavior
         if (paused && mainMenuActive)
             MainMenuExit("app_paused");
+
+        // ✅ Pause/resume LEVEL timer so background time is excluded
+        if (!levelActive) return;
+
+        if (paused)
+        {
+            // Only pause once
+            if (!levelPausedByApp)
+            {
+                // Add time spent since last resume
+                if (levelResumeTime >= 0f)
+                    levelAccumulated += (Time.realtimeSinceStartup - levelResumeTime);
+
+                levelPausedByApp = true;
+                levelResumeTime = -1f;
+            }
+        }
+        else
+        {
+            // Resume once
+            if (levelPausedByApp)
+            {
+                levelPausedByApp = false;
+                levelResumeTime = Time.realtimeSinceStartup;
+            }
+        }
     }
 
     public static void OnAppQuit()
     {
         if (mainMenuActive)
             MainMenuExit("app_quit");
+
+        // ✅ If quitting during a level, finalize its timer and end it
+        if (levelActive)
+        {
+            if (!levelPausedByApp && levelResumeTime >= 0f)
+                levelAccumulated += (Time.realtimeSinceStartup - levelResumeTime);
+
+            levelPausedByApp = true;
+            levelResumeTime = -1f;
+
+            // Treat quit as a real end
+            LevelEnd("app_quit");
+        }
     }
 
     // Call when a level session begins (when gameplay becomes active)
     public static void LevelStart(string source = "begin_session")
     {
-        levelStartTime = Time.realtimeSinceStartup;
         levelActive = true;
+        levelAccumulated = 0f;
+        levelResumeTime = Time.realtimeSinceStartup;
+        levelPausedByApp = false;
 
         FirebaseAnalytics.SetUserProperty(
         "current_level",
@@ -148,12 +198,10 @@ public static class AnalyticsEvents
     // Call when the player completes a mid-level segment (enemy defeated, moving to next enemy)
     public static void MidLevelComplete(int completedEnemyIndex0Based)
     {
-        if (!levelActive || levelStartTime < 0f)
+        if (!levelActive)
             return;
 
-        long durationSec = (long)Mathf.RoundToInt(
-            Time.realtimeSinceStartup - levelStartTime
-        );
+        long durationSec = (long)Mathf.RoundToInt(GetLevelDurationSeconds());
 
         Debug.Log($"[ANALYTICS] MidLevelComplete duration={durationSec}s");
 
@@ -169,11 +217,15 @@ public static class AnalyticsEvents
     public static void GalaxyLevelComplete()
     {
         long levelSec = 0;
-        if (levelActive && levelStartTime >= 0f)
-            levelSec = (long)Mathf.RoundToInt(Time.realtimeSinceStartup - levelStartTime);
+        if (levelActive)
+            levelSec = (long)Mathf.RoundToInt(GetLevelDurationSeconds());
 
         levelActive = false;
-        levelStartTime = -1f;
+
+        // optional: reset your new timer state so the next level starts clean
+        levelAccumulated = 0f;
+        levelResumeTime = -1f;
+        levelPausedByApp = false;
 
         Log("galaxy_level_complete",
             new Parameter("galaxy_id", MergeLevelManager.CurrentGalaxyId),
@@ -188,11 +240,15 @@ public static class AnalyticsEvents
     public static void LevelEnd(string reason)
     {
         long levelSec = 0;
-        if (levelActive && levelStartTime >= 0f)
-            levelSec = (long)Mathf.RoundToInt(Time.realtimeSinceStartup - levelStartTime);
+        if (levelActive)
+            levelSec = (long)Mathf.RoundToInt(GetLevelDurationSeconds());
 
         levelActive = false;
-        levelStartTime = -1f;
+
+        // optional: reset your new timer state
+        levelAccumulated = 0f;
+        levelResumeTime = -1f;
+        levelPausedByApp = false;
 
         Log("level_end",
             new Parameter("reason", reason),

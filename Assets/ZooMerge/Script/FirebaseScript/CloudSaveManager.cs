@@ -64,6 +64,14 @@ public static class CloudSaveManager
 
         // --- DEBOUNCE & SAFETY ---
         float now = Time.realtimeSinceStartup;
+        
+        // If app isn't focused, don't accumulate "active playtime"
+        if (!Application.isFocused)
+        {
+            lastSaveTime = now; // avoid a big jump next snapshot
+            return;
+        }
+
         if (isSaving) return;
         if (now - lastEventSaveTime < EVENT_SAVE_COOLDOWN) return;
         lastEventSaveTime = now;
@@ -78,7 +86,15 @@ public static class CloudSaveManager
 
         // --- TIMER ---
         if (lastSaveTime < 0f) lastSaveTime = now;
+
         float secondsSinceLastSave = now - lastSaveTime;
+
+        // Safety: ignore weird spikes/negatives (e.g. device clock quirks or edge cases)
+        if (secondsSinceLastSave < 0f) secondsSinceLastSave = 0f;
+
+        // (Optional) cap a single snapshot contribution to something reasonable (like 5 minutes)
+        // secondsSinceLastSave = Mathf.Min(secondsSinceLastSave, 300f);
+
         lastSaveTime = now;
 
         float totalActiveSeconds = PlayerPrefs.GetFloat(PREF_TOTAL_ACTIVE_SECONDS, 0f) + secondsSinceLastSave;
@@ -298,5 +314,81 @@ public static class CloudSaveManager
             Debug.Log($"[CloudSave] Synced progress from cloud: Galaxy {cloudGalaxy}, Level {cloudLevel}");
             onComplete?.Invoke();
         });
+    }
+
+    public static void SyncEconomyFromCloud(Action onComplete = null)
+    {
+        if (string.IsNullOrEmpty(FirebaseInitializer.UserId))
+        {
+            Debug.LogWarning("[CloudSave] SyncEconomyFromCloud: UserId not ready.");
+            onComplete?.Invoke();
+            return;
+        }
+
+        var db = Firebase.Firestore.FirebaseFirestore.DefaultInstance;
+        var docRef = db.Collection("players").Document(FirebaseInitializer.UserId);
+
+        docRef.GetSnapshotAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted)
+            {
+                Debug.LogWarning($"[CloudSave] SyncEconomyFromCloud failed: {task.Exception}");
+                onComplete?.Invoke();
+                return;
+            }
+
+            var snap = task.Result;
+            if (!snap.Exists)
+            {
+                Debug.Log("[CloudSave] No cloud doc yet, using local economy.");
+                onComplete?.Invoke();
+                return;
+            }
+
+            int cloudCoins = 0;
+            Dictionary<string, int> cloudMergedBalls = new Dictionary<string, int>();
+
+            if (snap.TryGetValue("economy", out Dictionary<string, object> economyMap))
+            {
+                if (economyMap.TryGetValue("total_coins_earned", out var cObj))
+                    cloudCoins = System.Convert.ToInt32(cObj);
+
+                if (economyMap.TryGetValue("total_merged_balls", out var mbObj) &&
+                    mbObj is Dictionary<string, object> mbMap)
+                {
+                    foreach (var kv in mbMap)
+                        cloudMergedBalls[kv.Key] = System.Convert.ToInt32(kv.Value);
+                }
+            }
+
+            // Apply to LOCAL inventory + persist to PlayerPrefs
+            GameInventory.Instance.ResetAll();
+
+            if (cloudCoins > 0)
+                GameInventory.Instance.Add(CurrencyType.Coins, cloudCoins);
+
+            foreach (var kv in cloudMergedBalls)
+            {
+                if (System.Enum.TryParse(kv.Key, out BallType ballType) && kv.Value > 0)
+                    GameInventory.Instance.Add(ballType, kv.Value);
+            }
+
+            Debug.Log($"[CloudSave] Synced economy from cloud: coins={cloudCoins}, balls={cloudMergedBalls.Count}");
+            onComplete?.Invoke();
+        });
+    }
+
+    public static void OnAppPaused(bool paused)
+    {
+        // We want to ignore time while backgrounded.
+        // So we reset the baseline when coming BACK (resume).
+        if (!paused)
+            lastSaveTime = Time.realtimeSinceStartup;
+    }
+
+    public static void OnAppQuit()
+    {
+        // Prevent any final save from counting time after the app is already leaving.
+        lastSaveTime = Time.realtimeSinceStartup;
     }
 }

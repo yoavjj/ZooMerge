@@ -79,8 +79,11 @@ public class SplashScreenController : MonoBehaviour
                 // Sync progress from Firestore BEFORE we allow the splash to continue
                 CloudSaveManager.SyncProgressFromCloud(() =>
                 {
-                    progressSynced = true;
-                    firebaseDone = true;
+                    CloudSaveManager.SyncEconomyFromCloud(() =>
+                    {
+                        progressSynced = true; // now means "progress + economy are synced"
+                        firebaseDone = true;
+                    });
                 });
             },
             onError: (error) =>
