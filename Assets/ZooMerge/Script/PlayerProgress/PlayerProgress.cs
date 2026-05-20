@@ -47,6 +47,9 @@ public static class PlayerProgress
 
         // Apply immediately (see below: you'll need a SetProgress overload that supports enemy index)
         MergeLevelManager.SetProgress(1, 1, 0);
+
+        // ✅ Push correct progress map to Firestore (no dotted keys)
+        CloudSaveManager.ForceCloudProgressMap(1, 1, 0);
     }
 
     public static void SetResumePoint(int galaxyId, int levelInGalaxy, int enemyIndex)

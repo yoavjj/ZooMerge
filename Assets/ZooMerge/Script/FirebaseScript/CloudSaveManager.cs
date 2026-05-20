@@ -20,6 +20,33 @@ public static class CloudSaveManager
     private static float lastEventSaveTime = -999f;
     private const float EVENT_SAVE_COOLDOWN = 0.5f;
 
+    public static void ForceCloudProgressMap(int galaxyId, int levelInGalaxy, int enemyIndex)
+    {
+        if (string.IsNullOrEmpty(FirebaseInitializer.UserId))
+        {
+            Debug.LogWarning("[CloudSave] ForceCloudProgressMap: UserId not ready.");
+            return;
+        }
+
+        var docRef = FirebaseFirestore.DefaultInstance
+            .Collection("players")
+            .Document(FirebaseInitializer.UserId);
+
+        var patch = new Dictionary<string, object>
+    {
+        { "progress", new Dictionary<string, object>
+            {
+                { "last_played_galaxy", galaxyId },
+                { "last_played_level", levelInGalaxy },
+                // if you decide to store it in cloud later:
+                // { "last_enemy_index", enemyIndex },
+            }
+        }
+    };
+
+        docRef.SetAsync(patch, SetOptions.MergeAll);
+    }
+
     public static void StartPlayTimer()
     {
         lastSaveTime = Time.realtimeSinceStartup;
