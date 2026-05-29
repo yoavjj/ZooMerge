@@ -11,6 +11,7 @@ public class AdminProgressEditor : EditorWindow
     int galaxy = 0;
     int level = 0;
     string status = "Ready";
+    int addCoinsAmount = 10;
 
     [MenuItem("Tools/ZooMerge/Admin Tools")]
     static void Open() => GetWindow<AdminProgressEditor>("Admin Tools");
@@ -35,6 +36,16 @@ public class AdminProgressEditor : EditorWindow
 
             if (GUILayout.Button("Reset Inventory (Cloud)"))
                 _ = ResetInventoryCloud();
+        }
+
+        GUILayout.Space(8);
+        GUILayout.Label("Economy", EditorStyles.boldLabel);
+        addCoinsAmount = EditorGUILayout.IntField("Add Coins", addCoinsAmount);
+
+        using (new EditorGUI.DisabledScope(string.IsNullOrWhiteSpace(targetUid)))
+        {
+            if (GUILayout.Button("Add Coins (Cloud)"))
+                _ = AddCoinsCloud();
         }
 
         GUILayout.Space(10);
@@ -114,6 +125,37 @@ public class AdminProgressEditor : EditorWindow
             await fn.CallAsync(data);
 
             status = $"✅ Inventory reset for {targetUid} (economy fields cleared)";
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogException(ex);
+            status = "❌ ERROR:\n" + ex.ToString();
+        }
+
+        Repaint();
+    }
+
+    async Task AddCoinsCloud()
+    {
+        try
+        {
+            var functions = await GetFunctionsReady("Adding coins...", s => status = s, Repaint);
+            if (functions == null) return;
+
+            var fn = functions.GetHttpsCallable("adminAddCoins");
+
+            var data = new Dictionary<string, object>
+        {
+            { "uid", targetUid.Trim() },
+            { "amount", addCoinsAmount }
+        };
+
+            status = "Sending coin update...";
+            Repaint();
+
+            await fn.CallAsync(data);
+
+            status = $"✅ Added {addCoinsAmount} coins to {targetUid}";
         }
         catch (System.Exception ex)
         {

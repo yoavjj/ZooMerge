@@ -84,6 +84,23 @@ public sealed class Inventory
         PlayerPrefs.Save();
         OnChanged?.Invoke();
     }
+
+    public bool Spend(CurrencyType type, int amount)
+    {
+        if (amount <= 0) return true;
+
+        int current = Get(type);
+        if (current < amount)
+            return false;
+
+        currencyValues[type] = current - amount;
+
+        PlayerPrefs.SetInt(GetCurrencyKey(type), currencyValues[type]);
+        PlayerPrefs.Save();
+
+        OnChanged?.Invoke();
+        return true;
+    }
 }
 
 public enum CurrencyType

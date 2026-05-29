@@ -51,6 +51,7 @@ public class MergeScoreEntry
 public static class FirebaseInitializer
 {
     public static bool IsReady { get; private set; } = false;
+    public static bool BootComplete { get; set; } = false;
 
     private static bool initializing = false;
     private static List<Action> onReadyQueue = new();
@@ -81,6 +82,7 @@ public static class FirebaseInitializer
     private static void InitializeFirebaseInternal()
     {
         initializing = true;
+        BootComplete = false;
 
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(async task =>
         {

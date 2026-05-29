@@ -33,18 +33,32 @@ public class EditorMainBootstrap : MonoBehaviour
             }
         );
 
-        // Wait until Firebase is ready (and JSON is parsed/initialized inside FirebaseInitializer)
         while (!firebaseReady)
             yield return null;
 
-        // 4) Now sync progress from Firestore (same idea as Splash)
+        // 4) Sync progress from Firestore
         bool synced = false;
         CloudSaveManager.SyncProgressFromCloud(() => synced = true);
 
         while (!synced)
             yield return null;
 
-        Debug.Log("[EditorMainBootstrap] Boot complete (local + firebase + cloud progress sync).");
+        // 5) Sync economy too (so TopBar currency is correct)
+        bool econSynced = false;
+        CloudSaveManager.SyncEconomyFromCloud(() => econSynced = true);
+
+        while (!econSynced)
+            yield return null;
+
+        // ✅ Now allow inventory change events to affect UI
+        FirebaseInitializer.BootComplete = true;
+
+        // ✅ Force UI refresh once (because OnChanged fired before BootComplete was true)
+        var topBar = FindObjectOfType<TopBarMenu>();
+        if (topBar != null)
+            topBar.RefreshCoins();
+
+        Debug.Log("[EditorMainBootstrap] Boot complete (local + firebase + cloud progress + economy sync).");
     }
 #endif
 }

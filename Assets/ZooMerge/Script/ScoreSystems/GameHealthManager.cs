@@ -126,6 +126,7 @@ public class GameHealthManager : MonoBehaviour
 
                         AnalyticsEvents.GalaxyLevelComplete();
                         CloudSaveManager.AddGalaxyLevelComplete();
+                        PlayerProgress.OnLevelCompleted(MergeLevelManager.CurrentGalaxyId, MergeLevelManager.CurrentLevelInGalaxy);
 
                         MergeLevelManager.MarkLevelCompletePending();
                         BallEventManager.RaiseEnemySessionEnded();

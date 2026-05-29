@@ -23,6 +23,34 @@ public class TopBarMenu : MonoBehaviour
             : null;
     }
 
+    private void OnEnable()
+    {
+        GameInventory.Instance.OnChanged += HandleInventoryChanged;
+    }
+
+    private void OnDisable()
+    {
+        GameInventory.Instance.OnChanged -= HandleInventoryChanged;
+    }
+
+
+    private void HandleInventoryChanged()
+    {
+        if (!FirebaseInitializer.BootComplete)
+            return;
+
+        RefreshCoins();
+    }
+
+    public void RefreshCoins()
+    {
+        if (TryGetOrCreateCoinItem(out TopBarCoinItemUI coinUI))
+        {
+            int coins = GameInventory.Instance.Get(CurrencyType.Coins);
+            coinUI.SetCountImmediate(coins); // ✅ no animation/events
+        }
+    }
+
     public void BuildAllBallTypesUI()
     {
         if (MergeSessionTracker.Instance == null) return;

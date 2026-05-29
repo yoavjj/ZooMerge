@@ -110,6 +110,9 @@ public class MainMenuUI : MonoBehaviour
         // ✅ Do the heavy stuff AFTER animation has started
         MergeLevelManager.SetLevel(cachedLevelNumber);
 
+        // ✅ checkpoint/retry state for this level start
+        PlayerProgress.OnLevelStarted(MergeLevelManager.CurrentGalaxyId, MergeLevelManager.CurrentLevelInGalaxy);
+
         PopupManager.Instance?.BeginSession(cachedIsNewLevel);
         PopupManager.Instance?.InitializeProgressBarNow();
 

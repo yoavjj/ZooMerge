@@ -77,6 +77,13 @@ public static class CloudSaveManager
         // Optional: store last reason for debugging/analytics
         PlayerPrefs.SetString("LastGameOverReason", reason.ToString());
 
+        PlayerProgress.CaptureFromManagers();
+
+        // Consume retry for the level that was just lost
+        PlayerProgress.OnLoss(MergeLevelManager.CurrentGalaxyId, MergeLevelManager.CurrentLevelInGalaxy);
+
+        Debug.Log($"[Retries] Loss. New-level retries remaining: {PlayerProgress.NewLevelRetriesRemaining}");
+
         SaveSnapshot(incrementMidLevelCompleted: false); // ✅ don't increment mid levels on loss
     }
 
@@ -403,6 +410,12 @@ public static class CloudSaveManager
             Debug.Log($"[CloudSave] Synced economy from cloud: coins={cloudCoins}, balls={cloudMergedBalls.Count}");
             onComplete?.Invoke();
         });
+    }
+
+    public static void SyncEconomyNow()
+    {
+        // Just save a snapshot without incrementing win counters
+        SaveSnapshot(incrementMidLevelCompleted: false);
     }
 
     public static void OnAppPaused(bool paused)
