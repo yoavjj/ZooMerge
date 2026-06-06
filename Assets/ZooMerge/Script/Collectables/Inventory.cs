@@ -13,6 +13,7 @@ public sealed class Inventory
     private readonly Dictionary<CurrencyType, int> currencyValues = new();
 
     public event Action OnChanged;
+    public event Action OnCoinsReduced;
 
     // ------------ BALLS ------------
     public int Get(BallType type)
@@ -98,7 +99,10 @@ public sealed class Inventory
         PlayerPrefs.SetInt(GetCurrencyKey(type), currencyValues[type]);
         PlayerPrefs.Save();
 
-        OnChanged?.Invoke();
+        // ✅ specific: reduction (only when coins go down)
+        if (type == CurrencyType.Coins)
+            OnCoinsReduced?.Invoke();
+            
         return true;
     }
 }

@@ -6,9 +6,11 @@ using UnityEngine.UI;
 
 public class OutOfTriesPopup : MonoBehaviour
 {
+    public static OutOfTriesPopup LastSpawned { get; private set; }
 
     [Header("Buy Retries")]
     [SerializeField] private int retryRefillCostCoins = 5;
+    [SerializeField] private RetryRefillPricingSO pricing;
 
     public event Action Closed;
     public static event Action RetriesPurchased;
@@ -26,8 +28,14 @@ public class OutOfTriesPopup : MonoBehaviour
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI retryCostText;
     [SerializeField] private RectTransform layoutRootToRebuild;
+    [SerializeField] private GameObject quitButtonRoot;
 
     private bool isClosing;
+
+    private void Awake()
+    {
+        LastSpawned = this;
+    }
 
     private void OnEnable()
     {
@@ -37,7 +45,7 @@ public class OutOfTriesPopup : MonoBehaviour
     private void RefreshCostUI()
     {
         if (retryCostText != null)
-            retryCostText.text = retryRefillCostCoins.ToString();
+            retryCostText.text = CurrentCost().ToString();
 
         // Force layout refresh (HorizontalLayoutGroup + ContentSizeFitter)
         if (layoutRootToRebuild != null)
@@ -47,25 +55,31 @@ public class OutOfTriesPopup : MonoBehaviour
         }
     }
 
-    public void QuitToCheckpoint()
+    private int CurrentCost()
     {
-        // 1) Move the player back to checkpoint locally (and apply into MergeLevelManager)
-        PlayerProgress.FallbackToCheckpoint(); // sets LastGalaxy/LastLevel/EnemyIndex=0 + MergeLevelManager.SetProgress
+        if (pricing == null) return retryRefillCostCoins; // fallback to your old field
+        return pricing.GetCost(RetryRefillPricingRuntime.PurchaseCount);
+    }
 
-        // 2) Notify server (progress + full snapshot so it sticks)
-        CloudSaveManager.ForceCloudProgressMap(PlayerProgress.LastGalaxyId, PlayerProgress.LastLevelInGalaxy, 0);
+    public void QuitToMainMenu()
+    {
+        // ✅ Do NOT change progress at all
+        // (no fallback, no level-back)
+
+        // Optional: just save snapshot so server has latest economy/time/etc
         CloudSaveManager.SaveSnapshot(incrementMidLevelCompleted: false);
 
-        // 3) Close THIS popup (plays Out animation, then destroys)
+        // Close this popup first
         Close();
 
+        // Prevent AE_OnRevealFinished from starting a session
         WinLosePopup.SetSuppressSessionStartFromReveal(true);
 
-        // 4) Close WinLosePopup + go back to main menu
+        // Close WinLose popup and return to main menu
         if (WinLosePopup.Instance != null)
             WinLosePopup.Instance.OnMainMenuButtonPressed();
         else
-            PopupManager.Instance?.ConfirmReturnToMainMenu(); // fallback safety
+            PopupManager.Instance?.ConfirmReturnToMainMenu();
     }
 
     public void BuyRetriesWithCoins()
@@ -79,7 +93,7 @@ public class OutOfTriesPopup : MonoBehaviour
         }
 
         // Validate price
-        if (retryRefillCostCoins <= 0)
+        if (CurrentCost() <= 0)
         {
             Debug.LogWarning("[OutOfTriesPopup] retryRefillCostCoins is invalid.");
             PlayOutOfCoinFeedback("Invalid price");
@@ -88,15 +102,15 @@ public class OutOfTriesPopup : MonoBehaviour
 
         // Check balance first (more explicit than calling Spend directly)
         int coins = GameInventory.Instance.Get(CurrencyType.Coins);
-        if (coins < retryRefillCostCoins)
+        if (coins < CurrentCost())
         {
-            Debug.Log($"[OutOfTriesPopup] Not enough coins. Have {coins}, need {retryRefillCostCoins}.");
+            Debug.Log($"[OutOfTriesPopup] Not enough coins. Have {coins}, need {CurrentCost()}.");
             PlayOutOfCoinFeedback("Not enough coins");
             return;
         }
 
         // Pay
-        bool paid = GameInventory.Instance.Spend(CurrencyType.Coins, retryRefillCostCoins);
+        bool paid = GameInventory.Instance.Spend(CurrencyType.Coins, CurrentCost());
         if (!paid) // safety (shouldn't happen if we checked coins)
         {
             Debug.Log("[OutOfTriesPopup] Spend failed unexpectedly.");
@@ -109,28 +123,17 @@ public class OutOfTriesPopup : MonoBehaviour
 
         // ✅ tell WinLosePopup “we have retries again”
         RetriesPurchased?.Invoke();
-        
-        PlayRetrySuccessFeedback();
 
-        Debug.Log($"[OutOfTriesPopup] Bought retries. Retries now: {PlayerProgress.CurrentLevelRetriesRemaining()}");
-
-        CloudSaveManager.SyncEconomyNow();
-    }
-
-    private void PlayRetrySuccessFeedback()
-    {
         if (CoinText != null)
             CoinText.text = successMessage;
 
-        if (animator != null && !string.IsNullOrEmpty(retryTrigger))
-        {
-            animator.ResetTrigger(retryTrigger);
-            animator.SetTrigger(retryTrigger);
-        }
-        else
-        {
-            Debug.LogWarning("[OutOfTriesPopup] Retry trigger requested but animator/trigger not set.");
-        }
+        // plays your Retry animation, then destroys using the same coroutine
+        Close(retryTrigger);
+
+        Debug.Log($"[OutOfTriesPopup] Bought retries. Retries now: {PlayerProgress.CurrentLevelRetriesRemaining()}");
+
+        RetryRefillPricingRuntime.IncrementPurchaseCount();
+        CloudSaveManager.SyncEconomyNow();
     }
 
     private void PlayOutOfCoinFeedback(string reason)
@@ -150,28 +153,31 @@ public class OutOfTriesPopup : MonoBehaviour
     }
 
     // Hook this to your Close / X button
-    public void Close()
+    public void Close(string triggerOverride = null)
     {
         if (isClosing) return;
         isClosing = true;
 
         Closed?.Invoke();
 
-        if (animator != null && !string.IsNullOrEmpty(outTrigger))
+        if (animator != null)
         {
-            animator.ResetTrigger(outTrigger); // optional safety
-            animator.SetTrigger(outTrigger);
+            string trig = string.IsNullOrEmpty(triggerOverride) ? outTrigger : triggerOverride;
 
-            StartCoroutine(DestroyAfterOut());
+            if (!string.IsNullOrEmpty(trig))
+            {
+                animator.ResetTrigger(trig);
+                animator.SetTrigger(trig);
+
+                StartCoroutine(DestroyAfterAnim());
+                return;
+            }
         }
-        else
-        {
-            // No animator assigned -> destroy immediately
-            Destroy(gameObject);
-        }
+
+        Destroy(gameObject,0.35f); // slight buffer to ensure anim finishes
     }
 
-    private IEnumerator DestroyAfterOut()
+    private IEnumerator DestroyAfterAnim()
     {
         // Wait one frame so the trigger is applied
         yield return null;
@@ -187,6 +193,12 @@ public class OutOfTriesPopup : MonoBehaviour
         }
 
         yield return new WaitForSeconds(wait);
-        Destroy(gameObject);
+        Destroy(gameObject,0.35f); // slight buffer to ensure anim finishes
+    }
+
+    public void SetQuitButtonVisible(bool visible)
+    {
+        if (quitButtonRoot != null)
+            quitButtonRoot.SetActive(visible);
     }
 }

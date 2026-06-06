@@ -124,6 +124,9 @@ public class GameHealthManager : MonoBehaviour
                         // ✅ If a loss already happened, don't continue the win flow
                         if (BallEventManager.IsGameOver) return;
 
+                        // ✅ Reset retry refill price ladder on a successful level completion
+                        RetryRefillPricingRuntime.ResetPurchaseCount();
+
                         AnalyticsEvents.GalaxyLevelComplete();
                         CloudSaveManager.AddGalaxyLevelComplete();
                         PlayerProgress.OnLevelCompleted(MergeLevelManager.CurrentGalaxyId, MergeLevelManager.CurrentLevelInGalaxy);

@@ -39,24 +39,19 @@ public class TopBarCoinItemUI : TopBarCurrencyItemUI
         }
     }
 
-    // 🔔 CALLED BY ANIMATION EVENT
     public void ApplyAddCoins()
     {
-        // 1) Update Inventory FIRST (source of truth)
-        if (pendingAddAmount > 0)
-            GameInventory.Instance.Add(CurrencyType.Coins, pendingAddAmount);
-
-        // 2) Then update the UI
+        // UI only
         count = targetCount;
         pendingAddAmount = 0;
 
         UpdateCountText();
 
-        // Hide +X text
         if (addAmountText != null)
             addAmountText.gameObject.SetActive(false);
     }
 
+    //getting called from animation event, so we can sync the actual count update with the visual "Add" effect
     public void AnimateCountUp()
     {
         StopAllCoroutines();
@@ -65,7 +60,7 @@ public class TopBarCoinItemUI : TopBarCurrencyItemUI
 
     private IEnumerator CountUpRoutine()
     {
-        const float duration = 0.25f; // tweak to taste
+        const float duration = 0.25f;
         float t = 0f;
 
         while (t < duration)
@@ -73,14 +68,13 @@ public class TopBarCoinItemUI : TopBarCurrencyItemUI
             t += Time.unscaledDeltaTime;
             float p = Mathf.Clamp01(t / duration);
 
-            int value = Mathf.RoundToInt(
-                Mathf.Lerp(startCount, targetCount, p)
-            );
-
+            int value = Mathf.RoundToInt(Mathf.Lerp(startCount, targetCount, p));
             countText.text = value.ToString();
             yield return null;
         }
 
+        // ✅ finalize BOTH the text and the cached count
         countText.text = targetCount.ToString();
+        count = targetCount;
     }
 }

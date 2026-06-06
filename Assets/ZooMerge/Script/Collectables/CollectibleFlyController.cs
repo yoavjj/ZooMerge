@@ -51,6 +51,7 @@ public class CollectibleFlyController : MonoBehaviour
 
     [Header("Coin Collectible Prefab")]
     [SerializeField] private FlyingCoinCollectible coinCollectiblePrefab;
+    [SerializeField] private FlyingCoinCollectible cooldownCoinCollectiblePrefab;  // cooldown version
 
     [SerializeField, Tooltip("UI container for collectibles")]
     private RectTransform coinPrefabContainer;
@@ -63,6 +64,12 @@ public class CollectibleFlyController : MonoBehaviour
 
     [Header("Canvas Context")]
     [SerializeField] private Canvas rootCanvas;
+
+    public enum CoinSpawnSource
+    {
+        Session,
+        Cooldown
+    }
 
     /* ---------------------------
        Runtime
@@ -205,13 +212,24 @@ public class CollectibleFlyController : MonoBehaviour
         }
     }
 
-    public void SpawnCoinsToTopBar()
+    public void SpawnPendingEnemyCoinsToTopBar() // session enemy coins
     {
         int totalCoins = MergeLevelManager.ConsumePendingEnemyCoins();
-        if (totalCoins <= 0)
-            return;
+        SpawnCoinsToTopBar(totalCoins, null, CoinSpawnSource.Session);
+    }
 
-        if (coinCollectiblePrefab == null || coinPrefabContainer == null)
+    public void SpawnCoinsToTopBar(int amount, RectTransform overrideSpawnContainer = null, CoinSpawnSource source = CoinSpawnSource.Session)
+    {
+        if (amount <= 0) return;
+
+        RectTransform spawnContainer = overrideSpawnContainer != null ? overrideSpawnContainer : coinPrefabContainer;
+
+        FlyingCoinCollectible prefabToUse =
+            (source == CoinSpawnSource.Cooldown && cooldownCoinCollectiblePrefab != null)
+                ? cooldownCoinCollectiblePrefab
+                : coinCollectiblePrefab;
+
+        if (prefabToUse == null || spawnContainer == null)
         {
             Debug.LogWarning("⚠️ Coin prefab or container not set.");
             return;
@@ -232,7 +250,7 @@ public class CollectibleFlyController : MonoBehaviour
 
         Vector2 targetScreenPoint = coinUI.GetFlyTargetScreenPoint();
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            coinPrefabContainer,
+            spawnContainer,
             targetScreenPoint,
             uiCam,
             out Vector2 targetLocalPoint
@@ -240,12 +258,14 @@ public class CollectibleFlyController : MonoBehaviour
 
         StartCoroutine(
             SpawnCoinRoutine(
-                totalCoins,
+                amount,
                 coinIcon,
                 targetLocalPoint,
                 coinSettings.holdDuration,
                 coinSettings.shortFlyDuration,
-                coinUI
+                coinUI,
+                spawnContainer,
+                prefabToUse
             )
         );
     }
@@ -256,9 +276,11 @@ public class CollectibleFlyController : MonoBehaviour
         Vector2 targetLocal,
         float holdDuration,
         float flyDuration,
-        TopBarCoinItemUI coinUI)
+        TopBarCoinItemUI coinUI,
+        RectTransform spawnContainer,
+        FlyingCoinCollectible prefabToUse)
     {
-        var collectible = Instantiate(coinCollectiblePrefab, coinPrefabContainer);
+        var collectible = Instantiate(prefabToUse, spawnContainer);
 
         collectible.Rect.anchoredPosition = coinSettings.spawnOffset;
         collectible.SetIcon(icon);
@@ -270,11 +292,9 @@ public class CollectibleFlyController : MonoBehaviour
             totalDuration: flyDuration,
             onArrive: () =>
             {
-                // 1️⃣ Update inventory (source of truth)
-                GameInventory.Instance.Add(CurrencyType.Coins, totalCoins);
-
-                // 2️⃣ Animate UI delta (this updates countText correctly)
-                coinUI.AddCoins(totalCoins);
+                GameInventory.Instance.Add(CurrencyType.Coins, totalCoins); // delta
+                coinUI.AddCoins(totalCoins);                               // visual
+                CloudSaveManager.SyncEconomyNow();                         // server
             },
             delay: 0f,
             arcHeight: coinSettings.arcHeight,

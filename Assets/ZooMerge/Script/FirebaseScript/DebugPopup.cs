@@ -1,6 +1,7 @@
 using UnityEngine;
 using Firebase.Firestore;
 using Firebase.Extensions;
+using System;
 
 public class DebugPopup : MonoBehaviour
 {
@@ -12,6 +13,13 @@ public class DebugPopup : MonoBehaviour
     private bool gameOverIsDown = false;
     private const float GAMEOVER_Y_DOWN = -3.35f;
     private const float GAMEOVER_Y_UP = 0.69f;
+
+    [ContextMenu("Cooldown Timer -> last 3 seconds")]
+    public void Debug_CooldownLast3Seconds()
+    {
+        CoinCooldown.Debug_SetRemainingSeconds(3);
+        Debug.Log("[DebugPopup] Cooldown timer forced to 3 seconds remaining.");
+    }
 
     [System.Obsolete]
     void Start()
@@ -104,5 +112,13 @@ public class DebugPopup : MonoBehaviour
         }
 
         healthManager.Debug_SetHpNow();
+    }
+
+    public static void Debug_SetRemainingSeconds(int seconds)
+    {
+        seconds = Mathf.Max(0, seconds);
+        long end = DateTime.UtcNow.AddSeconds(seconds).Ticks;
+        PlayerPrefs.SetString("CoinCooldown_EndUtcTicks", end.ToString());
+        PlayerPrefs.Save();
     }
 }

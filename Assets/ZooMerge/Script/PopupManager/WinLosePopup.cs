@@ -230,7 +230,7 @@ public class WinLosePopup : MonoBehaviour
             return;
         }
 
-        collectibleFlyController.SpawnCoinsToTopBar();
+        collectibleFlyController.SpawnPendingEnemyCoinsToTopBar();
     }
     private void HandleEnemyDone(int index)
     {
@@ -280,7 +280,7 @@ public class WinLosePopup : MonoBehaviour
     public void OnMainMenuButtonPressed()
     {
         OnWinLoseClosed?.Invoke();
-        
+
         AnalyticsEvents.MainMenuEnter("from_game");
         
         PopupManager.Instance?.ConfirmReturnToMainMenu();
@@ -512,6 +512,12 @@ public class WinLosePopup : MonoBehaviour
 
                 // Advance level only after reveal is done showing
                 MergeLevelManager.AdvanceLevel();
+
+                PlayerProgress.CheckpointGalaxyId = MergeLevelManager.CurrentGalaxyId;
+                PlayerProgress.CheckpointLevelInGalaxy = 1;
+                PlayerProgress.NewLevelRetriesRemaining = PlayerProgress.GetNewLevelRetryLimit();
+                PlayerProgress.SaveNow();
+                
                 PlayerProgress.CaptureFromManagers();
                 BallEventManager.RaiseResetCounters(keepUI: false);
                 levelArtRevealInstance.updateProgressBarSlider();
@@ -767,6 +773,9 @@ public class WinLosePopup : MonoBehaviour
 
         outOfTriesInstance = Instantiate(prefab, outOfTriesContainer);
         ResetRectTransform(outOfTriesInstance.transform);
+
+        // ✅ ADD: gameplay context => allow quit button
+        OutOfTriesPopup.LastSpawned?.SetQuitButtonVisible(true);
     }
 
     private void HandleRetriesPurchased()

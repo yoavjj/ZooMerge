@@ -1,7 +1,15 @@
+using System;
 using UnityEngine;
 
 public static class PlayerProgress
 {
+    public static event Action RetriesChanged;
+
+    private static void NotifyRetriesChanged()
+    {
+        RetriesChanged?.Invoke();
+    }
+    
     // -------- Local resume --------
     private const string KEY_LAST_GALAXY = "PROG_LastGalaxyId";
     private const string KEY_LAST_LEVEL_IN_GALAXY = "PROG_LastLevelInGalaxy";
@@ -49,7 +57,7 @@ public static class PlayerProgress
     private const string KEY_NEWLEVEL_RETRIES = "PROG_NewLevelRetriesRemaining";
 
     // ✅ Dynamic hook (later you can read Remote Config here)
-    public static int GetNewLevelRetryLimit() => 3;
+    public static int GetNewLevelRetryLimit() => 1;
 
     public static int CheckpointGalaxyId
     {
@@ -72,27 +80,28 @@ public static class PlayerProgress
     public static bool IsOnCheckpoint(int galaxyId, int levelInGalaxy)
         => galaxyId == CheckpointGalaxyId && levelInGalaxy == CheckpointLevelInGalaxy;
 
+    public static bool IsTutorialUnlimited(int galaxyId, int levelInGalaxy)
+=> galaxyId == 1 && levelInGalaxy == 1;
+
     // ✅ Only the "next level after checkpoint" is gated (simple friendly loop)
     public static bool IsOnNewLevel(int galaxyId, int levelInGalaxy)
     {
-        // Tutorial level is always unlimited
-        if (galaxyId == 1 && levelInGalaxy == 1)
+        // Only Galaxy 1 Level 1 is unlimited
+        if (IsTutorialUnlimited(galaxyId, levelInGalaxy))
             return false;
 
-        bool sameGalaxy = galaxyId == CheckpointGalaxyId;
-        bool isNextLevel = sameGalaxy && levelInGalaxy == CheckpointLevelInGalaxy + 1;
-
-        return isNextLevel;
+        // Everything else is gated (or you can later make this smarter)
+        return true;
     }
 
     public static bool HasRetryLimitForCurrentLevel()
-        => IsOnNewLevel(LastGalaxyId, LastLevelInGalaxy);
+        => !IsTutorialUnlimited(LastGalaxyId, LastLevelInGalaxy);
 
     // ✅ What WinLosePopup should check for gating
     public static int CurrentLevelRetriesRemaining()
     {
         if (!HasRetryLimitForCurrentLevel())
-            return int.MaxValue; // unlimited (checkpoint/tutorial)
+            return int.MaxValue; // unlimited
 
         return NewLevelRetriesRemaining;
     }
@@ -101,6 +110,7 @@ public static class PlayerProgress
     {
         NewLevelRetriesRemaining = GetNewLevelRetryLimit();
         SaveNow();
+        NotifyRetriesChanged();
     }
 
     // Call when a run starts
@@ -119,6 +129,7 @@ public static class PlayerProgress
         }
 
         SaveNow();
+        NotifyRetriesChanged();
     }
 
     // Call on loss
@@ -129,6 +140,7 @@ public static class PlayerProgress
 
         NewLevelRetriesRemaining = Mathf.Max(0, NewLevelRetriesRemaining - 1);
         SaveNow();
+        NotifyRetriesChanged();
     }
 
     // Call on FULL level completion (end of level)
@@ -140,18 +152,31 @@ public static class PlayerProgress
         // reset retries for the next new-level attempt
         NewLevelRetriesRemaining = GetNewLevelRetryLimit();
         SaveNow();
+        NotifyRetriesChanged();
     }
 
     // Called when player can't pay at 0 retries
     public static void FallbackToCheckpoint()
     {
-        LastGalaxyId = CheckpointGalaxyId;
-        LastLevelInGalaxy = CheckpointLevelInGalaxy;
-        LastEnemyIndex = 0;
+        int currentGalaxy = MergeLevelManager.CurrentGalaxyId;
+
+        // ✅ Never fall back to a previous galaxy
+        if (CheckpointGalaxyId != currentGalaxy)
+        {
+            LastGalaxyId = currentGalaxy;
+            LastLevelInGalaxy = 1;
+            LastEnemyIndex = 0;
+        }
+        else
+        {
+            LastGalaxyId = CheckpointGalaxyId;
+            LastLevelInGalaxy = CheckpointLevelInGalaxy;
+            LastEnemyIndex = 0;
+        }
 
         SaveNow();
-
         MergeLevelManager.SetProgress(LastGalaxyId, LastLevelInGalaxy, LastEnemyIndex);
+        NotifyRetriesChanged();
     }
 
     public static void ResetProgressToStart()
@@ -166,7 +191,7 @@ public static class PlayerProgress
         NewLevelRetriesRemaining = GetNewLevelRetryLimit();
 
         SaveNow();
-
+        NotifyRetriesChanged();
         MergeLevelManager.SetProgress(1, 1, 0);
         CloudSaveManager.ForceCloudProgressMap(1, 1, 0);
     }

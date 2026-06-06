@@ -3,15 +3,29 @@ Shader "Unlit/BlackAndWhiteShaderTest"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _Brightness ("Brightnesssss", Range(0, 2)) = 1.0 // Brightness control property
-        _Blend ("Color Blend", Range(0, 1)) = 0    }
+        _Brightness ("Brightnesssss", Range(0, 2)) = 1.0
+        _Blend ("Color Blend", Range(0, 1)) = 0
+    }
+
     SubShader
     {
-        Tags { "RenderType"="Transparent" "Queue"="Transparent" } // Example: Queue set to Transparent+1 (3001)
+        Tags
+        {
+            "Queue"="Transparent"
+            "IgnoreProjector"="True"
+            "RenderType"="Transparent"
+            "PreviewType"="Plane"
+            "CanUseSpriteAtlas"="True"
+        }
+
         LOD 100
 
         Pass
         {
+            // ✅ UI-like render state
+            Cull Off
+            ZWrite Off
+            ZTest [unity_GUIZTestMode]
             Blend SrcAlpha OneMinusSrcAlpha
 
             CGPROGRAM
@@ -33,7 +47,7 @@ Shader "Unlit/BlackAndWhiteShaderTest"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
-            float _Brightness; // Brightness variable
+            float _Brightness;
             float _Blend;
 
             v2f vert (appdata v)
@@ -48,14 +62,10 @@ Shader "Unlit/BlackAndWhiteShaderTest"
             {
                 float4 col = tex2D(_MainTex, i.uv);
 
-                // Grayscale
                 float gray = dot(col.rgb, float3(0.299, 0.587, 0.114));
                 float3 grayColor = float3(gray, gray, gray);
 
-                // Blend between grayscale and original color
                 float3 finalColor = lerp(grayColor, col.rgb, _Blend);
-
-                // Apply brightness AFTER blending (optional but usually nicer)
                 finalColor *= _Brightness;
 
                 return float4(finalColor, col.a);

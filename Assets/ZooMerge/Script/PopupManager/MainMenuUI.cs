@@ -26,10 +26,28 @@ public class MainMenuUI : MonoBehaviour
     private bool cachedIsNewLevel;
     private bool cacheReady = false;
 
+    [Header("Out Of Tries Popup (Main Menu)")]
+    [SerializeField] private PrefabLibrary prefabLibrary;
+    [SerializeField] private Transform outOfTriesContainer;
+    private GameObject outOfTriesInstance;
+
+    private const string OUT_OF_TRIES_POPUP = "OutOfTriesPopup";
+    private bool IsOutOfTriesPopupOpen => outOfTriesInstance != null;
+
     private void Awake()
     {
         if (playButton != null)
             playButton.onClick.AddListener(OnPlayPressed);
+    }
+
+    private void OnEnable()
+    {
+        OutOfTriesPopup.RetriesPurchased += HandleRetriesPurchasedFromPopup;
+    }
+
+    private void OnDisable()
+    {
+        OutOfTriesPopup.RetriesPurchased -= HandleRetriesPurchasedFromPopup;
     }
 
     private void Start()
@@ -42,6 +60,23 @@ public class MainMenuUI : MonoBehaviour
     {
         if (playButton != null)
             playButton.onClick.RemoveListener(OnPlayPressed);
+
+        if (outOfTriesInstance != null)
+            Destroy(outOfTriesInstance);
+    }
+
+    private void HandleRetriesPurchasedFromPopup()
+    {
+        // allow pressing Play again after buying retries
+        playLocked = false;
+
+        if (playButton != null)
+            playButton.interactable = true;
+
+        // optional: if the popup is still around, clear the reference when it gets destroyed
+        // (Unity will make it "null" after destroy, but we keep this clean)
+        if (outOfTriesInstance == null)
+            outOfTriesInstance = null;
     }
 
     private IEnumerator BuildTopBarWhenReady()
@@ -75,10 +110,19 @@ public class MainMenuUI : MonoBehaviour
     private void OnPlayPressed()
     {
         if (playLocked) return;
+
+        if (!IsOutOfTriesPopupOpen &&
+            PlayerProgress.HasRetryLimitForCurrentLevel() &&
+            PlayerProgress.CurrentLevelRetriesRemaining() <= 0)
+        {
+            ShowOutOfTriesPopupFromMainMenu();
+            return;
+        }
+
         playLocked = true;
 
         if (playButton != null)
-            playButton.interactable = false; // prevents spam + extra work
+            playButton.interactable = false;
 
         // ⏱️ Start the cloud save stopwatch!
         CloudSaveManager.StartPlayTimer();
@@ -91,6 +135,25 @@ public class MainMenuUI : MonoBehaviour
         AnalyticsEvents.MainMenuExit("play_pressed");
 
         playPressedRoutine = StartCoroutine(PlayPressedRoutine());
+    }
+
+    private void ShowOutOfTriesPopupFromMainMenu()
+    {
+        if (IsOutOfTriesPopupOpen) return;
+
+        if (prefabLibrary == null || outOfTriesContainer == null)
+        {
+            Debug.LogWarning("[MainMenuUI] Missing prefabLibrary or outOfTriesContainer.");
+            return;
+        }
+
+        var prefab = prefabLibrary.GetRaw(OUT_OF_TRIES_POPUP);
+        if (prefab == null) return;
+
+        outOfTriesInstance = Instantiate(prefab, outOfTriesContainer);
+
+        // ✅ Main-menu context => HIDE quit button to prevent crash flow
+        OutOfTriesPopup.LastSpawned?.SetQuitButtonVisible(false);
     }
 
     private IEnumerator PlayPressedRoutine()

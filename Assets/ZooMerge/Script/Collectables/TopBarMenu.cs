@@ -25,12 +25,12 @@ public class TopBarMenu : MonoBehaviour
 
     private void OnEnable()
     {
-        GameInventory.Instance.OnChanged += HandleInventoryChanged;
+        GameInventory.Instance.OnCoinsReduced += HandleInventoryChanged;
     }
 
     private void OnDisable()
     {
-        GameInventory.Instance.OnChanged -= HandleInventoryChanged;
+        GameInventory.Instance.OnCoinsReduced -= HandleInventoryChanged;
     }
 
 
