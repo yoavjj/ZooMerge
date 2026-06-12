@@ -142,14 +142,14 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 937996284311770742}
   m_Father: {fileID: 443781508866816566}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 8.8, y: -272.7}
+  m_AnchoredPosition: {x: 8.8, y: -262.7018}
   m_SizeDelta: {x: 396.4, y: 161.2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1234797991555251414
@@ -725,6 +725,9 @@ MonoBehaviour:
   cooldownCoinCollectiblePrefab: {fileID: 3539755234437606876, guid: 29db9c7496a7c4644b48d0564f11ba90, type: 3}
   coinPrefabContainer: {fileID: 5118602862136734563}
   coinSettings: {fileID: 11400000, guid: 5fa63a9aacdc641929ad40034249a6b0, type: 2}
+  heartFlyTarget: {fileID: 3949249200599873270}
+  heartWinLoseEntryId: Heart_winlose
+  heartWinLoseAmount: 1
   progressBar: {fileID: 6209333123475253814}
   topBarMenu: {fileID: 2663367253908298832}
   rootCanvas: {fileID: 0}
@@ -1104,7 +1107,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -2.8767, y: 0.0018158}
+  m_AnchoredPosition: {x: -2.8767, y: 10}
   m_SizeDelta: {x: 894.92, y: 508.1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &2259884484610654264
@@ -1277,7 +1280,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.2, y: -123.16}
+  m_AnchoredPosition: {x: -0.2, y: -113.161804}
   m_SizeDelta: {x: 825.4, y: 246.3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &7197301720173381834
@@ -1340,7 +1343,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 83}
+  m_AnchoredPosition: {x: 0, y: 92.9982}
   m_SizeDelta: {x: 775, y: 164.3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7397023425517881697
@@ -2044,8 +2047,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -9}
-  m_SizeDelta: {x: 900.67, y: 474.7}
+  m_AnchoredPosition: {x: 0, y: -61.7}
+  m_SizeDelta: {x: 900.7, y: 580}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1131774480663599152
 CanvasRenderer:
@@ -3117,10 +3120,42 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4640172398121846552, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4640172398121846552, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4640172398121846552, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4640172398121846552, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4648525973595862611, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
       propertyPath: coinsText
       value: 
       objectReference: {fileID: 4375831685396071221}
+    - target: {fileID: 4810797025267778149, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 306
+      objectReference: {fileID: 0}
+    - target: {fileID: 4810797025267778149, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -1240
+      objectReference: {fileID: 0}
+    - target: {fileID: 5961150651739610357, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+      propertyPath: onArriveTarget
+      value: 
+      objectReference: {fileID: 7929683143053780541}
+    - target: {fileID: 5961150651739610357, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+      propertyPath: spawnContainerOverride
+      value: 
+      objectReference: {fileID: 2789889472505882726}
     - target: {fileID: 6221683893939218928, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -3135,12 +3170,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6221683893939218928, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 555.1907
+      value: 574.1
       objectReference: {fileID: 0}
     - target: {fileID: 6221683893939218928, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -87.808
       objectReference: {fileID: 0}
+    - target: {fileID: 7740446888405287020, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+      propertyPath: flyTarget
+      value: 
+      objectReference: {fileID: 3949249200599873270}
     - target: {fileID: 8553297913346705640, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -3164,6 +3203,10 @@ PrefabInstance:
     - target: {fileID: 9072614002304181872, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
       propertyPath: m_AnchorMin.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9072614002304181872, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 19
       objectReference: {fileID: 0}
     - target: {fileID: 9072614002304181872, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -3182,13 +3225,33 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8553297913346705640, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1823183576171376240}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4641440667344628003, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7929683143053780541}
   m_SourcePrefab: {fileID: 100100000, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
 --- !u!224 &1353231585186013931 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8553297913346705640, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
   m_PrefabInstance: {fileID: 7238639021181053443}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2602370731583456032 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4641440667344628003, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+  m_PrefabInstance: {fileID: 7238639021181053443}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7929683143053780541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2602370731583456032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19c45775185d403db8acfd9d89d6792, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddRetriesOnArrive
 --- !u!114 &2663367253908298832 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4648525973595862611, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
@@ -3200,6 +3263,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 202557452506e44da9c66b45225feeb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TopBarMenu
+--- !u!224 &2789889472505882726 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 4810797025267778149, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+  m_PrefabInstance: {fileID: 7238639021181053443}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3949249200599873270 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5961150651739610357, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}
+  m_PrefabInstance: {fileID: 7238639021181053443}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2602370731583456032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a1e043869435455f895242d6bf71db3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIFlyTarget
 --- !u!224 &5573067984441635526 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2964296660927764677, guid: 225090bc2c9d94a688ffa37e18004145, type: 3}

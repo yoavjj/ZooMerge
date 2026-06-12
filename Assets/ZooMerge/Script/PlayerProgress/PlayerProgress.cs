@@ -5,7 +5,7 @@ public static class PlayerProgress
 {
     public static event Action RetriesChanged;
 
-    private static void NotifyRetriesChanged()
+    public static void NotifyRetriesChanged()
     {
         RetriesChanged?.Invoke();
     }
@@ -56,8 +56,12 @@ public static class PlayerProgress
     private const string KEY_CHECKPOINT_LEVEL = "PROG_CheckpointLevel";
     private const string KEY_NEWLEVEL_RETRIES = "PROG_NewLevelRetriesRemaining";
 
-    // ✅ Dynamic hook (later you can read Remote Config here)
-    public static int GetNewLevelRetryLimit() => 1;
+    // Cap + starting amount
+    public static int GetRetryCap() => 3;
+    public static int GetStartingRetries() => 1;
+
+
+    public static int GetNewLevelRetryLimit() => 3;
 
     public static int CheckpointGalaxyId
     {
@@ -73,8 +77,8 @@ public static class PlayerProgress
 
     public static int NewLevelRetriesRemaining
     {
-        get => PlayerPrefs.GetInt(KEY_NEWLEVEL_RETRIES, GetNewLevelRetryLimit());
-        set => PlayerPrefs.SetInt(KEY_NEWLEVEL_RETRIES, Mathf.Max(0, value));
+        get => PlayerPrefs.GetInt(KEY_NEWLEVEL_RETRIES, GetStartingRetries());
+        set => PlayerPrefs.SetInt(KEY_NEWLEVEL_RETRIES, Mathf.Clamp(value, 0, GetRetryCap()));
     }
 
     public static bool IsOnCheckpoint(int galaxyId, int levelInGalaxy)
@@ -108,9 +112,8 @@ public static class PlayerProgress
 
     public static void RefillRetriesForCurrentNewLevel()
     {
-        NewLevelRetriesRemaining = GetNewLevelRetryLimit();
-        SaveNow();
-        NotifyRetriesChanged();
+        // Instead of refilling to 1, treat refill/purchase as +1 (up to cap)
+        AddRetries(1);
     }
 
     // Call when a run starts
@@ -123,9 +126,9 @@ public static class PlayerProgress
         // If this is the gated new level, ensure retries are initialized/clamped
         if (IsOnNewLevel(galaxyId, levelInGalaxy))
         {
-            int limit = GetNewLevelRetryLimit();
-            if (NewLevelRetriesRemaining > limit)
-                NewLevelRetriesRemaining = limit;
+            int cap = GetRetryCap();
+            if (NewLevelRetriesRemaining > cap)
+                NewLevelRetriesRemaining = cap;
         }
 
         SaveNow();
@@ -149,8 +152,6 @@ public static class PlayerProgress
         CheckpointGalaxyId = galaxyId;
         CheckpointLevelInGalaxy = levelInGalaxy;
 
-        // reset retries for the next new-level attempt
-        NewLevelRetriesRemaining = GetNewLevelRetryLimit();
         SaveNow();
         NotifyRetriesChanged();
     }
@@ -188,12 +189,26 @@ public static class PlayerProgress
         CheckpointGalaxyId = 1;
         CheckpointLevelInGalaxy = 1;
 
-        NewLevelRetriesRemaining = GetNewLevelRetryLimit();
+        NewLevelRetriesRemaining = GetStartingRetries();
 
         SaveNow();
         NotifyRetriesChanged();
         MergeLevelManager.SetProgress(1, 1, 0);
         CloudSaveManager.ForceCloudProgressMap(1, 1, 0);
+    }
+
+    public static void AddRetries(int amount)
+    {
+        if (amount <= 0) return;
+        NewLevelRetriesRemaining = Mathf.Clamp(NewLevelRetriesRemaining + amount, 0, GetRetryCap());
+        SaveNow();
+        NotifyRetriesChanged();
+    }
+
+    // ✅ Call this when finishing a galaxy (last level)
+    public static void OnGalaxyCompletedGrantRetry()
+    {
+        AddRetries(1); // cap handled inside AddRetries
     }
 
     public static int PeekRetriesAfterLoss(int galaxyId, int levelInGalaxy)

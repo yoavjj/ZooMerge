@@ -51,7 +51,7 @@ public class FlyingCollectible : BaseFlyingCollectible
         return iconImage != null ? iconImage.sprite : null;
     }
 
-    public void LaunchToLocalPoint(
+    public override void LaunchToLocalPoint(
         Vector2 targetLocalPosition,
         float totalDuration,
         System.Action onArrive,

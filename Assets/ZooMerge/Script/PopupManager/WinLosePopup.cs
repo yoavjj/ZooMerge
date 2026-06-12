@@ -209,7 +209,7 @@ public class WinLosePopup : MonoBehaviour
                         int l = MergeLevelManager.CurrentLevelInGalaxy;
 
                         int remainingAfterLoss = PlayerProgress.PeekRetriesAfterLoss(g, l);
-                        playButtonText.text = $"Retry ({remainingAfterLoss}/{PlayerProgress.GetNewLevelRetryLimit()})";
+                        playButtonText.text = $"Retry ({remainingAfterLoss}/{PlayerProgress.GetRetryCap()})";
                     }
 
                     break;
@@ -515,7 +515,6 @@ public class WinLosePopup : MonoBehaviour
 
                 PlayerProgress.CheckpointGalaxyId = MergeLevelManager.CurrentGalaxyId;
                 PlayerProgress.CheckpointLevelInGalaxy = 1;
-                PlayerProgress.NewLevelRetriesRemaining = PlayerProgress.GetNewLevelRetryLimit();
                 PlayerProgress.SaveNow();
                 
                 PlayerProgress.CaptureFromManagers();
@@ -526,6 +525,8 @@ public class WinLosePopup : MonoBehaviour
         else
         {
             // ✅ Galaxy-end: advance into the next galaxy, then show roadmap popup
+            int completedGalaxyId = MergeLevelManager.CurrentGalaxyId;
+
             // ✅ 1. Spawn popup FIRST
             var roadmap = SpawnGalaxyRoadmap();
             if (roadmap != null)
@@ -535,6 +536,10 @@ public class WinLosePopup : MonoBehaviour
                 roadmap.Initialize();
                 ResetRectTransform(roadmap.transform);
             }
+
+            // ✅ Reward: +1 retry for finishing the galaxy (cap 3)
+            PlayerProgress.OnGalaxyCompletedGrantRetry();
+
 
             // ✅ 2. THEN advance level
             MergeLevelManager.AdvanceLevel();
@@ -780,9 +785,6 @@ public class WinLosePopup : MonoBehaviour
 
     private void HandleRetriesPurchased()
     {
-        // ✅ Ensure retries are truly refilled (safe even if already refilled)
-        PlayerProgress.RefillRetriesForCurrentNewLevel();
-
         // ✅ Important: the popup may still be animating out.
         // Clear the reference immediately so gating won't think it's still "out of tries".
         outOfTriesInstance = null;
@@ -797,6 +799,8 @@ public class WinLosePopup : MonoBehaviour
             playButtonAnimator.ResetTrigger(readyTrigger);
             playButtonAnimator.SetTrigger(readyTrigger);
         }
+
+        collectibleFlyController?.FlyHeartWinLose();
 
         // Allow pressing again
         playPressedLocked = false;

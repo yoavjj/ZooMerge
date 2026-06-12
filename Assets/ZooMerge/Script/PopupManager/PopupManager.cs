@@ -11,6 +11,7 @@ public class PopupManager : MonoBehaviour
 
     [Header("Refs")]
     [SerializeField] private PrefabLibrary prefabLibrary;
+    [SerializeField] private CollectibleFlyTarget heartFlyTarget;
 
     private const string MAIN_MENU = "MainMenuPopup";
     private const string WIN_LOSE = "WinLosePopup";
@@ -256,6 +257,12 @@ public class PopupManager : MonoBehaviour
         CircleDragInput.Instance?.ClearSpawnContainer();
         ballSpawner?.BeginSession();
         BallEventManager.RaiseSessionStarted();
+
+        if (isNewLevel && MergeLevelManager.CurrentLevelInGalaxy > 1)
+        {
+            // Let CollectibleFlyService handle timing via FlyEntry.preSpawnDelay
+            CollectibleFlyService.Instance?.Fly("Heart_Session", 1, heartFlyTarget, null);
+        }
 
         // ✅ wait 1 more frame before the expensive Addressables spawn
         yield return null;

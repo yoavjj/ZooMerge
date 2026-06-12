@@ -19,7 +19,7 @@ public class OutOfTriesPopup : MonoBehaviour
     [SerializeField] private Animator animator;                 
     [SerializeField] private string outTrigger = "Out";
     [SerializeField] private string outOfCoinTrigger = "OutOFCoin"; // new trigger
-    [SerializeField] private TextMeshProUGUI CoinText;         // optional: assign if you added a message text
+    [SerializeField] private TextMeshProUGUI MessageText;         // optional: assign if you added a message text
     [SerializeField] private string outOfCoinMessage = "Not enough coins!";
     [SerializeField] private string retryTrigger = "Retry";
     [SerializeField] private string successMessage = "Let's Go!";
@@ -118,14 +118,11 @@ public class OutOfTriesPopup : MonoBehaviour
             return;
         }
 
-        // Refill retries for the current level
-        PlayerProgress.RefillRetriesForCurrentNewLevel();
-
-        // ✅ tell WinLosePopup “we have retries again”
+        // ✅ tell WinLosePopup to start the heart fly reward
         RetriesPurchased?.Invoke();
 
-        if (CoinText != null)
-            CoinText.text = successMessage;
+        if (MessageText != null)
+            MessageText.text = successMessage;
 
         // plays your Retry animation, then destroys using the same coroutine
         Close(retryTrigger);
@@ -138,8 +135,8 @@ public class OutOfTriesPopup : MonoBehaviour
 
     private void PlayOutOfCoinFeedback(string reason)
     {
-        if (CoinText != null)
-            CoinText.text = outOfCoinMessage;
+        if (MessageText != null)
+            MessageText.text = outOfCoinMessage;
 
         if (animator != null && !string.IsNullOrEmpty(outOfCoinTrigger))
         {
@@ -200,5 +197,46 @@ public class OutOfTriesPopup : MonoBehaviour
     {
         if (quitButtonRoot != null)
             quitButtonRoot.SetActive(visible);
+    }
+
+    public void WatchAdForRetry()
+    {
+        // Only offer if truly out of tries
+        if (PlayerProgress.CurrentLevelRetriesRemaining() > 0)
+        {
+            Debug.Log("[OutOfTriesPopup] Retries already available, no need for ad.");
+            Close();
+            return;
+        }
+
+        if (AdManager.Instance == null)
+        {
+            Debug.LogWarning("[OutOfTriesPopup] AdManager missing.");
+            return;
+        }
+
+        // Optional: disable button UI here while ad is showing
+
+        AdManager.Instance.ShowRewarded(
+        onReward: () =>
+        {
+            // ✅ Tell WinLose popup/UI systems
+            RetriesPurchased?.Invoke();
+
+            CloudSaveManager.SyncEconomyNow();
+
+            if (MessageText != null)
+                MessageText.text = successMessage;
+
+            Debug.Log("[OutOfTriesPopup] Rewarded success: +1 retry");
+
+            Close(retryTrigger);
+        },
+            onFail: reason =>
+            {
+                Debug.LogWarning($"[OutOfTriesPopup] Rewarded failed: {reason}");
+                // Optional: show feedback animation/text here (OutOFCoin style)
+            }
+        );
     }
 }

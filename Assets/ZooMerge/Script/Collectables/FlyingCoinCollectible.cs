@@ -12,7 +12,7 @@ public class FlyingCoinCollectible : BaseFlyingCollectible
         visualLogic.SetIcon(sprite);
     }
 
-    public void LaunchToLocalPoint(
+    public override void LaunchToLocalPoint(
         Vector2 targetLocalPosition,
         float totalDuration,
         System.Action onArrive,

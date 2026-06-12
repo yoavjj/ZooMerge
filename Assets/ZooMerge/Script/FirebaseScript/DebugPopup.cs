@@ -7,6 +7,12 @@ public class DebugPopup : MonoBehaviour
 {
     GameHealthManager healthManager;
 
+    [Header("Debug Fly Collectible")]
+    [SerializeField] private CollectibleFlyTarget heartFlyTarget;   // put this on the TOP BAR HEART ICON
+    [SerializeField] private string heartEntryId = "Hearts";         // must match CollectibleFlyService entry id
+    [SerializeField] private int debugHeartAmount = 1;              // later you can change 2..6 etc.
+    [SerializeField] private RectTransform overrideSpawnContainer;
+
     // ✅ GameOver collider toggle
     private Transform gameOverColliderTf;
     [SerializeField]
@@ -101,6 +107,11 @@ public class DebugPopup : MonoBehaviour
     public void RestartInventory()
     {
         GameInventory.Instance.ResetAll();
+
+        // Reset retries back to 1 (starting amount)
+        PlayerProgress.NewLevelRetriesRemaining = 1;
+        PlayerProgress.SaveNow();          // if you have this
+        PlayerProgress.NotifyRetriesChanged(); // if you have this
     }
 
     public void FinalMerge()
@@ -120,5 +131,27 @@ public class DebugPopup : MonoBehaviour
         long end = DateTime.UtcNow.AddSeconds(seconds).Ticks;
         PlayerPrefs.SetString("CoinCooldown_EndUtcTicks", end.ToString());
         PlayerPrefs.Save();
+    }
+
+    [ContextMenu("Debug: Fly Heart (+retries)")]
+    public void Debug_FlyHeart_AddRetry()
+    {
+        if (CollectibleFlyService.Instance == null)
+        {
+            Debug.LogWarning("[DebugPopup] CollectibleFlyService.Instance is null.");
+            return;
+        }
+
+        // Auto-find if not assigned
+        if (heartFlyTarget == null)
+            heartFlyTarget = FindFirstObjectByType<CollectibleFlyTarget>(FindObjectsInactive.Include);
+
+        if (heartFlyTarget == null)
+        {
+            Debug.LogWarning("[DebugPopup] heartFlyTarget not assigned and none found in scene.");
+            return;
+        }
+
+        CollectibleFlyService.Instance.Fly(heartEntryId, 1, heartFlyTarget, overrideSpawnContainer);
     }
 }

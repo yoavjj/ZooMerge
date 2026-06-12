@@ -1,11 +1,17 @@
 using UnityEngine;
 using Unity.Services.LevelPlay;
+using System;
 
 public class AdManager : MonoBehaviour
 {
     public static AdManager Instance { get; private set; }
 
     private LevelPlayBannerAd bannerAd;
+
+    private LevelPlayRewardedAd rewardedAd;
+    private bool rewardedReady;
+    private Action onRewardGranted;
+    private Action<string> onRewardFailed;
 
     private void Awake()
     {
@@ -48,6 +54,9 @@ public class AdManager : MonoBehaviour
     {
         Debug.Log("[AdManager] LevelPlay Init Success");
         SetupBanner();
+
+        SetupRewarded();
+        LoadRewarded();
     }
 
     private void OnInitFailed(LevelPlayInitError error)
@@ -105,5 +114,85 @@ public class AdManager : MonoBehaviour
         {
             Debug.LogWarning("[AdManager] Tried to hide banner, but it's null.");
         }
+    }
+
+    private void SetupRewarded()
+    {
+        rewardedAd = new LevelPlayRewardedAd(RemoteAdConfig.RewardedAdUnitId);
+
+        rewardedAd.OnAdLoaded += info =>
+        {
+            rewardedReady = true;
+            Debug.Log("[AdManager] Rewarded Loaded");
+        };
+
+        rewardedAd.OnAdLoadFailed += error =>
+        {
+            rewardedReady = false;
+            Debug.LogError($"[AdManager] Rewarded Load Failed: {error}");
+        };
+
+        rewardedAd.OnAdDisplayed += info =>
+        {
+            Debug.Log("[AdManager] Rewarded Displayed");
+        };
+
+        rewardedAd.OnAdDisplayFailed += (info, error) =>
+        {
+            Debug.LogError($"[AdManager] Rewarded Display Failed: {error}");
+
+            onRewardFailed?.Invoke(error.ToString());
+            onRewardGranted = null;
+            onRewardFailed = null;
+
+            rewardedReady = false;
+            LoadRewarded();
+        };
+
+        rewardedAd.OnAdRewarded += (info, reward) =>
+        {
+            Debug.Log($"[AdManager] Rewarded! name={reward.Name} amount={reward.Amount}");
+
+            onRewardGranted?.Invoke();
+            onRewardGranted = null;
+            onRewardFailed = null;
+        };
+
+        rewardedAd.OnAdClosed += info =>
+        {
+            Debug.Log("[AdManager] Rewarded Closed");
+
+            rewardedReady = false;
+            LoadRewarded(); // preload next one
+        };
+    }
+
+    public void LoadRewarded()
+    {
+        if (rewardedAd == null) SetupRewarded();
+        Debug.Log("[AdManager] Loading rewarded...");
+        rewardedAd.LoadAd();
+    }
+
+    public bool IsRewardedReady()
+    {
+        return rewardedReady && rewardedAd != null;
+    }
+
+    public void ShowRewarded(Action onReward, Action<string> onFail = null)
+    {
+        if (!IsRewardedReady())
+        {
+            onFail?.Invoke("Rewarded not ready");
+            // kick a load attempt
+            LoadRewarded();
+            return;
+        }
+
+        onRewardGranted = onReward;
+        onRewardFailed = onFail;
+
+        Debug.Log("[AdManager] Showing rewarded...");
+        rewardedAd.ShowAd();
     }
 }

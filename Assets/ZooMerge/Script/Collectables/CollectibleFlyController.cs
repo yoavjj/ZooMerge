@@ -57,6 +57,11 @@ public class CollectibleFlyController : MonoBehaviour
     private RectTransform coinPrefabContainer;
     [SerializeField, Tooltip("Flight settings for Coin collectibles")]
     private CollectibleFlightSettings coinSettings;
+    
+    [Header("Optional Fly Target Overrides")]
+    [SerializeField] private CollectibleFlyTarget heartFlyTarget; // target on your UI (tries/heart icon)
+    [SerializeField] private string heartWinLoseEntryId = "Heart_winlose";
+    [SerializeField] private int heartWinLoseAmount = 1;
 
     [Header("UI references")]
     [SerializeField] private LevelProgressBarSlider progressBar;
@@ -381,6 +386,24 @@ public class CollectibleFlyController : MonoBehaviour
 
         // Copy position
         coinPrefabContainer.anchoredPosition = target.anchoredPosition;
+    }
+
+    public void FlyHeartWinLose()
+    {
+        if (CollectibleFlyService.Instance == null)
+        {
+            Debug.LogWarning("[CollectibleFlyController] CollectibleFlyService.Instance is null.");
+            return;
+        }
+
+        if (heartFlyTarget == null)
+        {
+            Debug.LogWarning("[CollectibleFlyController] heartFlyTarget not assigned.");
+            return;
+        }
+
+        // Use default spawn container (pass null)
+        CollectibleFlyService.Instance.Fly(heartWinLoseEntryId, heartWinLoseAmount, heartFlyTarget, null);
     }
 
 

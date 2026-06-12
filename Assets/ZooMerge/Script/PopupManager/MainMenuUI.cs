@@ -34,6 +34,10 @@ public class MainMenuUI : MonoBehaviour
     private const string OUT_OF_TRIES_POPUP = "OutOfTriesPopup";
     private bool IsOutOfTriesPopupOpen => outOfTriesInstance != null;
 
+    [SerializeField] private CollectibleFlyTarget heartFlyTarget; // target on your UI (tries/heart icon)
+    [SerializeField] private string heartMenuEntryId = "Heart_menu"; // collectible fly entry for retry reward (optional)
+    [SerializeField] private int heartMenuAmount = 1;
+
     private void Awake()
     {
         if (playButton != null)
@@ -67,16 +71,19 @@ public class MainMenuUI : MonoBehaviour
 
     private void HandleRetriesPurchasedFromPopup()
     {
-        // allow pressing Play again after buying retries
+        // The popup is closing, so allow another popup later if needed
+        outOfTriesInstance = null;
+
+        // Start the heart reward fly.
+        // The retry will be added when the heart reaches the target
+        // and your existing animation event calls AE_AddArriveAmountToText().
+        FlyHeartMenu();
+
+        // Allow pressing Play again
         playLocked = false;
 
         if (playButton != null)
             playButton.interactable = true;
-
-        // optional: if the popup is still around, clear the reference when it gets destroyed
-        // (Unity will make it "null" after destroy, but we keep this clean)
-        if (outOfTriesInstance == null)
-            outOfTriesInstance = null;
     }
 
     private IEnumerator BuildTopBarWhenReady()
@@ -189,5 +196,23 @@ public class MainMenuUI : MonoBehaviour
 
         // Re-cache which level should start when Play is pressed
         CacheSessionStartData();
+    }
+
+    public void FlyHeartMenu()
+    {
+        if (CollectibleFlyService.Instance == null)
+        {
+            Debug.LogWarning("[CollectibleFlyController] CollectibleFlyService.Instance is null.");
+            return;
+        }
+
+        if (heartFlyTarget == null)
+        {
+            Debug.LogWarning("[CollectibleFlyController] heartFlyTarget not assigned.");
+            return;
+        }
+
+        // Use default spawn container (pass null)
+        CollectibleFlyService.Instance.Fly(heartMenuEntryId, heartMenuAmount, heartFlyTarget, null);
     }
 }

@@ -10,6 +10,9 @@ public class RetriesTextBinder : MonoBehaviour
     [SerializeField] private string format = "{0}";
     [SerializeField] private string unlimitedText = "∞";
 
+    [Header("Arrive FX Source")]
+    [SerializeField] private CollectibleFlyTarget flyTarget; // assign the SAME target that plays the Add trigger
+
     private void Reset()
     {
         if (text == null) text = GetComponent<TextMeshProUGUI>();
@@ -19,7 +22,6 @@ public class RetriesTextBinder : MonoBehaviour
     {
         PlayerProgress.RetriesChanged += Refresh;
         BallEventManager.OnSessionStarted += Refresh;
-
         Refresh();
     }
 
@@ -33,14 +35,29 @@ public class RetriesTextBinder : MonoBehaviour
     {
         if (text == null) return;
 
-        // ✅ unlimited ONLY for Galaxy 1 Level 1
-        if (PlayerProgress.LastGalaxyId == 1 && PlayerProgress.LastLevelInGalaxy == 1)
+        int remaining = PlayerProgress.CurrentLevelRetriesRemaining();
+
+        // unlimited
+        if (remaining == int.MaxValue)
         {
             text.text = string.Format(format, unlimitedText);
             return;
         }
 
-        int remaining = Mathf.Max(0, PlayerProgress.CurrentLevelRetriesRemaining());
+        // clamped normal display
+        int cap = PlayerProgress.GetRetryCap();
+        remaining = Mathf.Clamp(remaining, 0, cap);
         text.text = string.Format(format, remaining);
+    }
+
+    // 🔥 Animation Event calls this (no args, safest)
+    public void AE_AddArriveAmountToText()
+    {
+        if (text == null) return;
+
+        if (flyTarget != null)
+            flyTarget.CommitPendingArrive();
+            
+        Refresh();
     }
 }
