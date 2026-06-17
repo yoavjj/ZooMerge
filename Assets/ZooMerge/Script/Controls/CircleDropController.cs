@@ -139,6 +139,10 @@ public class CircleDropController : MonoBehaviour
 
         if (introRoutine != null) { StopCoroutine(introRoutine); introRoutine = null; }
 
+        // ✅ Important: if this ball is despawned/merged while touching GameOver,
+        // tell the UI countdown that this ball is gone.
+        CancelGameOverCountdown(notifySaved: true);
+
         ReleasePauseBlockIfActive();
     }
 
@@ -402,8 +406,11 @@ public class CircleDropController : MonoBehaviour
             yield break;
         }
 
-        BallEventManager.RaiseBallTouchedGameOverLine(ballInfo, BallEventManager.GameOverReason.Lost);
-        CloudSaveManager.AddLoss(BallEventManager.GameOverReason.Lost);
+        BallEventManager.RaiseBallTouchedGameOverLine(
+            ballInfo,
+            BallEventManager.GameOverReason.Lost
+        );
+
         gameOverTouchRoutine = null;
     }
 
@@ -795,15 +802,21 @@ public class CircleDropController : MonoBehaviour
         isTouchingGameOver = false;
     }
 
-    public void CancelGameOverCountdown()
+    public void CancelGameOverCountdown(bool notifySaved = true)
     {
+        bool wasTouching = isTouchingGameOver || gameOverTouchRoutine != null;
+
         if (gameOverTouchRoutine != null)
         {
             StopCoroutine(gameOverTouchRoutine);
             gameOverTouchRoutine = null;
         }
 
-        // prevent re-starting
         isTouchingGameOver = false;
+
+        if (notifySaved && wasTouching && ballInfo != null)
+        {
+            BallEventManager.RaiseBallGameOverSaved(ballInfo);
+        }
     }
 }

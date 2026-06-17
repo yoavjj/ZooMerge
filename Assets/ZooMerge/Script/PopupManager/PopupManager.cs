@@ -117,6 +117,9 @@ public class PopupManager : MonoBehaviour
     {
         isSessionActive = false;
 
+        // ✅ consume retry BEFORE popup reads retry count
+        CloudSaveManager.AddLoss(GameOverReason.Lost);
+
         // ✅ analytics: level ended by losing
         AnalyticsEvents.LevelEnd("lost");
         
@@ -258,10 +261,9 @@ public class PopupManager : MonoBehaviour
         ballSpawner?.BeginSession();
         BallEventManager.RaiseSessionStarted();
 
-        if (isNewLevel && MergeLevelManager.CurrentLevelInGalaxy > 1)
+        if (isNewLevel)
         {
-            // Let CollectibleFlyService handle timing via FlyEntry.preSpawnDelay
-            CollectibleFlyService.Instance?.Fly("Heart_Session", 1, heartFlyTarget, null);
+            TryGrantHeartRewardForCompletedLevel();
         }
 
         // ✅ wait 1 more frame before the expensive Addressables spawn
@@ -294,8 +296,12 @@ public class PopupManager : MonoBehaviour
         // ✅ Ensure no duplicate enemy exists
         EnemySpawner.Instance?.ClearEnemy(delay: 0.2f);
 
-        // Clean up any hanging preview or active ball
-        CircleDragInput.Instance?.ClearSpawnContainer();
+        // Clean up any hanging preview or active ball.
+        // ✅ But when restarting a saved mid-level, do NOT clear the restored cage balls.
+        if (!restartmidlevel)
+        {
+            CircleDragInput.Instance?.ClearSpawnContainer();
+        }
 
         ballSpawner?.BeginSession();
         BallEventManager.RaiseSessionStarted();
@@ -432,6 +438,24 @@ public class PopupManager : MonoBehaviour
 
         // Extra safety: clear reference even if popup was already destroyed
         ClearPausePopupReference();
+    }
+
+    private void TryGrantHeartRewardForCompletedLevel()
+    {
+        bool remoteConfigGrant = MergeLevelManager.PreviousCompletedLevelGrantsHeartOnComplete;
+
+        if (!remoteConfigGrant)
+            return;
+
+        CollectibleFlyService.Instance?.Fly("Heart_Session", 1, heartFlyTarget, null);
+
+        // Debug.Log(
+        //     $"[PopupManager] Granted Heart_Session. " +
+        //     $"EndOfGalaxy={completedEndOfGalaxy}, " +
+        //     $"RemoteConfigGrant={remoteConfigGrant}, " +
+        //     $"CurrentGalaxy={MergeLevelManager.CurrentGalaxyId}, " +
+        //     $"CurrentLevel={MergeLevelManager.CurrentLevelInGalaxy}"
+        // );
     }
 }
 

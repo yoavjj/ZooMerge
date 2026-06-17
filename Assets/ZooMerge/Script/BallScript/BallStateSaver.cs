@@ -22,13 +22,25 @@ public class BallStateSaver
 
     public void RestoreState(Transform droppedContainer)
     {
-        foreach (var ball in BallRegistry.ActiveBalls)
+        if (droppedContainer == null)
+        {
+            Debug.LogWarning("[BallStateSaver] RestoreState failed: droppedContainer is null.");
+            return;
+        }
+
+        Debug.Log($"[BallStateSaver] RestoreState requested. Saved balls={BallRegistry.SavedBallCount}");
+
+        // Copy first, because destroying can modify the registry.
+        var liveBalls = new List<BallInfo>(BallRegistry.ActiveBalls);
+
+        foreach (var ball in liveBalls)
         {
             if (ball != null)
                 Object.Destroy(ball.gameObject);
         }
 
         BallRegistry.Clear();
+
         BallRegistry.RestoreState(droppedContainer);
 
         if (MergeSessionTracker.Instance != null)

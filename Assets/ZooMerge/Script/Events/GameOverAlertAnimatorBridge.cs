@@ -55,17 +55,25 @@ public class GameOverAlertAnimatorBridge : MonoBehaviour
     {
         if (ball == null) return;
 
-        // Add ball to active set. If it was already there, ignore.
+        CleanupDestroyedBalls();
+
+        // If the old countdown ball was destroyed/merged,
+        // the set may now be empty while the old countdown is still running.
+        if (touchingBalls.Count == 0 && countdownRoutine != null)
+        {
+            StopCountdown();
+        }
+
         bool wasAdded = touchingBalls.Add(ball);
         if (!wasAdded) return;
 
-        // ✅ Only fire Alert when this is the FIRST ball entering
+        // ✅ This ball is now the active danger ball.
+        // Restart the timer from this ball's countdownSeconds.
         if (touchingBalls.Count == 1)
         {
             countdownTotal = Mathf.Max(0f, countdownSeconds);
 
-            TriggerAlert(alertAnimator);
-            TriggerAlert(timerAnimator);
+            RestartAlertAnimators();
 
             StartCountdown(countdownTotal);
         }
@@ -73,11 +81,16 @@ public class GameOverAlertAnimatorBridge : MonoBehaviour
 
     private void HandleSaved(BallInfo ball)
     {
-        if (ball == null) return;
+        if (ball == null)
+        {
+            CleanupDestroyedBalls();
+        }
+        else
+        {
+            touchingBalls.Remove(ball);
+            CleanupDestroyedBalls();
+        }
 
-        touchingBalls.Remove(ball);
-
-        // ✅ Only fire Saved when the LAST ball leaves
         if (touchingBalls.Count == 0)
         {
             StopCountdown();
@@ -85,10 +98,51 @@ public class GameOverAlertAnimatorBridge : MonoBehaviour
             TriggerSaved(alertAnimator);
             TriggerSaved(timerAnimator);
 
-            // IMPORTANT: if you allow multiple balls, don't set IsGameOverCountdownActive=false
-            // in BallEventManager.RaiseBallGameOverSaved. Do it here when Count==0 instead.
-            // BallEventManager.SetGameOverCountdownActive(false); // if you added a setter.
+            if (timerText != null)
+                timerText.text = "00:00";
         }
+    }
+
+    private void CleanupDestroyedBalls()
+    {
+        if (touchingBalls.Count == 0)
+            return;
+
+        List<BallInfo> toRemove = null;
+
+        foreach (var ball in touchingBalls)
+        {
+            if (ball == null)
+            {
+                toRemove ??= new List<BallInfo>();
+                toRemove.Add(ball);
+            }
+        }
+
+        if (toRemove == null)
+            return;
+
+        foreach (var ball in toRemove)
+            touchingBalls.Remove(ball);
+    }
+
+    private void RestartAlertAnimators()
+    {
+        RestartAnimatorAlert(alertAnimator);
+        RestartAnimatorAlert(timerAnimator);
+    }
+
+    private void RestartAnimatorAlert(Animator animator)
+    {
+        if (animator == null) return;
+
+        animator.ResetTrigger(savedTrigger);
+        animator.ResetTrigger(alertTrigger);
+
+        // Force animator to evaluate reset before Alert trigger.
+        animator.Update(0f);
+
+        animator.SetTrigger(alertTrigger);
     }
 
     private void HandleLost(BallInfo _)
@@ -144,8 +198,13 @@ public class GameOverAlertAnimatorBridge : MonoBehaviour
 
         while (t > 0f)
         {
-            // If somehow no balls remain, stop updating
-            if (touchingBalls.Count == 0) yield break;
+            CleanupDestroyedBalls();
+
+            if (touchingBalls.Count == 0)
+            {
+                countdownRoutine = null;
+                yield break;
+            }
 
             if (timerText != null)
                 timerText.text = FormatSeconds(t);
@@ -155,14 +214,32 @@ public class GameOverAlertAnimatorBridge : MonoBehaviour
         }
 
         if (timerText != null)
-            timerText.text = FormatSeconds(0f);
+            timerText.text = "00:00";
 
-        // ✅ Auto-trigger Saved when the countdown ends
+        BallInfo losingBall = null;
+
+        foreach (var ball in touchingBalls)
+        {
+            if (ball != null)
+            {
+                losingBall = ball;
+                break;
+            }
+        }
+
         touchingBalls.Clear();
-        TriggerSaved(alertAnimator);
-        TriggerSaved(timerAnimator);
-
         countdownRoutine = null;
+
+        if (losingBall != null)
+        {
+            // Raise event with default reason (enum value 0) to indicate countdown loss
+            BallEventManager.RaiseBallTouchedGameOverLine(losingBall, (BallEventManager.GameOverReason)0);
+        }
+        else
+        {
+            TriggerSaved(alertAnimator);
+            TriggerSaved(timerAnimator);
+        }
     }
 
     // "SS:CC" (seconds : centiseconds) -> 05:22

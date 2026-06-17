@@ -189,6 +189,10 @@ public static class CloudSaveManager
                 {
                     { "total_coins_earned", coins },
                     { "total_merged_balls", mergedBalls },
+
+                    // ✅ NEW: save retry hearts to cloud
+                    { "retries_remaining", PlayerProgress.NewLevelRetriesRemaining },
+                    { "retry_cap", PlayerProgress.GetRetryCap() },
                 }
             },
 
@@ -380,12 +384,26 @@ public static class CloudSaveManager
             }
 
             int cloudCoins = 0;
+            int cloudRetries = PlayerProgress.NewLevelRetriesRemaining;
+            bool cloudRetriesFound = false;
+
             Dictionary<string, int> cloudMergedBalls = new Dictionary<string, int>();
 
             if (snap.TryGetValue("economy", out Dictionary<string, object> economyMap))
             {
                 if (economyMap.TryGetValue("total_coins_earned", out var cObj))
                     cloudCoins = System.Convert.ToInt32(cObj);
+
+                if (economyMap.TryGetValue("retries_remaining", out var rObj))
+                {
+                    cloudRetries = Mathf.Clamp(
+                        System.Convert.ToInt32(rObj),
+                        0,
+                        PlayerProgress.GetRetryCap()
+                    );
+
+                    cloudRetriesFound = true;
+                }
 
                 if (economyMap.TryGetValue("total_merged_balls", out var mbObj) &&
                     mbObj is Dictionary<string, object> mbMap)
@@ -401,14 +419,101 @@ public static class CloudSaveManager
             if (cloudCoins > 0)
                 GameInventory.Instance.Add(CurrencyType.Coins, cloudCoins);
 
+            // ✅ Restore merged balls from cloud too
             foreach (var kv in cloudMergedBalls)
             {
                 if (System.Enum.TryParse(kv.Key, out BallType ballType) && kv.Value > 0)
+                {
                     GameInventory.Instance.Add(ballType, kv.Value);
+                }
             }
 
-            Debug.Log($"[CloudSave] Synced economy from cloud: coins={cloudCoins}, balls={cloudMergedBalls.Count}");
+            if (cloudRetriesFound)
+            {
+                PlayerProgress.NewLevelRetriesRemaining = cloudRetries;
+                PlayerProgress.SaveNow();
+                PlayerProgress.NotifyRetriesChanged();
+            }
+
+            Debug.Log(
+            $"[CloudSave] Synced economy from cloud: " +
+            $"coins={cloudCoins}, balls={cloudMergedBalls.Count}, " +
+            $"retries={(cloudRetriesFound ? cloudRetries.ToString() : "local/default")}"
+);
             onComplete?.Invoke();
+        });
+    }
+
+    public static void SaveRetriesOnly()
+    {
+        if (string.IsNullOrEmpty(FirebaseInitializer.UserId))
+        {
+            Debug.LogWarning("[CloudSave] SaveRetriesOnly: UserId not ready.");
+            return;
+        }
+
+        var docRef = FirebaseFirestore.DefaultInstance
+            .Collection("players")
+            .Document(FirebaseInitializer.UserId);
+
+        var patch = new Dictionary<string, object>
+    {
+        {
+            "economy", new Dictionary<string, object>
+            {
+                { "retries_remaining", PlayerProgress.NewLevelRetriesRemaining },
+                { "retry_cap", PlayerProgress.GetRetryCap() }
+            }
+        }
+    };
+
+        docRef.SetAsync(patch, SetOptions.MergeAll).ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted)
+            {
+                Debug.LogError($"[CloudSave] Failed to save retries only: {task.Exception}");
+            }
+            else
+            {
+                Debug.Log($"[CloudSave] Saved retries only: {PlayerProgress.NewLevelRetriesRemaining}");
+            }
+        });
+    }
+
+    public static void SaveCoinsOnly()
+    {
+        if (string.IsNullOrEmpty(FirebaseInitializer.UserId))
+        {
+            Debug.LogWarning("[CloudSave] SaveCoinsOnly: UserId not ready.");
+            return;
+        }
+
+        var docRef = FirebaseFirestore.DefaultInstance
+            .Collection("players")
+            .Document(FirebaseInitializer.UserId);
+
+        int coins = GameInventory.Instance.Get(CurrencyType.Coins);
+
+        var patch = new Dictionary<string, object>
+    {
+        {
+            "economy", new Dictionary<string, object>
+            {
+                { "total_coins_earned", coins }
+            }
+        }
+    };
+
+        docRef.SetAsync(patch, SetOptions.MergeAll).ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted)
+            {
+                Debug.LogError($"[CloudSave] Failed to save coins only: {task.Exception}");
+            }
+            else
+            {
+                Debug.Log($"[CloudSave] Saved coins only: {coins}");
+            }
         });
     }
 

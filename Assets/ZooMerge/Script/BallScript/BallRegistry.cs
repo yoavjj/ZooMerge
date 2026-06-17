@@ -7,6 +7,7 @@ public static class BallRegistry
     private static readonly List<BallSnapshot> savedBalls = new();
 
     public static IReadOnlyCollection<BallInfo> ActiveBalls => activeBalls;
+    public static int SavedBallCount => savedBalls.Count;
 
     public static void Register(BallInfo ball)
     {

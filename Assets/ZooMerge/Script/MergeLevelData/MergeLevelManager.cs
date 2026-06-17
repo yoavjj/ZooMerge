@@ -288,6 +288,22 @@ public static class MergeLevelManager
         }
     }
 
+    public static bool CurrentLevelGrantsHeartOnComplete
+    {
+        get
+        {
+            try
+            {
+                var level = GetCurrentLevel();
+                return level != null && level.grantHeartOnComplete;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
     public static int GetGalaxyIdAtOffset(int offset)
     {
         if (data == null || data.galaxies == null || data.galaxies.Count == 0)
@@ -304,7 +320,68 @@ public static class MergeLevelManager
         var g = data.galaxies.Find(x => x.galaxyId == galaxyId);
         return g != null ? g.name : string.Empty;
     }
-    
+
+    public static bool PreviousCompletedLevelWasLastInGalaxy
+    {
+        get
+        {
+            if (data == null || data.galaxies == null || data.galaxies.Count == 0)
+                return false;
+
+            // If current level is not the first level, previous level is inside same galaxy.
+            if (currentLevelIndex > 0)
+                return false;
+
+            // If current level is the first level of a galaxy,
+            // then the previous completed level was the last level of the previous galaxy.
+            return currentGalaxyIndex > 0;
+        }
+    }
+
+    public static bool PreviousCompletedLevelGrantsHeartOnComplete
+    {
+        get
+        {
+            MergeLevel previousLevel = GetPreviousCompletedLevel();
+            return previousLevel != null && previousLevel.grantHeartOnComplete;
+        }
+    }
+
+    private static MergeLevel GetPreviousCompletedLevel()
+    {
+        if (data == null || data.galaxies == null || data.galaxies.Count == 0)
+            return null;
+
+        // Previous level inside the same galaxy
+        if (currentLevelIndex > 0)
+        {
+            var currentGalaxy = data.galaxies[currentGalaxyIndex];
+
+            if (currentGalaxy.levels == null || currentGalaxy.levels.Count == 0)
+                return null;
+
+            int previousLevelIndex = currentLevelIndex - 1;
+            previousLevelIndex = Mathf.Clamp(previousLevelIndex, 0, currentGalaxy.levels.Count - 1);
+
+            return currentGalaxy.levels[previousLevelIndex];
+        }
+
+        // Current level is level 1.
+        // Previous completed level was the last level of the previous galaxy.
+        if (currentGalaxyIndex > 0)
+        {
+            var previousGalaxy = data.galaxies[currentGalaxyIndex - 1];
+
+            if (previousGalaxy.levels == null || previousGalaxy.levels.Count == 0)
+                return null;
+
+            return previousGalaxy.levels[previousGalaxy.levels.Count - 1];
+        }
+
+        // No previous completed level, probably starting Galaxy 1 Level 1.
+        return null;
+    }
+
     // ---------- Advancing ----------
     public static void AdvanceLevel()
     {

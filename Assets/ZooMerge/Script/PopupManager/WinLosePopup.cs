@@ -537,10 +537,6 @@ public class WinLosePopup : MonoBehaviour
                 ResetRectTransform(roadmap.transform);
             }
 
-            // ✅ Reward: +1 retry for finishing the galaxy (cap 3)
-            PlayerProgress.OnGalaxyCompletedGrantRetry();
-
-
             // ✅ 2. THEN advance level
             MergeLevelManager.AdvanceLevel();
             PlayerProgress.CaptureFromManagers();

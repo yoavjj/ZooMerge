@@ -30,8 +30,17 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField] private PrefabLibrary prefabLibrary;
     [SerializeField] private Transform outOfTriesContainer;
     private GameObject outOfTriesInstance;
-
     private const string OUT_OF_TRIES_POPUP = "OutOfTriesPopup";
+
+    [Header("Galaxy Roadmap Popup")]
+    [SerializeField] private Transform roadmapContainer;
+
+    private Popup_GalaxyRoadmap roadmapInstance;
+    private bool roadmapOpenOrSpawning = false;
+
+    private const string GALAXY_ROADMAP = "GalaxyRoadmapPopup";
+
+
     private bool IsOutOfTriesPopupOpen => outOfTriesInstance != null;
 
     [SerializeField] private CollectibleFlyTarget heartFlyTarget; // target on your UI (tries/heart icon)
@@ -67,6 +76,12 @@ public class MainMenuUI : MonoBehaviour
 
         if (outOfTriesInstance != null)
             Destroy(outOfTriesInstance);
+
+        if (roadmapInstance != null)
+        {
+            roadmapInstance.OnClosedRoadmap -= HandleRoadmapClosed;
+            Destroy(roadmapInstance.gameObject);
+        }
     }
 
     private void HandleRetriesPurchasedFromPopup()
@@ -214,5 +229,93 @@ public class MainMenuUI : MonoBehaviour
 
         // Use default spawn container (pass null)
         CollectibleFlyService.Instance.Fly(heartMenuEntryId, heartMenuAmount, heartFlyTarget, null);
+    }
+
+    public void ShowGalaxyRoadmap()
+    {
+        if (roadmapOpenOrSpawning)
+            return;
+
+        AnalyticsEvents.LogRoadmapView(
+            true,
+            MergeLevelManager.CurrentGalaxyId.ToString(),
+            MergeLevelManager.CurrentLevelNumber
+        );
+
+        if (roadmapInstance != null)
+        {
+            roadmapOpenOrSpawning = true;
+
+            roadmapInstance.gameObject.SetActive(true);
+            roadmapInstance.Initialize();
+            roadmapInstance.PlayIntro(false);
+
+            ResetRoadmapRectTransform(roadmapInstance.transform);
+            return;
+        }
+
+        roadmapOpenOrSpawning = true;
+
+        roadmapInstance = SpawnGalaxyRoadmap();
+
+        if (roadmapInstance == null)
+        {
+            roadmapOpenOrSpawning = false;
+            return;
+        }
+
+        roadmapInstance.OnClosedRoadmap += HandleRoadmapClosed;
+
+        roadmapInstance.PrepareProgressBeforeReveal();
+        roadmapInstance.Initialize();
+        roadmapInstance.PlayIntro(false);
+
+        ResetRoadmapRectTransform(roadmapInstance.transform);
+    }
+
+    private Popup_GalaxyRoadmap SpawnGalaxyRoadmap()
+    {
+        if (prefabLibrary == null || roadmapContainer == null)
+        {
+            Debug.LogWarning("[MainMenuUI] Missing prefabLibrary or roadmapContainer.");
+            return null;
+        }
+
+        var prefab = prefabLibrary.GetGalaxyRoadmap(GALAXY_ROADMAP);
+
+        if (prefab == null)
+        {
+            Debug.LogWarning("[MainMenuUI] GalaxyRoadmapPopup prefab not found.");
+            return null;
+        }
+
+        return Instantiate(prefab, roadmapContainer);
+    }
+
+    private void HandleRoadmapClosed()
+    {
+        roadmapOpenOrSpawning = false;
+
+        if (roadmapInstance != null)
+            roadmapInstance.OnClosedRoadmap -= HandleRoadmapClosed;
+
+        roadmapInstance = null;
+    }
+
+    private void ResetRoadmapRectTransform(Transform t)
+    {
+        var rt = t as RectTransform;
+
+        if (rt != null)
+        {
+            rt.anchoredPosition3D = Vector3.zero;
+        }
+        else
+        {
+            t.localPosition = Vector3.zero;
+        }
+
+        t.localRotation = Quaternion.identity;
+        t.localScale = Vector3.one;
     }
 }

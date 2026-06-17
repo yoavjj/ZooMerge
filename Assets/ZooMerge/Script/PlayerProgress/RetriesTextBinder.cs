@@ -21,14 +21,12 @@ public class RetriesTextBinder : MonoBehaviour
     private void OnEnable()
     {
         PlayerProgress.RetriesChanged += Refresh;
-        BallEventManager.OnSessionStarted += Refresh;
         Refresh();
     }
 
     private void OnDisable()
     {
         PlayerProgress.RetriesChanged -= Refresh;
-        BallEventManager.OnSessionStarted -= Refresh;
     }
 
     public void Refresh()

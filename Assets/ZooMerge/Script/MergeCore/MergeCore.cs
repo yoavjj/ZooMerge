@@ -50,6 +50,11 @@ public class MergeCore
         int currentLevel = a.Level;
         int nextLevel = currentLevel + 1;
 
+        // ✅ If either merging ball was touching GameOver,
+        // remove it from the GameOverAlertAnimatorBridge before despawning.
+        a.Controller?.CancelGameOverCountdown(notifySaved: true);
+        b.Controller?.CancelGameOverCountdown(notifySaved: true);
+
         factory.Despawn(rootA);
         factory.Despawn(rootB);
 

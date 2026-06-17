@@ -11,31 +11,39 @@ public class TopBarCoinItemUI : TopBarCurrencyItemUI
 
     private int pendingAddAmount;
 
-    public void AddCoins(int amount)
+    private bool saveCoinsToCloudAfterCountUp;
+
+    public void AddCoins(int amount, bool saveToCloudAfterCountUp = false)
     {
         if (amount <= 0)
             return;
+
+        saveCoinsToCloudAfterCountUp = saveToCloudAfterCountUp;
 
         pendingAddAmount = amount;
 
         startCount = count;
         targetCount = count + pendingAddAmount;
 
-        // Show +X text
         if (addAmountText != null)
         {
             addAmountText.gameObject.SetActive(true);
             addAmountText.text = $"+{pendingAddAmount}";
         }
 
-        // Trigger animation ONLY
         if (animator != null && !string.IsNullOrEmpty(addAnimationName))
         {
             animator.Play(addAnimationName, 0, 0f);
         }
         else
         {
-            ApplyAddCoins(); // fallback
+            ApplyAddCoins();
+
+            if (saveCoinsToCloudAfterCountUp)
+            {
+                saveCoinsToCloudAfterCountUp = false;
+                CloudSaveManager.SaveCoinsOnly();
+            }
         }
     }
 
@@ -76,5 +84,11 @@ public class TopBarCoinItemUI : TopBarCurrencyItemUI
         // ✅ finalize BOTH the text and the cached count
         countText.text = targetCount.ToString();
         count = targetCount;
+
+        if (saveCoinsToCloudAfterCountUp)
+        {
+            saveCoinsToCloudAfterCountUp = false;
+            CloudSaveManager.SaveCoinsOnly();
+        }
     }
 }

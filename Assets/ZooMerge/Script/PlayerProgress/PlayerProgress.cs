@@ -58,10 +58,7 @@ public static class PlayerProgress
 
     // Cap + starting amount
     public static int GetRetryCap() => 3;
-    public static int GetStartingRetries() => 1;
-
-
-    public static int GetNewLevelRetryLimit() => 3;
+    public static int GetStartingRetries() => 0;
 
     public static int CheckpointGalaxyId
     {
@@ -110,12 +107,6 @@ public static class PlayerProgress
         return NewLevelRetriesRemaining;
     }
 
-    public static void RefillRetriesForCurrentNewLevel()
-    {
-        // Instead of refilling to 1, treat refill/purchase as +1 (up to cap)
-        AddRetries(1);
-    }
-
     // Call when a run starts
     public static void OnLevelStarted(int galaxyId, int levelInGalaxy)
     {
@@ -123,7 +114,17 @@ public static class PlayerProgress
         LastGalaxyId = galaxyId;
         LastLevelInGalaxy = levelInGalaxy;
 
-        // If this is the gated new level, ensure retries are initialized/clamped
+        // ✅ Tutorial is unlimited, but stored retry hearts should be 0.
+        // This prevents Galaxy 1 Level 1 from secretly starting with 1 heart.
+        if (IsTutorialUnlimited(galaxyId, levelInGalaxy))
+        {
+            NewLevelRetriesRemaining = 0;
+            SaveNow();
+            NotifyRetriesChanged();
+            return;
+        }
+
+        // For normal levels, just clamp to cap.
         if (IsOnNewLevel(galaxyId, levelInGalaxy))
         {
             int cap = GetRetryCap();
@@ -197,18 +198,23 @@ public static class PlayerProgress
         CloudSaveManager.ForceCloudProgressMap(1, 1, 0);
     }
 
-    public static void AddRetries(int amount)
+    public static void AddRetries(int amount, bool saveToCloud = false)
     {
         if (amount <= 0) return;
-        NewLevelRetriesRemaining = Mathf.Clamp(NewLevelRetriesRemaining + amount, 0, GetRetryCap());
+
+        NewLevelRetriesRemaining = Mathf.Clamp(
+            NewLevelRetriesRemaining + amount,
+            0,
+            GetRetryCap()
+        );
+
         SaveNow();
         NotifyRetriesChanged();
-    }
 
-    // ✅ Call this when finishing a galaxy (last level)
-    public static void OnGalaxyCompletedGrantRetry()
-    {
-        AddRetries(1); // cap handled inside AddRetries
+        if (saveToCloud)
+        {
+            CloudSaveManager.SaveRetriesOnly();
+        }
     }
 
     public static int PeekRetriesAfterLoss(int galaxyId, int levelInGalaxy)

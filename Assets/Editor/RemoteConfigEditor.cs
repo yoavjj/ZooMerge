@@ -105,9 +105,19 @@ public class RemoteConfigEditor : EditorWindow
         GUILayout.FlexibleSpace();
         GUILayout.Label("Index:", GUILayout.Width(45));
         level.index = EditorGUILayout.IntField(level.index, GUILayout.Width(40));
+
         GUILayout.Space(10);
+
         GUILayout.Label("Stage:", GUILayout.Width(45));
         level.stageId = EditorGUILayout.IntField(level.stageId, GUILayout.Width(40));
+
+        GUILayout.Space(10);
+
+        level.grantHeartOnComplete = EditorGUILayout.ToggleLeft(
+            "Grant Heart",
+            level.grantHeartOnComplete,
+            GUILayout.Width(110)
+        );
 
         if (GUILayout.Button("X", GUILayout.Width(25))) { galaxy.levels.Remove(level); return; }
         EditorGUILayout.EndHorizontal();

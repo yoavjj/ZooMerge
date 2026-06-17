@@ -299,7 +299,6 @@ public class CollectibleFlyController : MonoBehaviour
             {
                 GameInventory.Instance.Add(CurrencyType.Coins, totalCoins); // delta
                 coinUI.AddCoins(totalCoins);                               // visual
-                CloudSaveManager.SyncEconomyNow();                         // server
             },
             delay: 0f,
             arcHeight: coinSettings.arcHeight,
