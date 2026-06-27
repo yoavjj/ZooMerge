@@ -1,7 +1,7 @@
 using UnityEngine;
 using static BallEventManager;
 
-public class PauseRestartPopup : MonoBehaviour
+public class PauseRestartPopup : SfxBehaviourTirgger
 {
     [SerializeField] private Animator animator;
 
@@ -36,6 +36,8 @@ public class PauseRestartPopup : MonoBehaviour
     {
         BallEventManager.RaiseSessionResumed();
 
+        PlayUiSfx(SfxCue.ButtonClick);
+
         animator.SetTrigger("Out");
         Destroy(gameObject, 1f);
         PopupManager.Instance.ClearPausePopupReference();
@@ -50,6 +52,8 @@ public class PauseRestartPopup : MonoBehaviour
     {
         AnalyticsEvents.MainMenuExit("pause_menu");
 
+        PlayUiSfx(SfxCue.ButtonClick);
+
         // ✅ End session UI immediately
         BallEventManager.RaiseReturnToMainMenu();
 
@@ -61,6 +65,8 @@ public class PauseRestartPopup : MonoBehaviour
 
     public void OnRestartSessionPressed()
     {
+        PlayUiSfx(SfxCue.ButtonClick);
+
         var dropped = CircleDragInput.Instance?.droppedContainer;
         if (dropped != null)
         {

@@ -94,6 +94,18 @@ MonoBehaviour:
           m_StringArgument: In
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 3269562898888056188}
+        m_TargetAssemblyTypeName: WinLosePopup, Assembly-CSharp
+        m_MethodName: PlayUiSfxButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!95 &4062531438570496822
 Animator:
   serializedVersion: 7
@@ -2896,6 +2908,34 @@ PrefabInstance:
     - target: {fileID: 4175328878860447012, guid: 0893e441ecfd4419fad2ed077df745b1, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5708372815928120774, guid: 0893e441ecfd4419fad2ed077df745b1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5708372815928120774, guid: 0893e441ecfd4419fad2ed077df745b1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5708372815928120774, guid: 0893e441ecfd4419fad2ed077df745b1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      value: 
+      objectReference: {fileID: 3269562898888056188}
+    - target: {fileID: 5708372815928120774, guid: 0893e441ecfd4419fad2ed077df745b1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5708372815928120774, guid: 0893e441ecfd4419fad2ed077df745b1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
+      value: PlayUiSfxButtonClick
+      objectReference: {fileID: 0}
+    - target: {fileID: 5708372815928120774, guid: 0893e441ecfd4419fad2ed077df745b1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: WinLosePopup, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 5708372815928120774, guid: 0893e441ecfd4419fad2ed077df745b1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 6047679180331901379, guid: 0893e441ecfd4419fad2ed077df745b1, type: 3}
       propertyPath: m_Pivot.x

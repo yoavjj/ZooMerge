@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MainMenuUI : MonoBehaviour
+public class MainMenuUI : SfxBehaviourTirgger
 {
     [Header("Top Bar")]
     [SerializeField] private TopBarMenu topBarMenu;
@@ -137,9 +137,12 @@ public class MainMenuUI : MonoBehaviour
             PlayerProgress.HasRetryLimitForCurrentLevel() &&
             PlayerProgress.CurrentLevelRetriesRemaining() <= 0)
         {
+            PlayUiSfx(SfxCue.ButtonClickNegative);
             ShowOutOfTriesPopupFromMainMenu();
             return;
         }
+
+        PlayUiSfx(SfxCue.ButtonClick);
 
         playLocked = true;
 
@@ -162,6 +165,8 @@ public class MainMenuUI : MonoBehaviour
     private void ShowOutOfTriesPopupFromMainMenu()
     {
         if (IsOutOfTriesPopupOpen) return;
+
+        PlayUiSfx(SfxCue.ButtonClick);
 
         if (prefabLibrary == null || outOfTriesContainer == null)
         {
@@ -235,6 +240,8 @@ public class MainMenuUI : MonoBehaviour
     {
         if (roadmapOpenOrSpawning)
             return;
+
+        PlayUiSfx(SfxCue.ButtonClick);
 
         AnalyticsEvents.LogRoadmapView(
             true,

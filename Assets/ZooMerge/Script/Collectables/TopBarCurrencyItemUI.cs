@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public abstract class TopBarCurrencyItemUI : MonoBehaviour
+public abstract class TopBarCurrencyItemUI : SfxBehaviourTirgger
 {
     [SerializeField] protected Image iconImage;
     [SerializeField] protected TextMeshProUGUI countText;

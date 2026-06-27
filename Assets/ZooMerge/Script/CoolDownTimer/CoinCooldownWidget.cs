@@ -2,7 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 
-public class CoinCooldownWidget : MonoBehaviour
+public class CoinCooldownWidget : SfxBehaviourTirgger
 {
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI timerText;
@@ -105,6 +105,7 @@ public class CoinCooldownWidget : MonoBehaviour
             CloudSaveManager.SyncEconomyNow();
         }
 
+        PlayUiSfx(SfxCue.ButtonClick);
         cooldownAnimator.SetTrigger(collectTrigger);
 
         // ✅ move to next step for next timer

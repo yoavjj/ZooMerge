@@ -10,7 +10,7 @@ public interface IWinLoseContent
     void OnShown();
 }
 
-public class WinLosePopup : MonoBehaviour
+public class WinLosePopup : SfxBehaviourTirgger
 {
     public static WinLosePopup Instance { get; private set; }
 
@@ -279,18 +279,59 @@ public class WinLosePopup : MonoBehaviour
 
     public void OnMainMenuButtonPressed()
     {
+        PlayUiSfx(SfxCue.ButtonClick);
+
+        if (IsSummaryBusy())
+            return;
+
+        ApplyProgressBeforeMainMenu();
+
         OnWinLoseClosed?.Invoke();
 
         AnalyticsEvents.MainMenuEnter("from_game");
-        
+
         PopupManager.Instance?.ConfirmReturnToMainMenu();
+
         animator.SetTrigger("Out");
         PlayContentOut();
         Destroy(gameObject, 1f);
     }
 
+    private void ApplyProgressBeforeMainMenu()
+    {
+        // ✅ Full level completed:
+        // going to main menu should keep the next-level progress,
+        // same as if the player pressed Play.
+        if (currentReason == GameOverReason.Won && levelCompleteContext)
+        {
+            MergeLevelManager.PeekNextProgress(out int nextG, out int nextL);
+
+            PlayerProgress.SetResumePoint(nextG, nextL, 0);
+            MergeLevelManager.SetProgress(nextG, nextL, 0);
+
+            CloudSaveManager.ForceCloudProgressMap(nextG, nextL, 0);
+
+            Debug.Log($"[WinLosePopup] MainMenu after level complete -> saved next level G{nextG} L{nextL}");
+            return;
+        }
+
+        // ✅ Mid-level progress:
+        // returning to main menu restarts this level from enemy 0.
+        int g = MergeLevelManager.CurrentGalaxyId;
+        int l = MergeLevelManager.CurrentLevelInGalaxy;
+
+        PlayerProgress.SetResumePoint(g, l, 0);
+        MergeLevelManager.SetProgress(g, l, 0);
+
+        CloudSaveManager.ForceCloudProgressMap(g, l, 0);
+
+        Debug.Log($"[WinLosePopup] MainMenu from mid-level -> restart current level G{g} L{l}");
+    }
+
     public void ShowGalaxyRoadmap(bool fromLevelFlow = false)
     {
+        PlayUiSfx(SfxCue.ButtonClick);
+        
         // ✅ If already open/spawning, ignore repeated clicks
         if (roadmapOpenOrSpawning)
             return;
@@ -301,7 +342,7 @@ public class WinLosePopup : MonoBehaviour
             deferredAction = DeferredAction.ShowGalaxyRoadmap; // last wins
             deferredRoadmapFromLevelFlow = fromLevelFlow;
             return;
-        }
+        } 
 
         deferredAction = DeferredAction.None;
 
@@ -410,8 +451,11 @@ public class WinLosePopup : MonoBehaviour
             PlayerProgress.NewLevelRetriesRemaining <= 0)
         {
             ShowOutOfTriesPopup();
+            PlayUiSfx(SfxCue.ButtonClickNegative);
             return;
         }
+
+        PlayUiSfx(SfxCue.ButtonClick);
 
 
         // 2. Lock the button so it cannot be pressed again
@@ -805,5 +849,10 @@ public class WinLosePopup : MonoBehaviour
     public static void SetSuppressSessionStartFromReveal(bool value)
     {
         SuppressSessionStartFromReveal = value;
+    } 
+
+    public void PlayUiSfxButtonClick()
+    {
+        PlayUiSfx(SfxCue.ButtonClick);
     }
 }

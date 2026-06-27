@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [ExecuteAlways]
-public class Popup_GalaxyRoadmap : MonoBehaviour
+public class Popup_GalaxyRoadmap : SfxBehaviourTirgger
 {
     [Header("Galaxy Progress")]
     [SerializeField] private GalaxyProgressSlider galaxyProgress;
@@ -172,6 +172,8 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
         if (animator == null)
             return;
 
+        PlayUiSfx(SfxCue.UI_Roadmap_Appear);
+
         isRevealMode = fromLevelFlow;
 
         string trigger = fromLevelFlow ? revealTrigger : popupTrigger;
@@ -217,7 +219,8 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
     {
         // Prevent double-close calls
         if (!gameObject) return;
-
+        
+        PlayUiSfx(SfxCue.UI_Button_Click_Close);
         OnClosedRoadmap?.Invoke();
     }
 
@@ -266,6 +269,19 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
 
         // ✅ show current galaxy art + reveal animation
         levelArtController?.ShowCurrentGalaxyArtAndReveal();
+    }
+
+    public void AE_PlayGalaxyAppearSfx(int galaxySlot)
+    {
+        SfxCue cue = galaxySlot switch
+        {
+            0 => SfxCue.GalaxyRoadmap_CurrentAppear,
+            1 => SfxCue.GalaxyRoadmap_NextAppear,
+            2 => SfxCue.GalaxyRoadmap_NextNextAppear,
+            _ => SfxCue.GalaxyRoadmap_CurrentAppear
+        };
+
+        PlayUiSfx(cue);
     }
 
     private void EnsureMaterialInstance()

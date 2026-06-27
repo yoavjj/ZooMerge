@@ -3,7 +3,7 @@ using UnityEngine;
 using Spine;
 using Spine.Unity;
 
-public class EnemyUnit : MonoBehaviour
+public class EnemyUnit : SfxBehaviourTirgger
 {
     [Header("Animation (optional legacy)")]
     [SerializeField] private Animator animator;
@@ -76,6 +76,8 @@ public class EnemyUnit : MonoBehaviour
         {
             animator.SetTrigger("Hit");
         }
+
+        PlayRandomEnemyHitSfx();
     }
 
     private void HandleSessionEnd()

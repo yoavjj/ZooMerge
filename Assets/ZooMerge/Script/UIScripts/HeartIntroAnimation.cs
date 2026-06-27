@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 [ExecuteAlways]
-public class HeartIntroAnimation : MonoBehaviour
+public class HeartIntroAnimation : SfxBehaviourTirgger
 {
     [SerializeField] private Animator animator;
     [SerializeField] private float delay = 0.05f;   // small delay so UI/layout settles

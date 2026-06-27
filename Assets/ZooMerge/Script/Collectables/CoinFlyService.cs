@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class CoinFlyService : MonoBehaviour
+public class CoinFlyService : SfxBehaviourTirgger
 {
     public static CoinFlyService Instance { get; private set; }
 
@@ -63,6 +63,8 @@ public class CoinFlyService : MonoBehaviour
             Debug.LogWarning("[CoinFlyService] Coin icon missing.");
             return;
         }
+
+        PlayUiSfx(SfxCue.Cooldown_Collect);
 
         // Convert target screen -> local in spawn container
         Vector2 targetScreen = coinUI.GetFlyTargetScreenPoint();

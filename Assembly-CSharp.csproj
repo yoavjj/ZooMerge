@@ -65,6 +65,7 @@
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/HealthTween.cs" />
     <Compile Include="Assets/ZooMerge/Script/Events/AnalyticsEvents.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/Benchmark02.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/AudioSfxEntryDrawer.cs" />
     <Compile Include="Assets/MOST_HapticFeedback/Scripts/MOST_HapticFeedback.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupManager/OutOfTriesPopup.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/CircleDragInput.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="Assets/ZooMerge/Script/Collectables/CollectibleSpawnCircle.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallRegistry.cs" />
     <Compile Include="Assets/ZooMerge/Script/CoolDownTimer/CooldownRewardProgress.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/EnemyHitSfxEntryDrawer.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/BallFactoryAddressables.cs" />
     <Compile Include="Assets/ZooMerge/Script/SessionManager/EnemyProgressConfig.cs" />
     <Compile Include="Assets/ZooMerge/Script/EnemyScript/EnemyUnit.cs" />
@@ -83,6 +85,7 @@
     <Compile Include="Assets/ZooMerge/Script/PopupManager/MainMenuUI.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/TopBarCoinItemUI.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/Inventory.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/SfxPlayerPool.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_ExampleScript_01.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMPro_InstructionOverlay.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexShakeB.cs" />
@@ -105,6 +108,7 @@
     <Compile Include="Assets/ZooMerge/Script/Economy/RetryRefillPricingSO.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeLevelData/MergeLevelManager.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_TextSelector_B.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/SfxCue.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupMessageCenter/LosePopupContent.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/MergeCore.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/SkewTextExample.cs" />
@@ -115,9 +119,11 @@
     <Compile Include="Assets/ZooMerge/Script/Collectables/FlyCollectiblePrefabRoot.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/CircleDropController.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/DoNotDestroyOnRebuild.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/SfxBehaviourTirgger.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/ICollectibleArriveHandler.cs" />
     <Compile Include="Assets/ZooMerge/Script/EnemyScript/EnemyIconController.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_TextInfoDebugTool.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/MergeBlockedSfxEntryDrawer.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/IBallFactory.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/TopBarMergeItemUI.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexShakeA.cs" />
@@ -132,7 +138,6 @@
     <Compile Include="Assets/ZooMerge/Script/SessionManager/LevelProgressBarSlider.cs" />
     <Compile Include="Assets/ZooMerge/Script/SessionManager/EnemyStripBuilder.cs" />
     <Compile Include="Assets/Samples/iOS 14 Advertising Support/1.0.1/01 Context Screen/Scripts/ContextScreenManager.cs" />
-    <Compile Include="Assets/ZooMerge/Script/MusicManager/MusicManager.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/MergeAttemptTracker.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_DigitValidator.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_FrameRateCounter.cs" />
@@ -143,8 +148,10 @@
     <Compile Include="Assets/ZooMerge/Script/PopupManager/PauseRestartPopup.cs" />
     <Compile Include="Assets/Samples/Ads Mediation/9.2.0/Unity LevelPlay Sample/Scripts/AdConfig.cs" />
     <Compile Include="Assets/ZooMerge/Script/Events/GameOverAlertAnimatorBridge.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/AudioManager.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/CoinCollectible.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupManager/WinLosePopup.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/AudioSfxLibrarySO.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupManager/PopupManager.cs" />
     <Compile Include="Assets/ZooMerge/Script/Economy/RetryRefillPricingRuntime.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/CameraController.cs" />
@@ -168,6 +175,7 @@
     <Compile Include="Assets/ZooMerge/Script/FirebaseScript/RemoteAdConfig.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/FlyingCollectible.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/BallCollisionMerge.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/SfxMerge.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/DropdownSample.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/ProgressBarCoordinator.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexColorCycler.cs" />
@@ -193,10 +201,12 @@
     <Compile Include="Assets/ZooMerge/Script/PopupMessageCenter/WinPopupContent.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/CollectibleFlyTarget.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/CollectibleFlyController.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/MusicPlayer.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallStateSaver.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/SceneLineMarker.cs" />
     <Compile Include="Assets/ZooMerge/Script/FirebaseScript/DebugPopup.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/AddRetriesOnArrive.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/EditorAudioPreview.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/ReleaseOnDestroy.cs" />
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/MergeScoreDisplayController.cs" />
     <Compile Include="Assets/ZooMerge/Script/EffectCore/VortexSpinController.cs" />

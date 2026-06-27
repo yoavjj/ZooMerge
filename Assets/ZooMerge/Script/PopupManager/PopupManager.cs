@@ -5,7 +5,7 @@ using UnityEngine;
 using static BallEventManager;
 //using UnityEngine.iOS;
 
-public class PopupManager : MonoBehaviour
+public class PopupManager : SfxBehaviourTirgger
 {
     public static PopupManager Instance { get; private set; }
 
@@ -144,6 +144,8 @@ public class PopupManager : MonoBehaviour
         }
 
         pauseRestartPopupInstance.SetActive(true);
+
+        PlayUiSfx(SfxCue.ButtonClick);
 
         BallEventManager.RaiseSessionPaused(); // 🆕 Trigger pause animation/UI logic
     }
@@ -448,14 +450,6 @@ public class PopupManager : MonoBehaviour
             return;
 
         CollectibleFlyService.Instance?.Fly("Heart_Session", 1, heartFlyTarget, null);
-
-        // Debug.Log(
-        //     $"[PopupManager] Granted Heart_Session. " +
-        //     $"EndOfGalaxy={completedEndOfGalaxy}, " +
-        //     $"RemoteConfigGrant={remoteConfigGrant}, " +
-        //     $"CurrentGalaxy={MergeLevelManager.CurrentGalaxyId}, " +
-        //     $"CurrentLevel={MergeLevelManager.CurrentLevelInGalaxy}"
-        // );
     }
 }
 

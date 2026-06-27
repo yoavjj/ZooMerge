@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CollectibleFlyTarget : MonoBehaviour, IFlyTargetUI
+public class CollectibleFlyTarget : SfxBehaviourTirgger, IFlyTargetUI
 {
     [Header("Target Point")]
     [SerializeField] private RectTransform targetRect;

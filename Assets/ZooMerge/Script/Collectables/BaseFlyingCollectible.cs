@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public abstract class BaseFlyingCollectible : MonoBehaviour, IFlyingCollectible
+public abstract class BaseFlyingCollectible : SfxBehaviourTirgger, IFlyingCollectible
 {
     public abstract RectTransform Rect { get; }
     public abstract void SetIcon(Sprite sprite);

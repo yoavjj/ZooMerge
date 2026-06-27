@@ -34,7 +34,7 @@ public struct CollectibleFlightData
    CollectibleFlyController
 --------------------------------------------------- */
 
-public class CollectibleFlyController : MonoBehaviour
+public class CollectibleFlyController : SfxBehaviourTirgger
 {
     /* ---------------------------
        Inspector References
@@ -251,7 +251,9 @@ public class CollectibleFlyController : MonoBehaviour
         {
             Debug.LogWarning("⚠️ Coin icon not found on TopBarCoinItemUI.");
             return;
-        }
+        } 
+
+        PlayUiSfx(SfxCue.Cooldown_Collect);
 
         Vector2 targetScreenPoint = coinUI.GetFlyTargetScreenPoint();
         RectTransformUtility.ScreenPointToLocalPointInRectangle(

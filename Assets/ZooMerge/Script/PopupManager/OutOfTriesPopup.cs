@@ -4,7 +4,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
-public class OutOfTriesPopup : MonoBehaviour
+public class OutOfTriesPopup : SfxBehaviourTirgger
 {
     public static OutOfTriesPopup LastSpawned { get; private set; }
 
@@ -63,8 +63,7 @@ public class OutOfTriesPopup : MonoBehaviour
 
     public void QuitToMainMenu()
     {
-        // ✅ Do NOT change progress at all
-        // (no fallback, no level-back)
+        PlayUiSfx(SfxCue.ButtonClick);
 
         // Optional: just save snapshot so server has latest economy/time/etc
         CloudSaveManager.SaveSnapshot(incrementMidLevelCompleted: false);
@@ -89,6 +88,7 @@ public class OutOfTriesPopup : MonoBehaviour
         {
             Debug.Log("[OutOfTriesPopup] Retries already available, no need to buy.");
             Close();
+            PlayUiSfx(SfxCue.ButtonClick);
             return;
         }
 
@@ -97,6 +97,7 @@ public class OutOfTriesPopup : MonoBehaviour
         {
             Debug.LogWarning("[OutOfTriesPopup] retryRefillCostCoins is invalid.");
             PlayOutOfCoinFeedback("Invalid price");
+            PlayUiSfx(SfxCue.ButtonClickNegative);
             return;
         }
 
@@ -106,6 +107,7 @@ public class OutOfTriesPopup : MonoBehaviour
         {
             Debug.Log($"[OutOfTriesPopup] Not enough coins. Have {coins}, need {CurrentCost()}.");
             PlayOutOfCoinFeedback("Not enough coins");
+            PlayUiSfx(SfxCue.ButtonClickNegative);
             return;
         }
 
@@ -115,6 +117,7 @@ public class OutOfTriesPopup : MonoBehaviour
         {
             Debug.Log("[OutOfTriesPopup] Spend failed unexpectedly.");
             PlayOutOfCoinFeedback("Not enough coins");
+            PlayUiSfx(SfxCue.ButtonClickNegative);
             return;
         }
 
@@ -131,6 +134,8 @@ public class OutOfTriesPopup : MonoBehaviour
 
         RetryRefillPricingRuntime.IncrementPurchaseCount();
         CloudSaveManager.SyncEconomyNow();
+
+        PlayUiSfx(SfxCue.ButtonClick);
     }
 
     private void PlayOutOfCoinFeedback(string reason)
@@ -206,14 +211,18 @@ public class OutOfTriesPopup : MonoBehaviour
         {
             Debug.Log("[OutOfTriesPopup] Retries already available, no need for ad.");
             Close();
+            PlayUiSfx(SfxCue.ButtonClickNegative);
             return;
         }
 
         if (AdManager.Instance == null)
         {
             Debug.LogWarning("[OutOfTriesPopup] AdManager missing.");
+            PlayUiSfx(SfxCue.ButtonClickNegative);
             return;
         }
+
+        PlayUiSfx(SfxCue.ButtonClick);
 
         // Optional: disable button UI here while ad is showing
 
@@ -238,5 +247,10 @@ public class OutOfTriesPopup : MonoBehaviour
                 // Optional: show feedback animation/text here (OutOFCoin style)
             }
         );
+    } 
+
+    public void PlayButtonSfx()
+    {
+        PlayUiSfx(SfxCue.ButtonClick);
     }
 }

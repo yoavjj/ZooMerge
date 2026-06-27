@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 
-public class GameOverAlertAnimatorBridge : MonoBehaviour
+public class GameOverAlertAnimatorBridge : SfxBehaviourTirgger
 {
     [Header("Main Alert Animator")]
     [SerializeField] private Animator alertAnimator;
@@ -74,6 +74,8 @@ public class GameOverAlertAnimatorBridge : MonoBehaviour
             countdownTotal = Mathf.Max(0f, countdownSeconds);
 
             RestartAlertAnimators();
+
+            PlayUiSfx(SfxCue.GameOver_Signal);
 
             StartCountdown(countdownTotal);
         }

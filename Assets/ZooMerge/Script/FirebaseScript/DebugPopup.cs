@@ -23,7 +23,7 @@ public class DebugPopup : MonoBehaviour
     [ContextMenu("Cooldown Timer -> last 3 seconds")]
     public void Debug_CooldownLast3Seconds()
     {
-        CoinCooldown.Debug_SetRemainingSeconds(3);
+        CoinCooldown.Debug_SetRemainingSeconds(1);
         Debug.Log("[DebugPopup] Cooldown timer forced to 3 seconds remaining.");
     }
 

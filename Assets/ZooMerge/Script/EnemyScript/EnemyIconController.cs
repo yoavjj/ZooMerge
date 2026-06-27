@@ -25,7 +25,7 @@ public class EnemyIconController
     public void MarkEnemyDone(int index)
     {
         if (index >= 0 && index < _icons.Count)
-            _icons[index]?.TriggerGrey();
+            _icons[index]?.TriggerGrey(true);
     }
 
     public void UpgradePreviousToDone(int currentGreyIndex)
@@ -50,7 +50,7 @@ public class EnemyIconController
         for (int i = 0; i <= lastToGrey; i++)
         {
             if (i >= 0 && i < _icons.Count)
-                _icons[i]?.TriggerGrey();
+                _icons[i]?.TriggerGrey(false);
         }
     }
 

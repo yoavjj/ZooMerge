@@ -153,6 +153,8 @@ public class SessionManager : MonoBehaviour
         if (!isSessionUIActive) return;
         isSessionUIActive = false;
 
+        AudioManager.Instance?.StopSessionMusic();
+
         if (enemyDieAnimator != null && !string.IsNullOrEmpty(enemyEndTriggerName))
         {
             enemyDieAnimator.ResetTrigger(enemyEndTriggerName);
@@ -173,6 +175,8 @@ public class SessionManager : MonoBehaviour
     {
         if (isSessionUIActive) return;
         isSessionUIActive = true;
+
+        AudioManager.Instance?.PlaySessionMusic();
 
         // New enemy/session -> allow die FX again
         dieFxTriggeredThisEnemy = false;
