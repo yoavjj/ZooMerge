@@ -61,12 +61,7 @@ public class SplashScreenController : MonoBehaviour
         int l = PlayerPrefs.GetInt("PROG_LastLevelInGalaxy", 1);
         MergeLevelManager.SetProgress(g, l);
 
-        if (userIdText != null)
-        {
-            // Instantly grab the saved ID. If it's a brand new player, it says "Connecting..."
-            string cachedId = PlayerPrefs.GetString("CachedUserId", "Connecting...");
-            userIdText.text = $"User ID: {cachedId}";
-        }
+        UserIdUIHelper.RefreshText(userIdText);
 
         // ✅ Short delay so the splash UI fully appears before heavy work starts
         if (startDelay > 0f)
@@ -174,9 +169,10 @@ public class SplashScreenController : MonoBehaviour
             SetProgress(displayed);
 
             // The moment Firebase grabs the real ID, update the UI (replaces "Connecting..." for new players)
-            if (userIdText != null && !string.IsNullOrEmpty(FirebaseInitializer.UserId))
+            if (!string.IsNullOrEmpty(
+                FirebaseInitializer.UserId))
             {
-                userIdText.text = $"User ID: {FirebaseInitializer.UserId}";
+                UserIdUIHelper.RefreshText(userIdText);
             }
 
 #if UNITY_IOS
@@ -194,8 +190,7 @@ public class SplashScreenController : MonoBehaviour
 
         if (userIdText != null)
         {
-            // Use the static UserId we added to the FirebaseInitializer
-            userIdText.text = $"User ID: {FirebaseInitializer.UserId}";
+            UserIdUIHelper.RefreshText(userIdText);
         }
 
         // Ensure minimum splash time
@@ -256,26 +251,13 @@ public class SplashScreenController : MonoBehaviour
 
     public void CopyUserIdToClipboard()
     {
-        if (!string.IsNullOrEmpty(FirebaseInitializer.UserId))
-        {
-            // Copy the persistent ID to the system clipboard
-            GUIUtility.systemCopyBuffer = FirebaseInitializer.UserId;
+        if (!UserIdUIHelper.TryCopyToClipboard())
+            return;
 
-            Debug.Log($"[Splash] Copied User ID: {FirebaseInitializer.UserId}");
-
-            // Provide visual feedback
-            if (userIdText != null)
-            {
-                StartCoroutine(FlashFeedbackRoutine());
-            }
-        }
-    }
-
-    private IEnumerator FlashFeedbackRoutine()
-    {
-        string originalText = userIdText.text;
-        userIdText.text = "<color=green>Copied to Clipboard!</color>";
-        yield return new WaitForSeconds(1.5f);
-        userIdText.text = originalText;
+        StartCoroutine(
+            UserIdUIHelper.FlashCopiedFeedback(
+                userIdText
+            )
+        );
     }
 }

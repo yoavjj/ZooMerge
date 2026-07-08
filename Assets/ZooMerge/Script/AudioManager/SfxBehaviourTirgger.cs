@@ -64,4 +64,14 @@ public abstract class SfxBehaviourTirgger : MonoBehaviour
     {
         AudioManager.Instance?.PlayRandomPopCollectSfx();
     }
+
+    protected void PlayRandomWooshSfx()
+    {
+        AudioManager.Instance?.PlayRandomWooshSfx();
+    }
+
+    public void PlayRandomWooshSfxFromEvent()
+    {
+        AudioManager.Instance?.PlayRandomWooshSfx();
+    }
 }

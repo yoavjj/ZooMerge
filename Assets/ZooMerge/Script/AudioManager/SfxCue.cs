@@ -24,4 +24,10 @@ public enum SfxCue
     CurrentWorldLevel_Woosh = 16,
     WorldTransition = 17,
     NewLevel_ClosePopup = 18,
+
+    GalaxyRoadmap_Reveal = 19,
+    RoadMap_Unlock = 20,
+    SliderProgress_Collect = 21,
+    Countdown_End = 22,
+    Countdown_GameOver = 23,
 }

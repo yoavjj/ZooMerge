@@ -3,6 +3,7 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 using static BallEventManager;
+using System.Collections.Generic;
 //using UnityEngine.iOS;
 
 public class PopupManager : SfxBehaviourTirgger
@@ -41,6 +42,8 @@ public class PopupManager : SfxBehaviourTirgger
     private bool endPopupLocked = false;
     private GameOverReason? lockedEndReason = null;
 
+    private readonly Dictionary<string, RectTransform> navigationPopups = new();
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -55,16 +58,6 @@ public class PopupManager : SfxBehaviourTirgger
     {
         if (ensureActivePanelOnStart != null && !ensureActivePanelOnStart.activeSelf)
             ensureActivePanelOnStart.SetActive(true);
-
-        if (prefabLibrary != null)
-        {
-            var prefab = prefabLibrary.GetRaw(MAIN_MENU);
-            if (prefab != null)
-            {
-                mainMenuPopupInstance = Instantiate(prefab, transform);
-                mainMenuPopupInstance.SetActive(true);
-            }
-        }
     }
 
     private void Update()
@@ -230,15 +223,32 @@ public class PopupManager : SfxBehaviourTirgger
 
     public void ShowMainMenu()
     {
-        if (prefabLibrary != null)
-        {
-            var prefab = prefabLibrary.GetRaw(MAIN_MENU);
-            if (prefab != null)
-            {
-                mainMenuPopupInstance = Instantiate(prefab, transform);
-                mainMenuPopupInstance.SetActive(true);
-            }
-        }
+        RectTransform popup =
+            GetOrCreateNavigationPopup(MAIN_MENU);
+
+        if (popup == null)
+            return;
+
+        popup.gameObject.SetActive(true);
+        popup.anchoredPosition = Vector2.zero;
+
+        mainMenuPopupInstance = popup.gameObject;
+
+        BallEventManager.RaiseMainMenuPopupOpened();
+    }
+
+    private static void StretchToParent(RectTransform rect)
+    {
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        rect.anchoredPosition = Vector2.zero;
+        rect.localRotation = Quaternion.identity;
+        rect.localScale = Vector3.one;
     }
 
     public void BeginSessionDeferred(bool isNewLevel, bool restartmidlevel = false, int warmupFrames = 2)
@@ -450,6 +460,82 @@ public class PopupManager : SfxBehaviourTirgger
             return;
 
         CollectibleFlyService.Instance?.Fly("Heart_Session", 1, heartFlyTarget, null);
+    }
+
+    public RectTransform GetOrCreateNavigationPopup(string prefabId)
+    {
+        if (string.IsNullOrEmpty(prefabId))
+            return null;
+
+        if (navigationPopups.TryGetValue(
+                prefabId,
+                out RectTransform existing) &&
+            existing != null)
+        {
+            return existing;
+        }
+
+        if (prefabLibrary == null)
+            return null;
+
+        GameObject prefab = prefabLibrary.GetRaw(prefabId);
+
+        if (prefab == null)
+        {
+            Debug.LogWarning(
+                $"[PopupManager] Navigation popup not found: {prefabId}"
+            );
+
+            return null;
+        }
+
+        GameObject instance = Instantiate(prefab, transform);
+
+        RectTransform rect =
+            instance.transform as RectTransform;
+
+        if (rect == null)
+        {
+            Debug.LogWarning(
+                $"[PopupManager] Navigation popup needs a RectTransform: {prefabId}"
+            );
+
+            Destroy(instance);
+            return null;
+        }
+
+        StretchToParent(rect);
+
+        navigationPopups[prefabId] = rect;
+
+        if (prefabId == MAIN_MENU)
+            mainMenuPopupInstance = instance;
+
+        return rect;
+    }
+
+    public void DestroyNavigationPopupsExcept(string prefabIdToKeep)
+    {
+        List<string> idsToRemove = new();
+
+        foreach (var pair in navigationPopups)
+        {
+            string prefabId = pair.Key;
+            RectTransform popup = pair.Value;
+
+            if (prefabId == prefabIdToKeep)
+                continue;
+
+            if (popup != null)
+                Destroy(popup.gameObject);
+
+            idsToRemove.Add(prefabId);
+        }
+
+        foreach (string id in idsToRemove)
+        {
+            navigationPopups.Remove(id);
+        }
     }
 }
 

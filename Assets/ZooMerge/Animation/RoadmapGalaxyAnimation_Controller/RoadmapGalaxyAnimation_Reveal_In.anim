@@ -2336,6 +2336,27 @@ AnimationClip:
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
   m_Events:
+  - time: 0.05
+    functionName: PlayUiSfxFromEvent
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 15
+    messageOptions: 0
+  - time: 0.21666667
+    functionName: PlayUiSfxFromEvent
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.53333336
+    functionName: PlayUiSfxFromEvent
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 5
+    messageOptions: 0
   - time: 0.6166667
     functionName: PlayGroup
     data: 
@@ -2350,6 +2371,13 @@ AnimationClip:
     floatParameter: 0
     intParameter: 1
     messageOptions: 0
+  - time: 1
+    functionName: PlayUiSfxFromEvent
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 6
+    messageOptions: 0
   - time: 1.1166667
     functionName: PlayGroup
     data: 
@@ -2357,15 +2385,15 @@ AnimationClip:
     floatParameter: 0
     intParameter: 2
     messageOptions: 0
-  - time: 1.85
-    functionName: AE_AnimateGalaxyProgress
+  - time: 1.3
+    functionName: PlayUiSfxFromEvent
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
-    intParameter: 0
+    intParameter: 7
     messageOptions: 0
-  - time: 2.7666667
-    functionName: AE_ApplyPendingText
+  - time: 1.85
+    functionName: AE_AnimateGalaxyProgress
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
@@ -2377,4 +2405,11 @@ AnimationClip:
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0
+    messageOptions: 0
+  - time: 2.8166666
+    functionName: PlayUiSfxFromEvent
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 19
     messageOptions: 0

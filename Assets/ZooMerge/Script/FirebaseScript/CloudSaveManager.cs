@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Firebase.Firestore;
 using Firebase.Extensions;
+using Solo.MOST_IN_ONE;
 
 public static class CloudSaveManager
 {
@@ -12,6 +13,15 @@ public static class CloudSaveManager
     private const string PREF_TOTAL_LOSSES = "TotalLosses";
     private const string PREF_TOTAL_MID_LEVELS_COMPLETED = "TotalMidLevelsCompleted";
     private const string PREF_TOTAL_ACTIVE_SECONDS = "TotalActiveSeconds";
+
+    private const string PREF_TOTAL_REWARDED_ADS_COMPLETED =
+    "TotalRewardedAdsCompleted";
+
+    private const string PREF_TOTAL_RETRY_PURCHASES_WITH_COINS =
+        "TotalRetryPurchasesWithCoins";
+
+    private const string PREF_TOTAL_RETRY_COINS_SPENT =
+        "TotalRetryCoinsSpent";
 
     private static float lastSaveTime = -1f;
 
@@ -153,6 +163,9 @@ public static class CloudSaveManager
         int totalMidLevels = PlayerPrefs.GetInt(PREF_TOTAL_MID_LEVELS_COMPLETED, 0);
         int totalLosses = PlayerPrefs.GetInt(PREF_TOTAL_LOSSES, 0);
         string lastGameOverReason = PlayerPrefs.GetString("LastGameOverReason", "None");
+        int totalRewardedAdsCompleted = PlayerPrefs.GetInt(PREF_TOTAL_REWARDED_ADS_COMPLETED,0);
+        int totalRetryPurchasesWithCoins = PlayerPrefs.GetInt(PREF_TOTAL_RETRY_PURCHASES_WITH_COINS,0);
+        int totalRetryCoinsSpent = PlayerPrefs.GetInt(PREF_TOTAL_RETRY_COINS_SPENT,0);
 
         // --- INVENTORY ---
         int coins = GameInventory.Instance.Get(CurrencyType.Coins);
@@ -166,6 +179,25 @@ public static class CloudSaveManager
             { "last_login", FieldValue.ServerTimestamp },
             { "days_since_join", daysSinceJoin }
         };
+
+        bool sfxEnabled =
+    AudioManager.Instance != null
+        ? AudioManager.Instance.IsSfxEnabled
+        : PlayerPrefs.GetInt(
+            "Audio_SfxMuted",
+            0
+        ) == 0;
+
+        bool musicEnabled =
+            AudioManager.Instance != null
+                ? AudioManager.Instance.IsMusicEnabled
+                : PlayerPrefs.GetInt(
+                    "Audio_MusicMuted",
+                    0
+                ) == 0;
+
+        bool hapticsEnabled =
+            MOST_HapticFeedback.HapticsEnabled;
 
         Dictionary<string, object> playerData = new Dictionary<string, object>
         {
@@ -204,7 +236,22 @@ public static class CloudSaveManager
                     { "last_game_over_reason", lastGameOverReason },
                     { "total_game_loops", totalLoops }
                 }
-            }
+            },
+            { "settings", new Dictionary<string, object>
+                {
+                    { "sound_fx_enabled", sfxEnabled},
+                    { "music_enabled", musicEnabled},
+                    { "haptics_enabled", hapticsEnabled}
+                }
+            },
+            { "monetization", new Dictionary<string, object>
+                {
+                    {"rewarded_ads_completed",totalRewardedAdsCompleted},
+                    {"has_completed_rewarded_ad", totalRewardedAdsCompleted > 0},
+                    {"retry_purchases_with_coins", totalRetryPurchasesWithCoins},
+                    {"retry_coins_spent_total", totalRetryCoinsSpent}
+                }
+            },
         };
 
         // --- DECISION POINT: NEW VS RETURNING USER ---
@@ -439,9 +486,66 @@ public static class CloudSaveManager
             $"[CloudSave] Synced economy from cloud: " +
             $"coins={cloudCoins}, balls={cloudMergedBalls.Count}, " +
             $"retries={(cloudRetriesFound ? cloudRetries.ToString() : "local/default")}"
-);
+            );
             onComplete?.Invoke();
         });
+    }
+
+    public static void RegisterRewardedAdCompleted()
+    {
+        int total =
+            PlayerPrefs.GetInt(
+                PREF_TOTAL_REWARDED_ADS_COMPLETED,
+                0
+            ) + 1;
+
+        PlayerPrefs.SetInt(
+            PREF_TOTAL_REWARDED_ADS_COMPLETED,
+            total
+        );
+
+        PlayerPrefs.Save();
+
+        Debug.Log(
+            $"[CloudSave] Rewarded ads completed: {total}"
+        );
+    }
+
+    public static void RegisterRetryPurchaseWithCoins(
+    int coinsSpent)
+    {
+        if (coinsSpent <= 0)
+            return;
+
+        int purchaseCount =
+            PlayerPrefs.GetInt(
+                PREF_TOTAL_RETRY_PURCHASES_WITH_COINS,
+                0
+            ) + 1;
+
+        int totalCoinsSpent =
+            PlayerPrefs.GetInt(
+                PREF_TOTAL_RETRY_COINS_SPENT,
+                0
+            ) + coinsSpent;
+
+        PlayerPrefs.SetInt(
+            PREF_TOTAL_RETRY_PURCHASES_WITH_COINS,
+            purchaseCount
+        );
+
+        PlayerPrefs.SetInt(
+            PREF_TOTAL_RETRY_COINS_SPENT,
+            totalCoinsSpent
+        );
+
+        PlayerPrefs.Save();
+
+        Debug.Log(
+            "[CloudSave] Retry purchase tracked. " +
+            $"Purchases={purchaseCount}, " +
+            $"CoinsSpentTotal={totalCoinsSpent}"
+        );
     }
 
     public static void SaveRetriesOnly()

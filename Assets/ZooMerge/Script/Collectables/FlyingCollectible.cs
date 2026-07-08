@@ -125,6 +125,9 @@ public class FlyingCollectible : BaseFlyingCollectible
         rect.anchoredPosition = originalPos;
         rect.localRotation = originalRot;
 
+        // 🔊 Play one random woosh exactly when flight begins
+        PlayRandomWooshSfx();
+
         // ⏱️ Step 2: Calculate available time for the flight phase
         float flightDuration = totalDuration - holdDuration;
         if (flightDuration <= 0f)

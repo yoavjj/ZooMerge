@@ -152,6 +152,9 @@ public class MainMenuUI : SfxBehaviourTirgger
         // ⏱️ Start the cloud save stopwatch!
         CloudSaveManager.StartPlayTimer();
 
+        BallEventManager.RaiseMainMenuPopupClosed();
+        PopupNavigationSlider.Instance?.DestroyOtherTabPopups();
+
         mainMenuAnimator.SetTrigger("Out");
 
         if (playPressedRoutine != null)
@@ -206,7 +209,7 @@ public class MainMenuUI : SfxBehaviourTirgger
         PopupManager.Instance?.BeginSession(cachedIsNewLevel);
         PopupManager.Instance?.InitializeProgressBarNow();
 
-        Destroy(gameObject, 2.5f);
+        Destroy(gameObject, 0.65f);
     }
 
     public void ForceRefreshProgressUIAndCache()

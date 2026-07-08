@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GalaxyProgressSlider : MonoBehaviour
+public class GalaxyProgressSlider : SfxBehaviourTirgger
 {
     [Header("UI")]
     [SerializeField] private Slider slider;
@@ -64,22 +64,51 @@ public class GalaxyProgressSlider : MonoBehaviour
         ApplyProgress(safeCompleted, safeTotal, animate, updateTexts);
     }
 
-    private void ApplyProgress(int completed, int total, bool animate, bool updateTexts)
+    private void ApplyProgress(
+        int completed,
+        int total,
+        bool animate,
+        bool updateTexts)
     {
         if (updateTexts)
         {
-
             if (levelNameText != null)
-                levelNameText.text = MergeLevelManager.CurrentGalaxyName;
+            {
+                levelNameText.text =
+                    MergeLevelManager.CurrentGalaxyName;
+            }
         }
 
         if (progressText != null)
-            progressText.text = $"{completed}/{total}";
+        {
+            progressText.text =
+                $"{completed}/{total}";
+        }
 
-        float normalized = (float)completed / total;
+        float normalized =
+            (float)completed / total;
 
-        if (animate) AnimateTo(normalized);
-        else SetInstant(normalized);
+        bool isFinalProgress =
+            completed >= total;
+
+        if (animate)
+        {
+            if (isFinalProgress &&
+                slider != null &&
+                slider.value < normalized)
+            {
+                // 🔊 Final progress fill sound.
+                PlayUiSfx(
+                    SfxCue.SliderProgress_Collect
+                );
+            }
+
+            AnimateTo(normalized);
+        }
+        else
+        {
+            SetInstant(normalized);
+        }
     }
 
     private IEnumerator AnimateRoutine(float from, float to)

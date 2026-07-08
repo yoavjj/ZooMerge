@@ -198,6 +198,8 @@ public class GameOverAlertAnimatorBridge : SfxBehaviourTirgger
     {
         float t = total;
 
+        int lastPlayedSecond = -1;
+
         while (t > 0f)
         {
             CleanupDestroyedBalls();
@@ -210,6 +212,17 @@ public class GameOverAlertAnimatorBridge : SfxBehaviourTirgger
 
             if (timerText != null)
                 timerText.text = FormatSeconds(t);
+
+            int wholeSecond = Mathf.CeilToInt(t);
+
+            if (wholeSecond <= 3 &&
+                wholeSecond >= 1 &&
+                wholeSecond != lastPlayedSecond)
+            {
+                lastPlayedSecond = wholeSecond;
+
+                PlayUiSfx(SfxCue.Countdown_End);
+            }
 
             t -= Time.deltaTime;
             yield return null;
@@ -234,8 +247,10 @@ public class GameOverAlertAnimatorBridge : SfxBehaviourTirgger
 
         if (losingBall != null)
         {
-            // Raise event with default reason (enum value 0) to indicate countdown loss
-            BallEventManager.RaiseBallTouchedGameOverLine(losingBall, (BallEventManager.GameOverReason)0);
+            BallEventManager.RaiseBallTouchedGameOverLine(
+                losingBall,
+                (BallEventManager.GameOverReason)0
+            );
         }
         else
         {

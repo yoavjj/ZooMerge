@@ -294,4 +294,221 @@ public static class AnalyticsEvents
             new Parameter("date", joinDate)
         );
     }
+
+    public static void RewardedAdCompleted(
+    string placement)
+    {
+        Log(
+            "rewarded_ad_completed",
+
+            new Parameter(
+                "placement",
+                placement
+            ),
+
+            new Parameter(
+                "galaxy_id",
+                MergeLevelManager.CurrentGalaxyId
+            ),
+
+            new Parameter(
+                "level_in_galaxy",
+                MergeLevelManager.CurrentLevelInGalaxy
+            ),
+
+            new Parameter(
+                "level",
+                MergeLevelManager.CurrentLevelNumber
+            )
+        );
+    }
+
+    public static void RewardedAdFailed(
+        string placement,
+        string reason)
+    {
+        Log(
+            "rewarded_ad_failed",
+
+            new Parameter(
+                "placement",
+                placement
+            ),
+
+            new Parameter(
+                "reason",
+                NormalizeAdFailureReason(reason)
+            ),
+
+            new Parameter(
+                "galaxy_id",
+                MergeLevelManager.CurrentGalaxyId
+            ),
+
+            new Parameter(
+                "level",
+                MergeLevelManager.CurrentLevelNumber
+            )
+        );
+    }
+
+    public static void RetryPurchasedWithCoins(
+        int coinsSpent,
+        int balanceBefore,
+        int balanceAfter,
+        int purchaseNumber)
+    {
+        Log(
+            "retry_purchase_with_coins",
+
+            new Parameter(
+                "currency",
+                "coins"
+            ),
+
+            new Parameter(
+                "coins_spent",
+                coinsSpent
+            ),
+
+            new Parameter(
+                "coin_balance_before",
+                balanceBefore
+            ),
+
+            new Parameter(
+                "coin_balance_after",
+                balanceAfter
+            ),
+
+            new Parameter(
+                "purchase_number",
+                purchaseNumber
+            ),
+
+            new Parameter(
+                "galaxy_id",
+                MergeLevelManager.CurrentGalaxyId
+            ),
+
+            new Parameter(
+                "level_in_galaxy",
+                MergeLevelManager.CurrentLevelInGalaxy
+            ),
+
+            new Parameter(
+                "level",
+                MergeLevelManager.CurrentLevelNumber
+            )
+        );
+    }
+
+    private static string NormalizeAdFailureReason(
+    string reason)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            return "unknown";
+
+        string normalized =
+            reason.ToLowerInvariant();
+
+        if (normalized.Contains("no fill") ||
+            normalized.Contains("no ad"))
+        {
+            return "no_fill";
+        }
+
+        if (normalized.Contains("network") ||
+            normalized.Contains("timeout"))
+        {
+            return "network";
+        }
+
+        if (normalized.Contains("closed") ||
+            normalized.Contains("skip"))
+        {
+            return "user_closed";
+        }
+
+        if (normalized.Contains("not ready") ||
+            normalized.Contains("not loaded"))
+        {
+            return "not_ready";
+        }
+
+        return "other";
+    }
+
+    public static void OutOfTriesPopupShown(
+    int coinBalance,
+    int retryCost)
+    {
+        Log(
+            "out_of_tries_popup_shown",
+
+            new Parameter(
+                "coin_balance",
+                coinBalance
+            ),
+
+            new Parameter(
+                "retry_cost",
+                retryCost
+            ),
+
+            new Parameter(
+                "can_afford_retry",
+                coinBalance >= retryCost ? 1 : 0
+            ),
+
+            new Parameter(
+                "galaxy_id",
+                MergeLevelManager.CurrentGalaxyId
+            ),
+
+            new Parameter(
+                "level_in_galaxy",
+                MergeLevelManager.CurrentLevelInGalaxy
+            ),
+
+            new Parameter(
+                "level",
+                MergeLevelManager.CurrentLevelNumber
+            )
+        );
+    }
+
+    public static void SettingChanged(
+    string setting,
+    bool enabled)
+    {
+        Log(
+            "setting_changed",
+
+            new Parameter(
+                "setting",
+                setting
+            ),
+
+            new Parameter(
+                "enabled",
+                enabled ? 1 : 0
+            ),
+
+            new Parameter(
+                "galaxy_id",
+                MergeLevelManager.CurrentGalaxyId
+            ),
+
+            new Parameter(
+                "level_in_galaxy",
+                MergeLevelManager.CurrentLevelInGalaxy
+            ),
+
+            new Parameter(
+                "level",
+                MergeLevelManager.CurrentLevelNumber
+            )
+        );
+    }
 }

@@ -88,6 +88,22 @@ public class AudioSfxLibrarySO : ScriptableObject
         public float randomPitchRange;
     }
 
+    [Serializable]
+    public class WooshSfxEntry
+    {
+        public SfxWoosh cue;
+        public AudioClip clip;
+
+        [Range(0f, 1f)]
+        public float volume = 1f;
+
+        [Range(0.5f, 2f)]
+        public float pitch = 1f;
+
+        [Range(0f, 0.5f)]
+        public float randomPitchRange;
+    }
+
     [Header("Normal Sound Effects")]
     [SerializeField] private List<SfxEntry> entries = new();
 
@@ -129,6 +145,76 @@ public class AudioSfxLibrarySO : ScriptableObject
 
     public IReadOnlyList<PopCollectSfxEntry> PopCollectEntries =>
         popCollectEntries;
+
+    
+    [Header("Random Woosh Sound Effects")]
+    [SerializeField]
+    private List<WooshSfxEntry> wooshEntries = new();
+
+    private readonly List<WooshSfxEntry> validWooshEntries = new();
+    private bool wooshCacheBuilt;
+
+    public IReadOnlyList<WooshSfxEntry> WooshEntries =>
+        wooshEntries;
+
+
+    public void Warmup()
+    {
+        BuildLookupIfNeeded();
+        BuildMergeLookupIfNeeded();
+        BuildMergeBlockedCacheIfNeeded();
+        BuildEnemyHitCacheIfNeeded();
+        BuildPopCollectCacheIfNeeded();
+        BuildWooshCacheIfNeeded();
+    }
+
+    public bool TryGetRandomWoosh(
+    out WooshSfxEntry entry)
+    {
+        BuildWooshCacheIfNeeded();
+
+        if (validWooshEntries.Count == 0)
+        {
+            entry = null;
+            return false;
+        }
+
+        int index = UnityEngine.Random.Range(
+            0,
+            validWooshEntries.Count
+        );
+
+        entry = validWooshEntries[index];
+        return true;
+    }
+
+    private void BuildWooshCacheIfNeeded()
+    {
+        if (wooshCacheBuilt)
+            return;
+
+        wooshCacheBuilt = true;
+        validWooshEntries.Clear();
+
+        foreach (var entry in wooshEntries)
+        {
+            if (entry == null || entry.clip == null)
+                continue;
+
+            validWooshEntries.Add(entry);
+        }
+    }
+
+    public void Preload(SfxCue cue)
+    {
+        if (!TryGet(cue, out SfxEntry entry))
+            return;
+
+        if (entry.clip == null)
+            return;
+
+        entry.clip.LoadAudioData();
+    }
 
     public bool TryGetRandomMergeBlocked(
     out MergeBlockedSfxEntry entry)
@@ -306,6 +392,9 @@ public class AudioSfxLibrarySO : ScriptableObject
 
         validPopCollectEntries.Clear();
         popCollectCacheBuilt = false;
+
+        validWooshEntries.Clear();
+        wooshCacheBuilt = false;
     }
 #endif
 }

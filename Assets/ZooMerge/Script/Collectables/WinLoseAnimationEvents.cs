@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class WinLoseAnimationEvents : MonoBehaviour
+public class WinLoseAnimationEvents : SfxBehaviourTirgger
 {
     [SerializeField] MergeSummaryPanel mergeSummaryPanel;
     public void TriggerSpawnWinCoins()

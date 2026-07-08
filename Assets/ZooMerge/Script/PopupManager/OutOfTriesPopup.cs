@@ -32,6 +32,8 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
 
     private bool isClosing;
 
+    private bool hasLoggedPopupShown;
+
     private void Awake()
     {
         LastSpawned = this;
@@ -40,6 +42,12 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
     private void OnEnable()
     {
         RefreshCostUI();
+
+        if (!hasLoggedPopupShown)
+        {
+            hasLoggedPopupShown = true;
+            LogPopupShown();
+        }
     }
 
     private void RefreshCostUI()
@@ -81,58 +89,198 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
             PopupManager.Instance?.ConfirmReturnToMainMenu();
     }
 
-    public void BuyRetriesWithCoins()
+    public void WatchAdForRetry()
     {
-        // Only makes sense if truly out of tries
+        // Only offer if truly out of tries
         if (PlayerProgress.CurrentLevelRetriesRemaining() > 0)
         {
-            Debug.Log("[OutOfTriesPopup] Retries already available, no need to buy.");
+            Debug.Log("[OutOfTriesPopup] Retries already available, no need for ad.");
+            Close();
+            PlayUiSfx(SfxCue.ButtonClickNegative);
+            return;
+        }
+
+        if (AdManager.Instance == null)
+        {
+            Debug.LogWarning("[OutOfTriesPopup] AdManager missing.");
+            PlayUiSfx(SfxCue.ButtonClickNegative);
+            return;
+        }
+
+        PlayUiSfx(SfxCue.ButtonClick);
+
+        // Optional: disable button UI here while ad is showing
+
+        AdManager.Instance.ShowRewarded(
+        onReward: () =>
+        {
+            // Permanent per-player Firestore counter.
+            CloudSaveManager
+                .RegisterRewardedAdCompleted();
+
+            // Aggregated Analytics event.
+            AnalyticsEvents.RewardedAdCompleted(
+                "out_of_tries_retry"
+            );
+
+            // Tell UI/game systems.
+            RetriesPurchased?.Invoke();
+
+            // Existing cloud snapshot.
+            CloudSaveManager.SyncEconomyNow();
+
+            if (MessageText != null)
+            {
+                MessageText.text =
+                    successMessage;
+            }
+
+            Debug.Log(
+                "[OutOfTriesPopup] " +
+                "Rewarded success: +1 retry"
+            );
+
+            Close(retryTrigger);
+        },
+            onFail: reason =>
+            {
+                AnalyticsEvents.RewardedAdFailed(
+                    "out_of_tries_retry",
+                    reason
+                );
+
+                Debug.LogWarning(
+                    "[OutOfTriesPopup] " +
+                    $"Rewarded failed: {reason}"
+                );
+            }
+    )   ;
+    }
+
+    public void BuyRetriesWithCoins()
+    {
+        // Only makes sense if truly out of tries.
+        if (PlayerProgress.CurrentLevelRetriesRemaining() > 0)
+        {
+            Debug.Log(
+                "[OutOfTriesPopup] " +
+                "Retries already available, no need to buy."
+            );
+
             Close();
             PlayUiSfx(SfxCue.ButtonClick);
             return;
         }
 
-        // Validate price
-        if (CurrentCost() <= 0)
+        // Capture this purchase's exact price once.
+        int cost = CurrentCost();
+
+        if (cost <= 0)
         {
-            Debug.LogWarning("[OutOfTriesPopup] retryRefillCostCoins is invalid.");
+            Debug.LogWarning(
+                "[OutOfTriesPopup] " +
+                "Retry refill price is invalid."
+            );
+
             PlayOutOfCoinFeedback("Invalid price");
             PlayUiSfx(SfxCue.ButtonClickNegative);
             return;
         }
 
-        // Check balance first (more explicit than calling Spend directly)
-        int coins = GameInventory.Instance.Get(CurrencyType.Coins);
-        if (coins < CurrentCost())
+        int coins =
+            GameInventory.Instance.Get(
+                CurrencyType.Coins
+            );
+
+        if (coins < cost)
         {
-            Debug.Log($"[OutOfTriesPopup] Not enough coins. Have {coins}, need {CurrentCost()}.");
-            PlayOutOfCoinFeedback("Not enough coins");
-            PlayUiSfx(SfxCue.ButtonClickNegative);
+            Debug.Log(
+                "[OutOfTriesPopup] " +
+                $"Not enough coins. Have {coins}, " +
+                $"need {cost}."
+            );
+
+            PlayOutOfCoinFeedback(
+                "Not enough coins"
+            );
+
+            PlayUiSfx(
+                SfxCue.ButtonClickNegative
+            );
+
             return;
         }
 
-        // Pay
-        bool paid = GameInventory.Instance.Spend(CurrencyType.Coins, CurrentCost());
-        if (!paid) // safety (shouldn't happen if we checked coins)
+        bool paid =
+            GameInventory.Instance.Spend(
+                CurrencyType.Coins,
+                cost
+            );
+
+        if (!paid)
         {
-            Debug.Log("[OutOfTriesPopup] Spend failed unexpectedly.");
-            PlayOutOfCoinFeedback("Not enough coins");
-            PlayUiSfx(SfxCue.ButtonClickNegative);
+            Debug.Log(
+                "[OutOfTriesPopup] " +
+                "Spend failed unexpectedly."
+            );
+
+            PlayOutOfCoinFeedback(
+                "Not enough coins"
+            );
+
+            PlayUiSfx(
+                SfxCue.ButtonClickNegative
+            );
+
             return;
         }
 
-        // ✅ tell WinLosePopup to start the heart fly reward
+        // ✅ Successful purchase.
+
+        // Track permanent Firestore totals locally.
+        CloudSaveManager
+            .RegisterRetryPurchaseWithCoins(cost);
+
+        // Read the new balance after spending.
+        int coinsAfterPurchase =
+            GameInventory.Instance.Get(
+                CurrencyType.Coins
+            );
+
+        // Advance dynamic pricing.
+        RetryRefillPricingRuntime
+            .IncrementPurchaseCount();
+
+        // Track the purchase in Firebase Analytics.
+        AnalyticsEvents.RetryPurchasedWithCoins(
+            coinsSpent: cost,
+            balanceBefore: coins,
+            balanceAfter: coinsAfterPurchase,
+            purchaseNumber:
+                RetryRefillPricingRuntime.PurchaseCount
+        );
+
+        // Tell UI/game systems.
         RetriesPurchased?.Invoke();
 
         if (MessageText != null)
-            MessageText.text = successMessage;
+        {
+            MessageText.text =
+                successMessage;
+        }
 
-        // plays your Retry animation, then destroys using the same coroutine
         Close(retryTrigger);
 
-        Debug.Log($"[OutOfTriesPopup] Bought retries. Retries now: {PlayerProgress.CurrentLevelRetriesRemaining()}");
+        Debug.Log(
+            "[OutOfTriesPopup] " +
+            $"Bought retries for {cost} coins. " +
+            $"Balance: {coins} -> {coinsAfterPurchase}. " +
+            $"Purchase number: " +
+            $"{RetryRefillPricingRuntime.PurchaseCount}"
+        );
 
-        RetryRefillPricingRuntime.IncrementPurchaseCount();
+        // Existing snapshot also uploads
+        // permanent Firestore counters.
         CloudSaveManager.SyncEconomyNow();
 
         PlayUiSfx(SfxCue.ButtonClick);
@@ -204,53 +352,23 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
             quitButtonRoot.SetActive(visible);
     }
 
-    public void WatchAdForRetry()
-    {
-        // Only offer if truly out of tries
-        if (PlayerProgress.CurrentLevelRetriesRemaining() > 0)
-        {
-            Debug.Log("[OutOfTriesPopup] Retries already available, no need for ad.");
-            Close();
-            PlayUiSfx(SfxCue.ButtonClickNegative);
-            return;
-        }
-
-        if (AdManager.Instance == null)
-        {
-            Debug.LogWarning("[OutOfTriesPopup] AdManager missing.");
-            PlayUiSfx(SfxCue.ButtonClickNegative);
-            return;
-        }
-
-        PlayUiSfx(SfxCue.ButtonClick);
-
-        // Optional: disable button UI here while ad is showing
-
-        AdManager.Instance.ShowRewarded(
-        onReward: () =>
-        {
-            // ✅ Tell WinLose popup/UI systems
-            RetriesPurchased?.Invoke();
-
-            CloudSaveManager.SyncEconomyNow();
-
-            if (MessageText != null)
-                MessageText.text = successMessage;
-
-            Debug.Log("[OutOfTriesPopup] Rewarded success: +1 retry");
-
-            Close(retryTrigger);
-        },
-            onFail: reason =>
-            {
-                Debug.LogWarning($"[OutOfTriesPopup] Rewarded failed: {reason}");
-                // Optional: show feedback animation/text here (OutOFCoin style)
-            }
-        );
-    } 
-
     public void PlayButtonSfx()
     {
         PlayUiSfx(SfxCue.ButtonClick);
+    }
+
+    private void LogPopupShown()
+    {
+        int coinBalance =
+            GameInventory.Instance.Get(
+                CurrencyType.Coins
+            );
+
+        int retryCost = CurrentCost();
+
+        AnalyticsEvents.OutOfTriesPopupShown(
+            coinBalance,
+            retryCost
+        );
     }
 }

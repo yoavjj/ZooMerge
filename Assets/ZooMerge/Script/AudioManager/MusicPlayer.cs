@@ -14,7 +14,9 @@ public class MusicPlayer
 
     private float volume;
     private float volumeMultiplier = 1f;
+    private float muteMultiplier;
     private bool muted;
+    public bool IsEnabled => !muted;
 
     public MusicPlayer(
         GameObject owner,
@@ -39,6 +41,8 @@ public class MusicPlayer
 
         volume = PlayerPrefs.GetFloat(KEY_VOLUME, defaultVolume);
         muted = PlayerPrefs.GetInt(KEY_MUTED, 0) == 1;
+
+        muteMultiplier = muted ? 0f : 1f;
 
         SetupSource(this.sourceA);
         SetupSource(this.sourceB);
@@ -155,7 +159,9 @@ public class MusicPlayer
 
     private float CurrentTargetVolume()
     {
-        return muted ? 0f : volume * volumeMultiplier;
+        return volume *
+               volumeMultiplier *
+               muteMultiplier;
     }
 
     private void ApplyVolume()
@@ -177,8 +183,13 @@ public class MusicPlayer
     public void SetMuted(bool value)
     {
         muted = value;
+        muteMultiplier = muted ? 0f : 1f;
 
-        PlayerPrefs.SetInt(KEY_MUTED, muted ? 1 : 0);
+        PlayerPrefs.SetInt(
+            KEY_MUTED,
+            muted ? 1 : 0
+        );
+
         PlayerPrefs.Save();
 
         ApplyVolume();
@@ -224,5 +235,49 @@ public class MusicPlayer
 
         activeSource = sourceA;
         inactiveSource = sourceB;
+    }
+
+    public IEnumerator SetEnabled(
+    bool enabled,
+    float duration)
+    {
+        bool newMutedState = !enabled;
+
+        muted = newMutedState;
+
+        PlayerPrefs.SetInt(
+            KEY_MUTED,
+            muted ? 1 : 0
+        );
+
+        PlayerPrefs.Save();
+
+        float startMultiplier = muteMultiplier;
+        float targetMultiplier = enabled ? 1f : 0f;
+
+        float t = 0f;
+
+        while (t < duration)
+        {
+            t += Time.unscaledDeltaTime;
+
+            float p = duration <= 0f
+                ? 1f
+                : Mathf.Clamp01(t / duration);
+
+            muteMultiplier = Mathf.Lerp(
+                startMultiplier,
+                targetMultiplier,
+                p
+            );
+
+            ApplyVolume();
+
+            yield return null;
+        }
+
+        muteMultiplier = targetMultiplier;
+
+        ApplyVolume();
     }
 }

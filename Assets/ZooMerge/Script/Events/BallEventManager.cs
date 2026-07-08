@@ -194,6 +194,20 @@ public static class BallEventManager
         OnEnemyDeathSpineEvent?.Invoke(enemyRoot);
     }
 
+    // 📌 Main Menu Popup
+    public static event Action OnMainMenuPopupOpened;
+    public static event Action OnMainMenuPopupClosed;
+
+    public static void RaiseMainMenuPopupOpened()
+    {
+        OnMainMenuPopupOpened?.Invoke();
+    }
+
+    public static void RaiseMainMenuPopupClosed()
+    {
+        OnMainMenuPopupClosed?.Invoke();
+    }
+
     // 📌 Pause / Resume
     public static event System.Action OnSessionPaused;
     public static event System.Action OnSessionResumed;

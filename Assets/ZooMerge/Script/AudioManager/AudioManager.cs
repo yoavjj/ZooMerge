@@ -28,6 +28,10 @@ public class AudioManager : MonoBehaviour
     [SerializeField, Min(0f)] private float sessionCrossfadeDuration = 1.25f;
     [SerializeField, Min(0f)] private float sessionFadeOutDuration = 1f;
 
+    [Header("Music Settings")]
+    [SerializeField, Min(0f)]
+    private float musicSettingsFadeDuration = 0.3f;
+
     [SerializeField, Min(0f)]
     private float enemyDefeatFadeOutDuration = 0.25f;
 
@@ -44,6 +48,13 @@ public class AudioManager : MonoBehaviour
     private Coroutine musicRoutine;
     private bool hasEnteredMainScene;
 
+    public bool IsMusicEnabled =>
+    musicPlayer != null &&
+    musicPlayer.IsEnabled;
+
+    public bool IsSfxEnabled =>
+    sfxPlayer != null && sfxPlayer.IsEnabled;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -54,6 +65,8 @@ public class AudioManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        IOSAudioSession.EnablePlaybackInSilentMode();
 
         musicPlayer = new MusicPlayer(
             owner: gameObject,
@@ -76,6 +89,9 @@ public class AudioManager : MonoBehaviour
                 loop: true
             ));
         }
+
+        sfxLibrary?.Warmup();
+        sfxLibrary?.Preload(SfxCue.ButtonClick);
     }
 
     private void OnEnable()
@@ -131,6 +147,19 @@ public class AudioManager : MonoBehaviour
             loop: true,
             volumeMultiplier: mainSceneIntroVolumeMultiplier
         ));
+    }
+
+    public void SetMusicEnabled(bool enabled)
+    {
+        if (musicPlayer == null)
+            return;
+
+        StartMusicRoutine(
+            musicPlayer.SetEnabled(
+                enabled,
+                musicSettingsFadeDuration
+            )
+        );
     }
 
     private void StartMusicRoutine(IEnumerator routine)
@@ -385,9 +414,57 @@ public class AudioManager : MonoBehaviour
         );
     }
 
+    public void PlayRandomWooshSfx()
+    {
+        if (sfxLibrary == null)
+        {
+            Debug.LogWarning(
+                "[AudioManager] Missing SFX library."
+            );
+
+            return;
+        }
+
+        if (!sfxLibrary.TryGetRandomWoosh(out var entry))
+        {
+            Debug.LogWarning(
+                "[AudioManager] No valid woosh SFX found."
+            );
+
+            return;
+        }
+
+        float pitch = entry.pitch;
+
+        if (entry.randomPitchRange > 0f)
+        {
+            pitch += Random.Range(
+                -entry.randomPitchRange,
+                entry.randomPitchRange
+            );
+        }
+
+        pitch = Mathf.Clamp(
+            pitch,
+            0.5f,
+            2f
+        );
+
+        sfxPlayer?.Play(
+            entry.clip,
+            entry.volume,
+            pitch
+        );
+    }
+
     public void SetSfxVolume(float value)
     {
         sfxPlayer?.SetVolume(value);
+    }
+
+    public void SetSfxEnabled(bool enabled)
+    {
+        sfxPlayer?.SetEnabled(enabled);
     }
 
     public void SetSfxMuted(bool muted)

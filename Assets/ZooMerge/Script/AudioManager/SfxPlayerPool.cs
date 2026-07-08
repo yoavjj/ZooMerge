@@ -11,6 +11,9 @@ public class SfxPlayerPool
     private float volume;
     private bool muted;
 
+    public bool IsMuted => muted;
+    public bool IsEnabled => !muted;
+
     public SfxPlayerPool(
         Transform owner,
         int poolSize,
@@ -87,6 +90,11 @@ public class SfxPlayerPool
 
         PlayerPrefs.SetInt(KEY_MUTED, muted ? 1 : 0);
         PlayerPrefs.Save();
+    }
+
+    public void SetEnabled(bool enabled)
+    {
+        SetMuted(!enabled);
     }
 
     public void ToggleMuted()

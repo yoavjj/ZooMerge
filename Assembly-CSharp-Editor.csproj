@@ -51,12 +51,17 @@
   <ItemGroup>
     <Compile Include="Assets/Editor/RemoteConfigEditor.cs" />
     <Compile Include="Assets/JMO Assets/Cartoon FX Remaster/CFXR Assets/Editor/CFXR_ShaderImporter.cs" />
+    <Compile Include="Assets/Editor/AudioSfxEntryDrawer.cs" />
     <Compile Include="Assets/ZooMerge/Editor/ReadOnlyAttribute.cs" />
+    <Compile Include="Assets/Editor/EnemyHitSfxEntryDrawer.cs" />
     <Compile Include="Assets/Editor/PostProcessInfoPlist.cs" />
+    <Compile Include="Assets/Editor/WooshSfxEntryDrawer.cs" />
     <Compile Include="Assets/Editor/AdminProgressEditor.cs" />
     <Compile Include="Assets/Editor/windowHierarchyPrefrences.cs" />
     <Compile Include="Assets/Editor/Hierarchy.cs" />
     <Compile Include="Assets/ZooMerge/Editor/ReadOnlyDrawer.cs" />
+    <Compile Include="Assets/Editor/EditorAudioPreview.cs" />
+    <Compile Include="Assets/Editor/MergeBlockedSfxEntryDrawer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets/Firebase/Editor/FirebaseFirestore_version-12.9.0_manifest.txt" />

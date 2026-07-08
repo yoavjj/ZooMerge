@@ -32,3 +32,13 @@ public enum SfxPopCollect
     Pop_Collect_2,
     Pop_Collect_3
 }
+
+public enum SfxWoosh
+{
+    Woosh_1 = 0,
+    Woosh_2 = 1,
+    Woosh_3 = 2,
+    Woosh_4 = 3,
+    Woosh_5 = 4,
+    Woosh_6 = 5,
+}
