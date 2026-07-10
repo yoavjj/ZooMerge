@@ -58,6 +58,7 @@ public class AdManager : MonoBehaviour
 #endif
 
         InitAds();
+        yield return null;
     }
 
     private string CleanId(string value)
