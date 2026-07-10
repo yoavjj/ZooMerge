@@ -12,6 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61b17a0fdcb00454bbd98c136c55a276, type: 3}
   m_Name: BallSet
   m_EditorClassIdentifier: 
+  ballTypeUIData:
+  - type: 0
+    profileSprite: {fileID: -4702881144674077283, guid: 23adc8e1476b14cb3b678805596d9309, type: 3}
+  - type: 1
+    profileSprite: {fileID: -6897395434648536221, guid: 18a9454725557480689d569ba0ab143a, type: 3}
+  - type: 2
+    profileSprite: {fileID: -3988918356196897923, guid: c4cb673dc46fb40f189f1d0d43190a4c, type: 3}
+  - type: 3
+    profileSprite: {fileID: 8992398688294211041, guid: cc71a539590b240529b8cddf72dd1fa7, type: 3}
   entries:
   - id: Bug_1
     prefab:
@@ -163,6 +172,56 @@ MonoBehaviour:
     level: 5
     includeInRandom: 0
     type: 2
+  - id: Cat_1
+    prefab:
+      m_AssetGUID: 7086ce3160ae6474a86c36995042df1d
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 1
+    includeInRandom: 1
+    type: 3
+  - id: Cat_2
+    prefab:
+      m_AssetGUID: 2d8364372a1d44c4fb15fe6e89db3da6
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 2
+    includeInRandom: 1
+    type: 3
+  - id: Cat_3
+    prefab:
+      m_AssetGUID: 22fad30a041bd4231b6d5f198c3b6df7
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 3
+    includeInRandom: 0
+    type: 3
+  - id: Cat_4
+    prefab:
+      m_AssetGUID: a96d43946bcc74c6387d34817228cf03
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 4
+    includeInRandom: 0
+    type: 3
+  - id: Cat_5
+    prefab:
+      m_AssetGUID: a7d4168d86dff43ccbcd3f87e4662be6
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 5
+    includeInRandom: 0
+    type: 3
   physicsData:
   - id: 1
     finalLinearDamping: 2.5
@@ -194,6 +253,12 @@ MonoBehaviour:
     gravityStart: 0.3
     gravityEnd: 0.9
     uniformScale: 1.3
+  - id: 51
+    finalLinearDamping: 5
+    finalAngularDamping: 5
+    gravityStart: 0.3
+    gravityEnd: 0.45
+    uniformScale: 1
   enemyPrefabs:
   - id: 1
     prefab:

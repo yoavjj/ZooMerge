@@ -17,6 +17,28 @@ public class BallSet : ScriptableObject
     }
 
     [Serializable]
+    public class BallTypeUIData
+    {
+        public BallType type;
+
+        [Header("Ball Choice UI")]
+        public Sprite profileSprite;
+    }
+
+    [Header("Ball Type UI")]
+    public List<BallTypeUIData> ballTypeUIData = new List<BallTypeUIData>();
+
+    public Sprite GetProfileSprite(BallType type)
+    {
+        var data = ballTypeUIData.Find(x =>
+            x != null &&
+            x.type == type
+        );
+
+        return data != null ? data.profileSprite : null;
+    }
+
+    [Serializable]
     public class BallPhysicsData
     {
         public int id; // <-- level number (0..N)
@@ -109,4 +131,4 @@ public class BallSet : ScriptableObject
     }
 }
 
-public enum BallType { Bug, Turtle, Doggy }
+public enum BallType { Bug, Turtle, Doggy, Cat }

@@ -7,6 +7,9 @@ public class MainMenuUI : SfxBehaviourTirgger
     [Header("Top Bar")]
     [SerializeField] private TopBarMenu topBarMenu;
 
+    [Header("Ball Choice")]
+    [SerializeField] private BallChoiceMenu ballChoiceMenu;
+
     [Header("UI Buttons")]
     [SerializeField] private Button playButton;
 
@@ -103,18 +106,26 @@ public class MainMenuUI : SfxBehaviourTirgger
 
     private IEnumerator BuildTopBarWhenReady()
     {
-        yield return new WaitUntil(() => GameInventory.Instance != null && MergeSessionTracker.Instance != null);
+        yield return new WaitUntil(() =>
+            GameInventory.Instance != null &&
+            MergeSessionTracker.Instance != null
+        );
+
         yield return new WaitUntil(() => FirebaseInitializer.IsReady);
 
-        topBarMenu.BuildCoinUI();
-        topBarMenu.BuildAllBallTypesUI();
+        // Build the normal top bar
+        topBarMenu?.BuildCoinUI();
+        topBarMenu?.BuildAllBallTypesUI();
 
-        // ✅ Cache session data ahead of time (avoids jank on click)
+        // Build one choice item for every BallType
+        ballChoiceMenu?.Build();
+
+        // Cache session data ahead of time
         CacheSessionStartData();
 
-        levelArtController?.Refresh(); 
+        levelArtController?.Refresh();
 
-        yield return new WaitForSeconds(1f); // just to let the main menu settle visually before we do more work
+        yield return new WaitForSeconds(1f);
 
         PopupManager.Instance?.WarmupSession();
     }
