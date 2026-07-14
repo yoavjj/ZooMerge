@@ -9,9 +9,12 @@ public class MainMenuUI : SfxBehaviourTirgger
 
     [Header("Ball Choice")]
     [SerializeField] private BallChoiceMenu ballChoiceMenu;
+    private BallSelectionManager BallSelection =>
+    BallSelectionManager.Instance;
 
     [Header("UI Buttons")]
     [SerializeField] private Button playButton;
+    [SerializeField] private CardSelectionVisualController playButtonVisual;
 
     [SerializeField] Animator mainMenuAnimator;
 
@@ -58,12 +61,26 @@ public class MainMenuUI : SfxBehaviourTirgger
 
     private void OnEnable()
     {
-        OutOfTriesPopup.RetriesPurchased += HandleRetriesPurchasedFromPopup;
+        OutOfTriesPopup.RetriesPurchased +=
+            HandleRetriesPurchasedFromPopup;
+
+        if (BallSelection != null)
+        {
+            BallSelection.OnSelectionChanged +=
+                HandleBallSelectionChanged;
+        }
     }
 
     private void OnDisable()
     {
-        OutOfTriesPopup.RetriesPurchased -= HandleRetriesPurchasedFromPopup;
+        OutOfTriesPopup.RetriesPurchased -=
+            HandleRetriesPurchasedFromPopup;
+
+        if (BallSelection != null)
+        {
+            BallSelection.OnSelectionChanged -=
+                HandleBallSelectionChanged;
+        }
     }
 
     private void Start()
@@ -104,6 +121,30 @@ public class MainMenuUI : SfxBehaviourTirgger
             playButton.interactable = true;
     }
 
+    private void HandleBallSelectionChanged()
+    {
+        RefreshPlayButtonState();
+    }
+
+    private void RefreshPlayButtonState()
+    {
+        if (playButton == null)
+            return;
+
+        BallSelectionManager manager = BallSelection;
+
+        bool canPlay =
+            !playLocked &&
+            manager != null &&
+            manager.HasRequiredSelection;
+
+        // Keep clickable so an invalid press can show the message.
+        playButton.interactable = !playLocked;
+
+        if (playButtonVisual != null)
+            playButtonVisual.SetSelected(canPlay);
+    }
+
     private IEnumerator BuildTopBarWhenReady()
     {
         yield return new WaitUntil(() =>
@@ -113,14 +154,12 @@ public class MainMenuUI : SfxBehaviourTirgger
 
         yield return new WaitUntil(() => FirebaseInitializer.IsReady);
 
-        // Build the normal top bar
         topBarMenu?.BuildCoinUI();
         topBarMenu?.BuildAllBallTypesUI();
 
-        // Build one choice item for every BallType
         ballChoiceMenu?.Build();
+        RefreshPlayButtonState();
 
-        // Cache session data ahead of time
         CacheSessionStartData();
 
         levelArtController?.Refresh();
@@ -142,7 +181,23 @@ public class MainMenuUI : SfxBehaviourTirgger
 
     private void OnPlayPressed()
     {
-        if (playLocked) return;
+        if (playLocked)
+            return;
+
+        BallSelectionManager manager = BallSelection;
+
+        if (manager == null || !manager.HasRequiredSelection)
+        {
+            PlayUiSfx(SfxCue.ButtonClickNegative);
+
+            ballChoiceMenu?.ShowIncompleteSelectionMessage();
+
+            Debug.LogWarning(
+                "[MainMenuUI] Select exactly three animals before playing."
+            );
+
+            return;
+        }
 
         if (!IsOutOfTriesPopupOpen &&
             PlayerProgress.HasRetryLimitForCurrentLevel() &&
@@ -160,7 +215,6 @@ public class MainMenuUI : SfxBehaviourTirgger
         if (playButton != null)
             playButton.interactable = false;
 
-        // ⏱️ Start the cloud save stopwatch!
         CloudSaveManager.StartPlayTimer();
 
         BallEventManager.RaiseMainMenuPopupClosed();
@@ -173,7 +227,9 @@ public class MainMenuUI : SfxBehaviourTirgger
 
         AnalyticsEvents.MainMenuExit("play_pressed");
 
-        playPressedRoutine = StartCoroutine(PlayPressedRoutine());
+        playPressedRoutine = StartCoroutine(
+            PlayPressedRoutine()
+        );
     }
 
     private void ShowOutOfTriesPopupFromMainMenu()

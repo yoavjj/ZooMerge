@@ -32,16 +32,47 @@ public class BallSpawner : MonoBehaviour
 
     public void BeginSession()
     {
-        // If not warmed up, do it now.
-        if (!warmedUp)
+        warmedUp = true;
+
+        // The preview may have been generated before the player completed
+        // or changed their selection. Rebuild it when it is no longer valid.
+        if (!previewBall.IsValid ||
+            queuedEntry == null ||
+            picker == null ||
+            !picker.IsEntryAllowed(queuedEntry))
+        {
+            ClearPreview();
             PrepareNextPreview();
+        }
 
-        PromotePreviewToActive(null);
+        if (!previewBall.IsValid || queuedEntry == null)
+        {
+            Debug.LogError(
+                "[BallSpawner] Cannot begin session because no valid " +
+                "selected ball entry could be prepared."
+            );
 
-        // Next preview for after the first active ball
-        PrepareNextPreview();
+            return;
+        }
+
+        bool promoted = PromotePreviewToActive(null);
+
+        if (promoted)
+            PrepareNextPreview();
     }
 
+    private void ClearPreview()
+    {
+        if (previewGo != null &&
+            BallFactoryAddressables.Instance != null)
+        {
+            BallFactoryAddressables.Instance.Despawn(previewGo);
+        }
+
+        previewGo = null;
+        previewBall = default;
+        queuedEntry = null;
+    }
 
     // called by input after a drop (optionally with X override)
     public void PromoteFromPreview() => PromotePreviewAndQueueNext(null);
@@ -51,72 +82,130 @@ public class BallSpawner : MonoBehaviour
 
     private void PrepareNextPreview()
     {
-        // clear leftover preview
-        if (previewGo != null)
+        ClearPreview();
+
+        if (picker == null)
         {
-            BallFactoryAddressables.Instance.Despawn(previewGo);
-            previewGo = null;
+            Debug.LogError(
+                "[BallSpawner] Cannot prepare preview: picker is null."
+            );
+            return;
         }
 
-        if (picker != null && picker.TryPickRandomEntry(out var entry, out lastPickWhy))
-            queuedEntry = entry;
-        else
-            queuedEntry = null;
+        if (previewContainer == null)
+        {
+            Debug.LogError(
+                "[BallSpawner] Cannot prepare preview: previewContainer is null."
+            );
+            return;
+        }
 
-        if (queuedEntry == null || previewContainer == null) return;
+        if (BallFactoryAddressables.Instance == null)
+        {
+            Debug.LogError(
+                "[BallSpawner] Cannot prepare preview: " +
+                "BallFactoryAddressables.Instance is null."
+            );
+            return;
+        }
 
-        var pos = previewContainer.position;
+        if (!picker.TryPickRandomEntry(
+            out BallSet.Entry entry,
+            out lastPickWhy))
+        {
+            Debug.LogWarning(
+                $"[BallSpawner] Could not prepare preview: {lastPickWhy}"
+            );
+            return;
+        }
 
-        // 🔁 Use SpawnEntryWithRefs
-        previewBall = BallFactoryAddressables.Instance.SpawnEntryWithRefs(queuedEntry, pos, previewContainer);
+        queuedEntry = entry;
+
+        Vector3 pos = previewContainer.position;
+
+        previewBall =
+            BallFactoryAddressables.Instance.SpawnEntryWithRefs(
+                queuedEntry,
+                pos,
+                previewContainer
+            );
+
         previewGo = previewBall.root;
 
-        if (previewGo != null)
+        if (!previewBall.IsValid || previewGo == null)
         {
-            SetPreviewMode(previewBall, true);
-            previewGo.transform.localScale = Vector3.one * previewScale;
+            Debug.LogWarning(
+                $"[BallSpawner] Preview spawn failed for " +
+                $"{queuedEntry.type}, level {queuedEntry.level}."
+            );
 
-            // 🔁 Trigger "New" using cached animator
-            previewBall.animator?.SetTrigger("New");
+            ClearPreview();
+            return;
         }
+
+        SetPreviewMode(previewBall, true);
+
+        previewGo.transform.localScale =
+            Vector3.one * previewScale;
+
+        previewBall.animator?.SetTrigger("New");
     }
 
     private void PromotePreviewAndQueueNext(float? overrideX)
     {
-        PromotePreviewToActive(overrideX);
-        PrepareNextPreview();
+        bool promoted = PromotePreviewToActive(overrideX);
+
+        if (promoted)
+            PrepareNextPreview();
     }
 
-    private void PromotePreviewToActive(float? overrideX)
+    private bool PromotePreviewToActive(float? overrideX)
     {
         if (!CanSpawnActiveBall())
-            return;
+            return false;
 
-        if (!previewBall.IsValid || queuedEntry == null)
+        if (picker == null ||
+            previewGo == null ||
+            !previewBall.IsValid ||
+            queuedEntry == null ||
+            !picker.IsEntryAllowed(queuedEntry))
         {
-            Debug.LogWarning("PromotePreviewToActive: Invalid preview. Using fallback.");
-            SpawnCircleInternal(overrideX);
-            return;
+            Debug.LogWarning(
+                "[BallSpawner] Invalid or no-longer-selected preview; " +
+                "attempting filtered fallback."
+            );
+
+            ClearPreview();
+            return SpawnCircleInternal(overrideX);
         }
 
-        // 🔁 Scale correctly
         float scale = picker.GetScaleForEntry(queuedEntry);
         previewGo.transform.localScale = Vector3.one * scale;
 
         SetPreviewMode(previewBall, false);
 
-        // Move to active spawn position
-        var pos = spawnPoint != null ? spawnPoint.position : transform.position;
-        if (overrideX.HasValue) pos.x = overrideX.Value;
+        Vector3 pos = spawnPoint != null
+            ? spawnPoint.position
+            : transform.position;
+
+        if (overrideX.HasValue)
+            pos.x = overrideX.Value;
+
         previewGo.transform.position = pos;
 
-        // Set as active under input
-        var spawnContainer = CircleDragInput.Instance?.spawnContainer;
-        if (spawnContainer != null)
-            previewGo.transform.SetParent(spawnContainer, worldPositionStays: true);
+        Transform spawnContainer =
+            CircleDragInput.Instance?.spawnContainer;
 
-        // 🔁 Use cached animator
-        var anim = previewBall.animator;
+        if (spawnContainer != null)
+        {
+            previewGo.transform.SetParent(
+                spawnContainer,
+                worldPositionStays: true
+            );
+        }
+
+        Animator anim = previewBall.animator;
+
         if (anim != null)
         {
             anim.ResetTrigger("Merged");
@@ -124,8 +213,8 @@ public class BallSpawner : MonoBehaviour
             anim.SetTrigger("Hover");
         }
 
-        // 🔁 Use cached controller
         var controller = previewBall.controller;
+
         if (controller != null)
         {
             controller.PrepareForDrag();
@@ -133,10 +222,11 @@ public class BallSpawner : MonoBehaviour
             controller.PlayIntroNew();
         }
 
-        // Clear references
         previewGo = null;
         previewBall = default;
         queuedEntry = null;
+
+        return true;
     }
 
     private void SetPreviewMode(SpawnedBall ball, bool on)
@@ -171,43 +261,80 @@ public class BallSpawner : MonoBehaviour
     public void SpawnCircle() => SpawnCircleInternal(null);
     public void SpawnCircleAtX(float x) => SpawnCircleInternal(x);
 
-    private void SpawnCircleInternal(float? overrideX)
+    private bool SpawnCircleInternal(float? overrideX)
     {
-        if (!CanSpawnActiveBall()) return;
+        if (!CanSpawnActiveBall())
+            return false;
+
         if (instantiator == null)
         {
-            Debug.LogError("BallSpawner: No AddressableInstantiator assigned!");
-            return;
+            Debug.LogError(
+                "[BallSpawner] No AddressableInstantiator assigned."
+            );
+            return false;
         }
 
-        var pos = spawnPoint != null ? spawnPoint.position : transform.position;
-        if (overrideX.HasValue) pos.x = overrideX.Value;
-
-        SpawnedBall spawned;
-
-        if (picker != null && picker.TryPickRandomEntry(out var entry, out lastPickWhy))
+        if (picker == null)
         {
-            spawned = BallFactoryAddressables.Instance.SpawnEntryWithRefs(entry, pos, CircleDragInput.Instance?.spawnContainer);
-        }
-        else
-        {
-            spawned = BallFactoryAddressables.Instance.SpawnEntryWithRefs(
-                new BallSet.Entry { type = BallType.Bug, level = 0 }, pos, CircleDragInput.Instance?.spawnContainer);
+            Debug.LogError(
+                "[BallSpawner] No BallPicker assigned."
+            );
+            return false;
         }
 
-#if UNITY_EDITOR
+        if (BallFactoryAddressables.Instance == null)
+        {
+            Debug.LogError(
+                "[BallSpawner] BallFactoryAddressables.Instance is null."
+            );
+            return false;
+        }
+
+        Vector3 pos = spawnPoint != null
+            ? spawnPoint.position
+            : transform.position;
+
+        if (overrideX.HasValue)
+            pos.x = overrideX.Value;
+
+        if (!picker.TryPickRandomEntry(
+            out BallSet.Entry entry,
+            out lastPickWhy))
+        {
+            Debug.LogError(
+                $"[BallSpawner] Could not pick a ball entry. Reason: {lastPickWhy}"
+            );
+            return false;
+        }
+
+        SpawnedBall spawned =
+            BallFactoryAddressables.Instance.SpawnEntryWithRefs(
+                entry,
+                pos,
+                CircleDragInput.Instance?.spawnContainer
+            );
+
         if (!spawned.IsValid)
         {
-            var msg = string.IsNullOrEmpty(lastPickWhy) ? "Picker returned null." : lastPickWhy;
-            Debug.LogWarning($"BallSpawner: {msg} Falling back to default _ballPrefab.");
+            Debug.LogWarning(
+                $"[BallSpawner] Failed to spawn {entry.type}, level {entry.level}."
+            );
+            return false;
         }
-#endif
 
-        if (spawned.IsValid && spawned.controller != null)
+        if (spawned.controller == null)
         {
-            CircleDragInput.Instance?.SetActiveBall(spawned.controller);
-            spawned.controller.PlayIntroNew();
+            Debug.LogWarning(
+                $"[BallSpawner] Spawned ball {entry.type}, level {entry.level}, " +
+                "but its controller is missing."
+            );
+            return false;
         }
+
+        CircleDragInput.Instance?.SetActiveBall(spawned.controller);
+        spawned.controller.PlayIntroNew();
+
+        return true;
     }
 
     private bool CanSpawnActiveBall()

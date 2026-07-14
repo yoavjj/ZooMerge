@@ -65,11 +65,20 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
     private bool isSwitching;
 
     private const string MAIN_MENU_POPUP_ID = "MainMenuPopup";
+    private const string GALAXY_ROADMAP_POPUP_ID = "GalaxyRoadmapPopup_Menu";
+
+    private Popup_GalaxyRoadmap currentRoadmap;
 
     public static PopupNavigationSlider Instance { get; private set; }
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
     }
 
@@ -83,6 +92,18 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
         CacheSlideDistance();
 
         SelectPopupIndexInstant(2);
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+
+        if (currentRoadmap != null)
+        {
+            currentRoadmap.OnClosedRoadmap -=
+                HandleRoadmapClosed;
+        }
     }
 
     private void CacheSlideDistance()
@@ -166,6 +187,7 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
         popup.anchoredPosition = Vector2.zero;
 
         RefreshPopupUI(popup);
+        PreparePopupForDisplay(index, popup);
 
         currentIndex = index;
 
@@ -256,11 +278,21 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
 
         nextPopup.anchoredPosition = Vector2.zero;
 
-        // The popup has now finished moving.
-        // Rebuild its UI geometry at the final visible position.
+        // The popup is now at its final visible position.
         RefreshPopupUI(nextPopup);
 
+        // Run popup-specific opening logic.
+        // For the roadmap, this calls Initialize() and PlayIntro(false).
+        PreparePopupForDisplay(nextIndex, nextPopup);
+
+        nextPopup.anchoredPosition = Vector2.zero;
+
+        RefreshPopupUI(nextPopup);
+        PreparePopupForDisplay(nextIndex, nextPopup);
+
         currentIndex = nextIndex;
+
+        NotifyPopupOpened(nextIndex);
 
         popupRoutine = null;
         isSwitching = false;
@@ -438,5 +470,106 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
         }
 
         Canvas.ForceUpdateCanvases();
+    }
+
+    private void PreparePopupForDisplay(
+    int index,
+    RectTransform popup)
+    {
+        if (!IsValidIndex(index) || popup == null)
+            return;
+
+        string prefabId = tabs[index].prefabId;
+
+        if (prefabId == GALAXY_ROADMAP_POPUP_ID)
+        {
+            PrepareGalaxyRoadmap(popup);
+        }
+    }
+
+    private void PrepareGalaxyRoadmap(RectTransform popup)
+    {
+        if (popup == null)
+            return;
+
+        Popup_GalaxyRoadmap roadmap =
+            popup.GetComponent<Popup_GalaxyRoadmap>();
+
+        if (roadmap == null)
+        {
+            Debug.LogError(
+                $"[PopupNavigationSlider] Popup '{GALAXY_ROADMAP_POPUP_ID}' " +
+                $"does not contain a {nameof(Popup_GalaxyRoadmap)} component."
+            );
+
+            return;
+        }
+
+        if (currentRoadmap != null && currentRoadmap != roadmap)
+        {
+            currentRoadmap.OnClosedRoadmap -=
+                HandleRoadmapClosed;
+        }
+
+        currentRoadmap = roadmap;
+
+        // Prevent duplicate subscriptions when reopening the same cached popup.
+        currentRoadmap.OnClosedRoadmap -=
+            HandleRoadmapClosed;
+
+        currentRoadmap.OnClosedRoadmap +=
+            HandleRoadmapClosed;
+
+        ResetPopupTransform(popup);
+
+        AnalyticsEvents.LogRoadmapView(
+            true,
+            MergeLevelManager.CurrentGalaxyId.ToString(),
+            MergeLevelManager.CurrentLevelNumber
+        );
+
+        currentRoadmap.OpenFromNavigation();
+    }
+
+    private void HandleRoadmapClosed()
+    {
+        int mainMenuIndex =
+            FindTabIndexByPrefabId(MAIN_MENU_POPUP_ID);
+
+        if (mainMenuIndex < 0)
+        {
+            Debug.LogWarning(
+                "[PopupNavigationSlider] Main-menu tab was not found."
+            );
+
+            return;
+        }
+
+        SelectPopupIndex(mainMenuIndex);
+    }
+
+    private int FindTabIndexByPrefabId(string prefabId)
+    {
+        if (tabs == null || string.IsNullOrEmpty(prefabId))
+            return -1;
+
+        for (int i = 0; i < tabs.Count; i++)
+        {
+            PopupTab tab = tabs[i];
+
+            if (tab != null && tab.prefabId == prefabId)
+                return i;
+        }
+
+        return -1;
+    }
+
+    private static void ResetPopupTransform(RectTransform popup)
+    {
+        if (popup == null)
+            return;
+
+        popup.localRotation = Quaternion.identity;
+        popup.localScale = Vector3.one;
     }
 }

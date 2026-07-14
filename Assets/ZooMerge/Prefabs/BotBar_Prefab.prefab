@@ -130,21 +130,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PopupNavigationSlider
   selector: {fileID: 9090365209085320538}
   tabs:
-  - id: Event_popup
+  - id: GalaxyRoadmapPopup_Menu
     button: {fileID: 5790072737337504469}
-    prefabId: BestScore_popup
+    prefabId: GalaxyRoadmapPopup_Menu
+    isAvailable: 1
+    unavailableMessage: Coming Soon!
   - id: Lab_popup
     button: {fileID: 5106935906516689202}
     prefabId: Lab_popup
+    isAvailable: 0
+    unavailableMessage: Coming Soon!
   - id: MainMenuPopup
     button: {fileID: 1957321034403361918}
     prefabId: MainMenuPopup
+    isAvailable: 1
+    unavailableMessage: Coming Soon!
   - id: SettingsPopup
     button: {fileID: 6189657897738866783}
     prefabId: SettingsPopup
+    isAvailable: 1
+    unavailableMessage: Coming Soon!
   - id: StorePopup
     button: {fileID: 2949055521181908730}
     prefabId: StorePopup
+    isAvailable: 0
+    unavailableMessage: Coming Soon!
   slideDistanceMultiplier: 1
   popupMoveDuration: 0.35
   useContainerWidthAsSlideDistance: 1
@@ -183,6 +193,9 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  popupMessageAnimator: {fileID: 300197992036749439}
+  popupMessageText: {fileID: 9198299407931320128}
+  showMessageTrigger: Show_Message
   clickSfx: 0
 --- !u!223 &7324885962299790247
 Canvas:
