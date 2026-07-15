@@ -174,9 +174,16 @@ public class BallChoiceMenu : MonoBehaviour
             if (pair.Value == null)
                 continue;
 
+            bool isSelected =
+                manager.IsSelected(pair.Key);
+
+            int selectionNumber =
+                manager.GetSelectionNumber(pair.Key);
+
             pair.Value.SetSelectionState(
-                manager.IsSelected(pair.Key),
-                limitReached
+                isSelected,
+                limitReached,
+                selectionNumber
             );
         }
     }
