@@ -107,6 +107,7 @@ public class DebugPopup : MonoBehaviour
     public void RestartInventory()
     {
         GameInventory.Instance.ResetAll();
+        BallUnlockManager.Instance?.ResetUnlocks();
 
         // Reset retries back to 1 (starting amount)
         PlayerProgress.NewLevelRetriesRemaining = 1;

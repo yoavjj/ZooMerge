@@ -462,6 +462,7 @@ public static class CloudSaveManager
 
             // Apply to LOCAL inventory + persist to PlayerPrefs
             GameInventory.Instance.ResetAll();
+            BallUnlockManager.Instance?.ResetUnlocks();
 
             if (cloudCoins > 0)
                 GameInventory.Instance.Add(CurrencyType.Coins, cloudCoins);

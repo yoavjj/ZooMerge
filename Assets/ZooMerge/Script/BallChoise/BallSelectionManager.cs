@@ -67,6 +67,28 @@ public class BallSelectionManager : MonoBehaviour
         if (selectedTypes.Contains(type))
             return true;
 
+        BallUnlockManager unlockManager =
+            BallUnlockManager.Instance;
+
+        if (unlockManager == null)
+        {
+            Debug.LogWarning(
+                "[BallSelectionManager] " +
+                "BallUnlockManager.Instance is null."
+            );
+
+            return false;
+        }
+
+        if (!unlockManager.IsUnlocked(type))
+        {
+            Debug.Log(
+                $"[BallSelectionManager] Cannot select locked type: {type}."
+            );
+
+            return false;
+        }
+
         if (selectedTypes.Count >= requiredSelectionCount)
             return false;
 

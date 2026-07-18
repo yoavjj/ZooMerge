@@ -71,6 +71,29 @@ public class BallChoiceItemUI : MonoBehaviour
         );
     }
 
+    public void SetDisplayOnly(bool showFullColor = true)
+    {
+        if (selectionButton != null)
+            selectionButton.interactable = false;
+
+        if (selectionVisualController != null)
+        {
+            selectionVisualController.SetSelectedImmediate(
+                showFullColor
+            );
+        }
+
+        if (selectedCanvasGroup != null)
+        {
+            selectedCanvasGroup.alpha = 0f;
+            selectedCanvasGroup.interactable = false;
+            selectedCanvasGroup.blocksRaycasts = false;
+        }
+
+        if (selectedNumberText != null)
+            selectedNumberText.text = string.Empty;
+    }
+
     public void Refresh()
     {
         SetAnimalTypeText();

@@ -1,18 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
 
 public class MergeSessionTracker : MonoBehaviour
 {
     public static MergeSessionTracker Instance { get; private set; }
-
-    [System.Serializable]
-    public class MergeCounterUI
-    {
-        public BallType type;
-        public Sprite icon;
-    }
 
     [System.Serializable]
     public struct MergeCounterSnapshot
@@ -21,16 +12,18 @@ public class MergeSessionTracker : MonoBehaviour
         public int count;
     }
 
-
     [Header("Setup")]
-    [SerializeField] private GameObject counterPrefab; // Prefab with Image + TMP
-    [SerializeField] private Transform counterContainer; // Where to instantiate the counters
-    [SerializeField] private List<MergeCounterUI> typeConfigs;
+    [SerializeField] private BallSet ballSet;
+    [SerializeField] private GameObject counterPrefab;
+    [SerializeField] private Transform counterContainer;
 
-    private Dictionary<BallType, MergeCounterItem> counters = new();
-    private Dictionary<BallType, int> savedCounters = new();
+    private readonly Dictionary<BallType, MergeCounterItem> counters =
+        new();
 
-    private bool isRestoring = false;
+    private readonly Dictionary<BallType, int> savedCounters =
+        new();
+
+    private bool isRestoring;
 
     private void Awake()
     {
@@ -39,6 +32,7 @@ public class MergeSessionTracker : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
     }
 
@@ -56,32 +50,32 @@ public class MergeSessionTracker : MonoBehaviour
 
     private void HandleBallMerged(BallInfo merged)
     {
-        // ⛔ Ignore merges that occur during state restoration
-        if (isRestoring) return;
+        if (isRestoring || merged == null)
+            return;
 
         BallType type = merged.Type;
 
         if (!counters.ContainsKey(type))
         {
-            var config = typeConfigs.Find(c => c.type == type);
-            if (config == null)
+            Sprite icon = GetIconForType(type);
+
+            if (icon == null)
             {
-                Debug.LogWarning($"⚠️ Missing config for {type}");
+                Debug.LogWarning(
+                    $"[MergeSessionTracker] Missing merge icon for {type}."
+                );
+
                 return;
             }
 
-            var counterItem = CreateCounterItem(type, config.icon);
+            MergeCounterItem counterItem =
+                CreateCounterItem(type, icon);
+
             if (counterItem != null)
-            {
                 counters[type] = counterItem;
-            }
         }
 
         counters[type]?.Increment();
-
-        // Track it in the internal counter map
-        if (!savedCounters.ContainsKey(type))
-            savedCounters[type] = 0;
 
         if (!savedCounters.ContainsKey(type))
             savedCounters[type] = 0;
@@ -92,6 +86,7 @@ public class MergeSessionTracker : MonoBehaviour
     public List<MergeCounterSnapshot> SaveCounterState()
     {
         var list = new List<MergeCounterSnapshot>();
+
         foreach (var pair in savedCounters)
         {
             list.Add(new MergeCounterSnapshot
@@ -101,41 +96,46 @@ public class MergeSessionTracker : MonoBehaviour
             });
         }
 
-        Debug.Log($"💾 Saved {list.Count} counter(s): " +
-                  string.Join(", ", list.ConvertAll(s => $"{s.type}={s.count}")));
-
         return list;
     }
 
-    public void RestoreCounterState(List<MergeCounterSnapshot> snapshots)
+    public void RestoreCounterState(
+        List<MergeCounterSnapshot> snapshots)
     {
-        isRestoring = true;     // ⛔ stop listening to merge events
+        isRestoring = true;
 
         ResetCounters(false);
         savedCounters.Clear();
 
-        foreach (var snap in snapshots)
+        if (snapshots != null)
         {
-            var config = typeConfigs.Find(c => c.type == snap.type);
-            if (config == null)
+            foreach (var snap in snapshots)
             {
-                Debug.LogWarning($"⚠️ Missing config for {snap.type}, skipping restore.");
-                continue;
-            }
+                Sprite icon = GetIconForType(snap.type);
 
-            var item = CreateCounterItem(snap.type, config.icon);
-            if (item != null)
-            {
+                if (icon == null)
+                {
+                    Debug.LogWarning(
+                        $"[MergeSessionTracker] Missing merge icon for " +
+                        $"{snap.type}, skipping restore."
+                    );
+
+                    continue;
+                }
+
+                MergeCounterItem item =
+                    CreateCounterItem(snap.type, icon);
+
+                if (item == null)
+                    continue;
+
                 item.SetCount(snap.count);
                 counters[snap.type] = item;
                 savedCounters[snap.type] = snap.count;
             }
         }
 
-        isRestoring = false;    // ✅ restore normal behavior
-
-        Debug.Log($"♻️ Restored {snapshots.Count} counter(s): " +
-                  string.Join(", ", snapshots.ConvertAll(s => $"{s.type}={s.count}")));
+        isRestoring = false;
     }
 
     public List<MergeCounterSnapshot> GetCurrentSnapshot()
@@ -145,8 +145,32 @@ public class MergeSessionTracker : MonoBehaviour
 
     public Sprite GetIconForType(BallType type)
     {
-        var config = typeConfigs.Find(c => c.type == type);
-        return config != null ? config.icon : null;
+        return ballSet != null
+            ? ballSet.GetMergeIcon(type)
+            : null;
+    }
+
+    public List<BallType> GetConfiguredTypes()
+    {
+        var result = new List<BallType>();
+
+        if (ballSet == null ||
+            ballSet.ballTypeUIData == null)
+        {
+            return result;
+        }
+
+        foreach (BallSet.BallTypeUIData data
+                 in ballSet.ballTypeUIData)
+        {
+            if (data == null)
+                continue;
+
+            if (!result.Contains(data.type))
+                result.Add(data.type);
+        }
+
+        return result;
     }
 
     private void HandleResetCounters(bool keepUI = false)
@@ -158,51 +182,66 @@ public class MergeSessionTracker : MonoBehaviour
     {
         if (!keepUI)
         {
-            foreach (var item in counters.Values)
-                Destroy(item.gameObject);
+            foreach (MergeCounterItem item in counters.Values)
+            {
+                if (item != null)
+                    Destroy(item.gameObject);
+            }
 
             counters.Clear();
         }
         else
         {
-            // 🔄 Keep UI, reset values only
-            foreach (var item in counters.Values)
-                item.SetCount(0);
+            foreach (MergeCounterItem item in counters.Values)
+            {
+                if (item != null)
+                    item.SetCount(0);
+            }
         }
 
         savedCounters.Clear();
     }
 
-    private MergeCounterItem CreateCounterItem(BallType type, Sprite icon)
+    private MergeCounterItem CreateCounterItem(
+        BallType type,
+        Sprite icon)
     {
-        if (counterPrefab == null || counterContainer == null)
+        if (counterPrefab == null ||
+            counterContainer == null)
         {
-            Debug.LogWarning("Counter prefab or container is missing.");
+            Debug.LogWarning(
+                "[MergeSessionTracker] Counter prefab or container is missing."
+            );
+
             return null;
         }
 
-        var instance = Instantiate(counterPrefab, counterContainer);
+        GameObject instance =
+            Instantiate(counterPrefab, counterContainer);
 
-        if (instance.TryGetComponent(out MergeCounterItem counterItem))
+        if (instance.TryGetComponent(
+                out MergeCounterItem counterItem))
         {
             counterItem.Initialize(icon);
             return counterItem;
         }
-        else
-        {
-            Debug.LogError($"❌ Created counter for {type} but it lacks MergeCounterItem component.");
-            Destroy(instance);
-            return null;
-        }
-    }
 
-    public List<MergeCounterUI> GetTypeConfigs()
-    {
-        return typeConfigs;
+        Debug.LogError(
+            $"[MergeSessionTracker] Created counter for {type}, " +
+            $"but it lacks MergeCounterItem."
+        );
+
+        Destroy(instance);
+        return null;
     }
 
     public int GetCurrentCount(BallType type)
     {
-        return savedCounters.TryGetValue(type, out var value) ? value : 0;
+        return savedCounters.TryGetValue(
+            type,
+            out int value
+        )
+            ? value
+            : 0;
     }
 }

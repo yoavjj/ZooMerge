@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class BallChoiceMenu : MonoBehaviour
 {
+    public event Action<BallType> UnlockPopupRequested;
+
     [Header("Data")]
     [SerializeField] private BallSet ballSet;
 
@@ -133,9 +135,10 @@ public class BallChoiceMenu : MonoBehaviour
         if (item == null)
             return;
 
-        BallSelectionManager manager = SelectionManager;
+        BallSelectionManager selectionManager =
+            SelectionManager;
 
-        if (manager == null)
+        if (selectionManager == null)
         {
             Debug.LogError(
                 "[BallChoiceMenu] BallSelectionManager.Instance is null."
@@ -144,7 +147,45 @@ public class BallChoiceMenu : MonoBehaviour
             return;
         }
 
-        manager.Toggle(item.Type);
+        // A selected animal can always be deselected.
+        if (selectionManager.IsSelected(item.Type))
+        {
+            selectionManager.Deselect(item.Type);
+            return;
+        }
+
+        BallUnlockManager unlockManager =
+            BallUnlockManager.Instance;
+
+        if (unlockManager == null)
+        {
+            Debug.LogError(
+                "[BallChoiceMenu] BallUnlockManager.Instance is null."
+            );
+
+            return;
+        }
+
+        if (!unlockManager.IsUnlocked(item.Type))
+        {
+            Debug.Log(
+                $"[BallChoiceMenu] Requesting unlock popup for {item.Type}."
+            );
+
+            UnlockPopupRequested?.Invoke(item.Type);
+            return;
+        }
+
+        bool selected =
+            selectionManager.TrySelect(item.Type);
+
+        if (!selected)
+        {
+            ShowMessage(
+                $"Pick only " +
+                $"{selectionManager.RequiredSelectionCount}!"
+            );
+        }
     }
 
     public void RefreshAll()

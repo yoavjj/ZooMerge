@@ -23,6 +23,9 @@ public class BallSet : ScriptableObject
 
         [Header("Ball Choice UI")]
         public Sprite profileSprite;
+
+        [Header("Merge Counter UI")]
+        public Sprite mergeIcon;
     }
 
     [Header("Ball Type UI")]
@@ -36,6 +39,16 @@ public class BallSet : ScriptableObject
         );
 
         return data != null ? data.profileSprite : null;
+    }
+
+    public Sprite GetMergeIcon(BallType type)
+    {
+        var data = ballTypeUIData.Find(x =>
+            x != null &&
+            x.type == type
+        );
+
+        return data != null ? data.mergeIcon : null;
     }
 
     [Serializable]

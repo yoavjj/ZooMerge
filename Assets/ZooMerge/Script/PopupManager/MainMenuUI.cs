@@ -46,6 +46,10 @@ public class MainMenuUI : SfxBehaviourTirgger
 
     private const string GALAXY_ROADMAP = "GalaxyRoadmapPopup";
 
+    private BallUnlockPopup ballUnlockPopupInstance;
+    private const string BALL_UNLOCK_POPUP =
+    "BallUnlockPopup";
+
 
     private bool IsOutOfTriesPopupOpen => outOfTriesInstance != null;
 
@@ -69,6 +73,12 @@ public class MainMenuUI : SfxBehaviourTirgger
             BallSelection.OnSelectionChanged +=
                 HandleBallSelectionChanged;
         }
+
+        if (ballChoiceMenu != null)
+        {
+            ballChoiceMenu.UnlockPopupRequested +=
+                HandleUnlockPopupRequested;
+        }
     }
 
     private void OnDisable()
@@ -80,6 +90,12 @@ public class MainMenuUI : SfxBehaviourTirgger
         {
             BallSelection.OnSelectionChanged -=
                 HandleBallSelectionChanged;
+        }
+
+        if (ballChoiceMenu != null)
+        {
+            ballChoiceMenu.UnlockPopupRequested -=
+                HandleUnlockPopupRequested;
         }
     }
 
@@ -97,9 +113,20 @@ public class MainMenuUI : SfxBehaviourTirgger
         if (outOfTriesInstance != null)
             Destroy(outOfTriesInstance);
 
+        if (ballUnlockPopupInstance != null)
+        {
+            ballUnlockPopupInstance.Closed -=
+                HandleBallUnlockPopupClosed;
+
+            Destroy(ballUnlockPopupInstance.gameObject);
+            ballUnlockPopupInstance = null;
+        }
+
         if (roadmapInstance != null)
         {
-            roadmapInstance.OnClosedRoadmap -= HandleRoadmapClosed;
+            roadmapInstance.OnClosedRoadmap -=
+                HandleRoadmapClosed;
+
             Destroy(roadmapInstance.gameObject);
         }
     }
@@ -394,5 +421,66 @@ public class MainMenuUI : SfxBehaviourTirgger
 
         t.localRotation = Quaternion.identity;
         t.localScale = Vector3.one;
+    }
+
+    private void HandleUnlockPopupRequested(BallType type)
+    {
+        ShowBallUnlockPopup(type);
+    }
+
+    private void ShowBallUnlockPopup(BallType type)
+    {
+        if (prefabLibrary == null)
+        {
+            Debug.LogWarning(
+                "[MainMenuUI] PrefabLibrary is not assigned."
+            );
+
+            return;
+        }
+
+        if (outOfTriesContainer == null)
+        {
+            Debug.LogWarning(
+                "[MainMenuUI] Popup container is not assigned."
+            );
+
+            return;
+        }
+
+        if (ballUnlockPopupInstance != null)
+        {
+            ballUnlockPopupInstance.Open(type);
+            return;
+        }
+
+        BallUnlockPopup popupPrefab =
+            prefabLibrary.GetBallUnlockPopup(
+                BALL_UNLOCK_POPUP
+            );
+
+        if (popupPrefab == null)
+            return;
+
+        ballUnlockPopupInstance = Instantiate(
+            popupPrefab,
+            outOfTriesContainer
+        );
+
+        ballUnlockPopupInstance.Closed +=
+            HandleBallUnlockPopupClosed;
+
+        ballUnlockPopupInstance.Open(type);
+    }
+
+    private void HandleBallUnlockPopupClosed()
+    {
+        if (ballUnlockPopupInstance != null)
+        {
+            ballUnlockPopupInstance.Closed -=
+                HandleBallUnlockPopupClosed;
+        }
+
+        ballUnlockPopupInstance = null;
     }
 }

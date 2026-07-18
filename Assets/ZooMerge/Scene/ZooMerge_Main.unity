@@ -555,17 +555,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6243838ccee824118b23020a5cd8ad88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ballSet: {fileID: 11400000, guid: b8da19f47f5e74b9d81a2e2d9019beff, type: 2}
   counterPrefab: {fileID: 5854514345030862937, guid: 65f9e52b021354934936e531b2cc7516, type: 3}
   counterContainer: {fileID: 600827663}
-  typeConfigs:
-  - type: 0
-    icon: {fileID: -368216412898630414, guid: 37231eba180cb47a28400b8086acb727, type: 3}
-  - type: 1
-    icon: {fileID: 3562060809666312890, guid: 37231eba180cb47a28400b8086acb727, type: 3}
-  - type: 2
-    icon: {fileID: 7627575107566281718, guid: 37231eba180cb47a28400b8086acb727, type: 3}
-  - type: 3
-    icon: {fileID: -5169702173479814604, guid: c0338056158bf4d8eb1b6cd655e6222b, type: 3}
 --- !u!1 &107493428
 GameObject:
   m_ObjectHideFlags: 0
@@ -8883,6 +8875,11 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!224 &1198941774 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 2832463461567413345, guid: 824ce9cc6f9204257990c0be4b78014d, type: 3}
+  m_PrefabInstance: {fileID: 6563393219604849550}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1266128780
 GameObject:
   m_ObjectHideFlags: 0
@@ -10495,8 +10492,9 @@ GameObject:
   - component: {fileID: 1922499956}
   - component: {fileID: 1922499957}
   - component: {fileID: 1922499958}
+  - component: {fileID: 1922499959}
   m_Layer: 0
-  m_Name: SessionManager
+  m_Name: SessionEconomy&Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10552,6 +10550,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallSelectionManager
   requiredSelectionCount: 3
+--- !u!114 &1922499959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1922499955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82610addd88594ca98c099f25ee157f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallUnlockManager
+  unlockCatalog: {fileID: 11400000, guid: 385c138873f8240e2891ffcb388ec490, type: 2}
 --- !u!4 &1924478766 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8560997287217840220, guid: edd9ce6eb59374b63bf8b0e101406696, type: 3}
@@ -12700,6 +12711,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -87.80798
       objectReference: {fileID: 0}
+    - target: {fileID: 1337211592432544714, guid: 824ce9cc6f9204257990c0be4b78014d, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1667370825417414473, guid: 824ce9cc6f9204257990c0be4b78014d, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -12723,6 +12738,14 @@ PrefabInstance:
     - target: {fileID: 2413776802302787492, guid: 824ce9cc6f9204257990c0be4b78014d, type: 3}
       propertyPath: ballSelectionManager
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 2959773734867435006, guid: 824ce9cc6f9204257990c0be4b78014d, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3160264345245610661, guid: 824ce9cc6f9204257990c0be4b78014d, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 18.404999
       objectReference: {fileID: 0}
     - target: {fileID: 4019189186891363921, guid: 824ce9cc6f9204257990c0be4b78014d, type: 3}
       propertyPath: m_AnchorMax.y
@@ -12840,6 +12863,10 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 442
       objectReference: {fileID: 0}
+    - target: {fileID: 7838779232870678919, guid: 824ce9cc6f9204257990c0be4b78014d, type: 3}
+      propertyPath: coinRequirementContainer
+      value: 
+      objectReference: {fileID: 1198941774}
     - target: {fileID: 8004049430798524974, guid: 824ce9cc6f9204257990c0be4b78014d, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0.499

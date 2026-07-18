@@ -2,16 +2,20 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Game/Prefab Library", fileName = "PrefabLibrary")]
+[CreateAssetMenu(
+    menuName = "Game/Prefab Library",
+    fileName = "PrefabLibrary"
+)]
 public class PrefabLibrary : ScriptableObject
 {
     [Serializable]
     public class Entry
     {
         public string id;
-        public GameObject prefab; // ✅ now generic
+        public GameObject prefab;
     }
 
+    [Header("Prefabs")]
     [SerializeField] private List<Entry> entries = new();
 
     private Dictionary<string, GameObject> cache;
@@ -33,47 +37,142 @@ public class PrefabLibrary : ScriptableObject
         cache ??= new Dictionary<string, GameObject>();
         cache.Clear();
 
-        if (entries == null) return;
+        if (entries == null)
+            return;
 
-        foreach (var e in entries)
+        foreach (Entry entry in entries)
         {
-            if (e == null) continue;
-            if (string.IsNullOrEmpty(e.id)) continue;
-            if (e.prefab == null) continue;
+            if (entry == null)
+                continue;
 
-            cache[e.id] = e.prefab;
+            if (string.IsNullOrWhiteSpace(entry.id))
+                continue;
+
+            if (entry.prefab == null)
+                continue;
+
+            if (cache.ContainsKey(entry.id))
+            {
+                Debug.LogWarning(
+                    $"[PrefabLibrary] Duplicate prefab id: {entry.id}. " +
+                    "The later entry will replace the earlier one."
+                );
+            }
+
+            cache[entry.id] = entry.prefab;
         }
     }
 
-    // 🔹 Raw access (if needed)
     public GameObject GetRaw(string id)
     {
-        if (cache == null) RebuildCache();
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            Debug.LogError(
+                "[PrefabLibrary] Cannot retrieve a prefab with an empty id."
+            );
 
-        if (cache.TryGetValue(id, out var prefab) && prefab != null)
+            return null;
+        }
+
+        if (cache == null)
+            RebuildCache();
+
+        if (cache.TryGetValue(
+                id,
+                out GameObject prefab) &&
+            prefab != null)
+        {
             return prefab;
+        }
 
-        Debug.LogError($"[PrefabLibrary] No prefab found for id: {id}");
+        Debug.LogError(
+            $"[PrefabLibrary] No prefab found for id: {id}"
+        );
+
         return null;
     }
 
-    // 🔹 Typed: Win/Lose content
-    public WinLoseContentBase GetWinLose(string id)
+    public BallUnlockPopup GetBallUnlockPopup(string id)
     {
-        var go = GetRaw(id);
-        return go != null ? go.GetComponent<WinLoseContentBase>() : null;
+        GameObject prefab = GetRaw(id);
+
+        if (prefab == null)
+            return null;
+
+        if (prefab.TryGetComponent(
+                out BallUnlockPopup unlockPopup))
+        {
+            return unlockPopup;
+        }
+
+        Debug.LogError(
+            $"[PrefabLibrary] Prefab with id '{id}' " +
+            $"does not have {nameof(BallUnlockPopup)} on its root."
+        );
+
+        return null;
     }
 
-    // 🔹 Typed: Level Reveal
+    public WinLoseContentBase GetWinLose(string id)
+    {
+        GameObject prefab = GetRaw(id);
+
+        if (prefab == null)
+            return null;
+
+        if (prefab.TryGetComponent(
+                out WinLoseContentBase content))
+        {
+            return content;
+        }
+
+        Debug.LogError(
+            $"[PrefabLibrary] Prefab with id '{id}' " +
+            $"does not have {nameof(WinLoseContentBase)} on its root."
+        );
+
+        return null;
+    }
+
     public LevelArtRevealController GetLevelReveal(string id)
     {
-        var go = GetRaw(id);
-        return go != null ? go.GetComponent<LevelArtRevealController>() : null;
+        GameObject prefab = GetRaw(id);
+
+        if (prefab == null)
+            return null;
+
+        if (prefab.TryGetComponent(
+                out LevelArtRevealController controller))
+        {
+            return controller;
+        }
+
+        Debug.LogError(
+            $"[PrefabLibrary] Prefab with id '{id}' " +
+            $"does not have {nameof(LevelArtRevealController)} on its root."
+        );
+
+        return null;
     }
 
     public Popup_GalaxyRoadmap GetGalaxyRoadmap(string id)
     {
-        var go = GetRaw(id);
-        return go != null ? go.GetComponent<Popup_GalaxyRoadmap>() : null;
+        GameObject prefab = GetRaw(id);
+
+        if (prefab == null)
+            return null;
+
+        if (prefab.TryGetComponent(
+                out Popup_GalaxyRoadmap roadmap))
+        {
+            return roadmap;
+        }
+
+        Debug.LogError(
+            $"[PrefabLibrary] Prefab with id '{id}' " +
+            $"does not have {nameof(Popup_GalaxyRoadmap)} on its root."
+        );
+
+        return null;
     }
 }

@@ -28,6 +28,21 @@ public class BallPicker : MonoBehaviour
         if (entry.level < minLevel || entry.level > maxLevel)
             return false;
 
+        BallUnlockManager unlockManager =
+            BallUnlockManager.Instance;
+
+        if (unlockManager == null)
+        {
+            Debug.LogWarning(
+                "[BallPicker] BallUnlockManager.Instance is null."
+            );
+
+            return false;
+        }
+
+        if (!unlockManager.IsUnlocked(entry.type))
+            return false;
+
         BallSelectionManager selectionManager =
             BallSelectionManager.Instance;
 

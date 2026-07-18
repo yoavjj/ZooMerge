@@ -56,9 +56,8 @@ public class TopBarMenu : MonoBehaviour
         if (MergeSessionTracker.Instance == null) return;
 
         // Get all configured types from your tracker config
-        List<BallType> allTypes = MergeSessionTracker.Instance
-            .GetTypeConfigs()
-            .ConvertAll(c => c.type);
+        List<BallType> allTypes =
+            MergeSessionTracker.Instance.GetConfiguredTypes();
 
         PrepareTypes(allTypes);   // creates items even if count is 0
         RebuildLayoutImmediate();
@@ -111,11 +110,10 @@ public class TopBarMenu : MonoBehaviour
 
     private void CreateItem(BallType type, int value)
     {
-        var config = MergeSessionTracker.Instance
-            .GetTypeConfigs()
-            .Find(c => c.type == type);
+        Sprite icon =
+            MergeSessionTracker.Instance.GetIconForType(type);
 
-        if (config == null)
+        if (icon == null)
             return;
 
         var go = Instantiate(topBarItemPrefab, container);
@@ -127,7 +125,7 @@ public class TopBarMenu : MonoBehaviour
         }
 
         item.InjectUICamera(uiCam);
-        item.Initialize(type, config.icon, value);
+        item.Initialize(type, icon, value);
 
         itemsByType[type] = item;
     }
@@ -151,11 +149,10 @@ public class TopBarMenu : MonoBehaviour
         // Create even if count is 0, because we need a fly target.
         int value = GameInventory.Instance.Get(type);
 
-        var config = MergeSessionTracker.Instance
-            .GetTypeConfigs()
-            .Find(c => c.type == type);
+        Sprite icon =
+            MergeSessionTracker.Instance.GetIconForType(type);
 
-        if (config == null)
+        if (icon == null)
             return false;
 
         var go = Instantiate(topBarItemPrefab, container);
@@ -167,7 +164,7 @@ public class TopBarMenu : MonoBehaviour
         }
 
         item.InjectUICamera(uiCam);
-        item.Initialize(type, config.icon, value);
+        item.Initialize(type, icon, value);
 
         itemsByType[type] = item;
 

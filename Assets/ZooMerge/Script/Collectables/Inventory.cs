@@ -88,21 +88,29 @@ public sealed class Inventory
 
     public bool Spend(CurrencyType type, int amount)
     {
-        if (amount <= 0) return true;
+        if (amount <= 0)
+            return true;
 
         int current = Get(type);
+
         if (current < amount)
             return false;
 
         currencyValues[type] = current - amount;
 
-        PlayerPrefs.SetInt(GetCurrencyKey(type), currencyValues[type]);
+        PlayerPrefs.SetInt(
+            GetCurrencyKey(type),
+            currencyValues[type]
+        );
+
         PlayerPrefs.Save();
 
-        // ✅ specific: reduction (only when coins go down)
+        // General inventory refresh.
+        OnChanged?.Invoke();
+
         if (type == CurrencyType.Coins)
             OnCoinsReduced?.Invoke();
-            
+
         return true;
     }
 }
