@@ -28,6 +28,11 @@ public class SessionManager : MonoBehaviour
     [Header("Raycast Control")]
     [SerializeField] private GraphicRaycaster overlayRaycaster;
 
+    [Header("Bottom Sidebar Animator")]
+    [SerializeField] private Animator bottomSideBarAnimator;
+    [SerializeField] private string menuInTriggerName = "Menu_In";
+    [SerializeField] private string menuOutTriggerName = "Menu_Out";
+
     private bool isSessionUIActive = false;
     private bool dieFxTriggeredThisEnemy = false;
 
@@ -42,6 +47,16 @@ public class SessionManager : MonoBehaviour
 
         if (overlayRaycaster != null)
             overlayRaycaster.enabled = false;
+    }
+
+    private IEnumerator Start()
+    {
+        yield return null;
+
+        if (!isSessionUIActive)
+        {
+            PlayBottomSideBarMenuIn();
+        }
     }
 
     private void OnEnable()
@@ -59,6 +74,9 @@ public class SessionManager : MonoBehaviour
         BallEventManager.OnReturnToMainMenu += HandleReturnToMainMenu;
 
         BallEventManager.OnBallTouchedGameOverLine += HandleBallTouchedGameOverLine;
+
+        BallEventManager.OnMainMenuPopupOpened += HandleMainMenuPopupOpened;
+        BallEventManager.OnMainMenuPopupClosed += HandleMainMenuPopupClosed;
     }
 
     private void OnDisable()
@@ -75,8 +93,38 @@ public class SessionManager : MonoBehaviour
 
         BallEventManager.OnReturnToMainMenu -= HandleReturnToMainMenu;
         BallEventManager.OnBallTouchedGameOverLine -= HandleBallTouchedGameOverLine;
+
+        BallEventManager.OnMainMenuPopupOpened -= HandleMainMenuPopupOpened;
+        BallEventManager.OnMainMenuPopupClosed -= HandleMainMenuPopupClosed;
     }
 
+    private void HandleMainMenuPopupOpened()
+    {
+        PlayBottomSideBarMenuIn();
+    }
+
+    private void HandleMainMenuPopupClosed()
+    {
+        PlayBottomSideBarMenuOut();
+    }
+
+    private void PlayBottomSideBarMenuIn()
+    {
+        if (bottomSideBarAnimator == null)
+            return;
+
+        bottomSideBarAnimator.ResetTrigger(menuOutTriggerName);
+        bottomSideBarAnimator.SetTrigger(menuInTriggerName);
+    }
+
+    private void PlayBottomSideBarMenuOut()
+    {
+        if (bottomSideBarAnimator == null)
+            return;
+
+        bottomSideBarAnimator.ResetTrigger(menuInTriggerName);
+        bottomSideBarAnimator.SetTrigger(menuOutTriggerName);
+    }
 
     private void HandleBallTouchedGameOverLine(BallInfo info)
     {
@@ -87,6 +135,9 @@ public class SessionManager : MonoBehaviour
     {
         // Treat quitting like an end
         TriggerSessionEnd();
+
+        // Make sure the bottom sidebar menu is in the "in" state
+        PlayBottomSideBarMenuIn();
 
         // Also make sure gameplay interaction is locked
         BallEventManager.SetMergesBlocked(true);
@@ -153,6 +204,8 @@ public class SessionManager : MonoBehaviour
         if (!isSessionUIActive) return;
         isSessionUIActive = false;
 
+        AudioManager.Instance?.StopSessionMusic();
+
         if (enemyDieAnimator != null && !string.IsNullOrEmpty(enemyEndTriggerName))
         {
             enemyDieAnimator.ResetTrigger(enemyEndTriggerName);
@@ -173,6 +226,8 @@ public class SessionManager : MonoBehaviour
     {
         if (isSessionUIActive) return;
         isSessionUIActive = true;
+
+        AudioManager.Instance?.PlaySessionMusic();
 
         // New enemy/session -> allow die FX again
         dieFxTriggeredThisEnemy = false;
@@ -241,5 +296,17 @@ public class SessionManager : MonoBehaviour
         // Mid-level enemy defeated case
         BallEventManager.RaiseEnemyDefeatedMidLevel();
         PopupManager.Instance?.ShowEnemyDefeatedMessage();
+    }
+
+    private void OnApplicationPause(bool pause)
+    {
+        AnalyticsEvents.OnAppPaused(pause);
+        CloudSaveManager.OnAppPaused(pause);
+    }
+
+    private void OnApplicationQuit()
+    {
+        AnalyticsEvents.OnAppQuit();
+        CloudSaveManager.OnAppQuit();
     }
 }

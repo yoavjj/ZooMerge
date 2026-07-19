@@ -2,13 +2,19 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MainMenuUI : MonoBehaviour
+public class MainMenuUI : SfxBehaviourTirgger
 {
     [Header("Top Bar")]
     [SerializeField] private TopBarMenu topBarMenu;
 
+    [Header("Ball Choice")]
+    [SerializeField] private BallChoiceMenu ballChoiceMenu;
+    private BallSelectionManager BallSelection =>
+    BallSelectionManager.Instance;
+
     [Header("UI Buttons")]
     [SerializeField] private Button playButton;
+    [SerializeField] private CardSelectionVisualController playButtonVisual;
 
     [SerializeField] Animator mainMenuAnimator;
 
@@ -26,14 +32,76 @@ public class MainMenuUI : MonoBehaviour
     private bool cachedIsNewLevel;
     private bool cacheReady = false;
 
+    [Header("Out Of Tries Popup (Main Menu)")]
+    [SerializeField] private PrefabLibrary prefabLibrary;
+    [SerializeField] private Transform outOfTriesContainer;
+    private GameObject outOfTriesInstance;
+    private const string OUT_OF_TRIES_POPUP = "OutOfTriesPopup";
+
+    [Header("Galaxy Roadmap Popup")]
+    [SerializeField] private Transform roadmapContainer;
+
+    private Popup_GalaxyRoadmap roadmapInstance;
+    private bool roadmapOpenOrSpawning = false;
+
+    private const string GALAXY_ROADMAP = "GalaxyRoadmapPopup";
+
+    private BallUnlockPopup ballUnlockPopupInstance;
+    private const string BALL_UNLOCK_POPUP =
+    "BallUnlockPopup";
+
+
+    private bool IsOutOfTriesPopupOpen => outOfTriesInstance != null;
+
+    [SerializeField] private CollectibleFlyTarget heartFlyTarget; // target on your UI (tries/heart icon)
+    [SerializeField] private string heartMenuEntryId = "Heart_menu"; // collectible fly entry for retry reward (optional)
+    [SerializeField] private int heartMenuAmount = 1;
+
     private void Awake()
     {
         if (playButton != null)
             playButton.onClick.AddListener(OnPlayPressed);
     }
 
+    private void OnEnable()
+    {
+        OutOfTriesPopup.RetriesPurchased +=
+            HandleRetriesPurchasedFromPopup;
+
+        if (BallSelection != null)
+        {
+            BallSelection.OnSelectionChanged +=
+                HandleBallSelectionChanged;
+        }
+
+        if (ballChoiceMenu != null)
+        {
+            ballChoiceMenu.UnlockPopupRequested +=
+                HandleUnlockPopupRequested;
+        }
+    }
+
+    private void OnDisable()
+    {
+        OutOfTriesPopup.RetriesPurchased -=
+            HandleRetriesPurchasedFromPopup;
+
+        if (BallSelection != null)
+        {
+            BallSelection.OnSelectionChanged -=
+                HandleBallSelectionChanged;
+        }
+
+        if (ballChoiceMenu != null)
+        {
+            ballChoiceMenu.UnlockPopupRequested -=
+                HandleUnlockPopupRequested;
+        }
+    }
+
     private void Start()
     {
+        AnalyticsEvents.MainMenuEnter("MainMenuUI.Start");
         StartCoroutine(BuildTopBarWhenReady());
     }
 
@@ -41,22 +109,89 @@ public class MainMenuUI : MonoBehaviour
     {
         if (playButton != null)
             playButton.onClick.RemoveListener(OnPlayPressed);
+
+        if (outOfTriesInstance != null)
+            Destroy(outOfTriesInstance);
+
+        if (ballUnlockPopupInstance != null)
+        {
+            ballUnlockPopupInstance.Closed -=
+                HandleBallUnlockPopupClosed;
+
+            Destroy(ballUnlockPopupInstance.gameObject);
+            ballUnlockPopupInstance = null;
+        }
+
+        if (roadmapInstance != null)
+        {
+            roadmapInstance.OnClosedRoadmap -=
+                HandleRoadmapClosed;
+
+            Destroy(roadmapInstance.gameObject);
+        }
+    }
+
+    private void HandleRetriesPurchasedFromPopup()
+    {
+        // The popup is closing, so allow another popup later if needed
+        outOfTriesInstance = null;
+
+        // Start the heart reward fly.
+        // The retry will be added when the heart reaches the target
+        // and your existing animation event calls AE_AddArriveAmountToText().
+        FlyHeartMenu();
+
+        // Allow pressing Play again
+        playLocked = false;
+
+        if (playButton != null)
+            playButton.interactable = true;
+    }
+
+    private void HandleBallSelectionChanged()
+    {
+        RefreshPlayButtonState();
+    }
+
+    private void RefreshPlayButtonState()
+    {
+        if (playButton == null)
+            return;
+
+        BallSelectionManager manager = BallSelection;
+
+        bool canPlay =
+            !playLocked &&
+            manager != null &&
+            manager.HasRequiredSelection;
+
+        // Keep clickable so an invalid press can show the message.
+        playButton.interactable = !playLocked;
+
+        if (playButtonVisual != null)
+            playButtonVisual.SetSelected(canPlay);
     }
 
     private IEnumerator BuildTopBarWhenReady()
     {
-        yield return new WaitUntil(() => GameInventory.Instance != null && MergeSessionTracker.Instance != null);
+        yield return new WaitUntil(() =>
+            GameInventory.Instance != null &&
+            MergeSessionTracker.Instance != null
+        );
+
         yield return new WaitUntil(() => FirebaseInitializer.IsReady);
 
-        topBarMenu.BuildCoinUI();
-        topBarMenu.BuildAllBallTypesUI();
+        topBarMenu?.BuildCoinUI();
+        topBarMenu?.BuildAllBallTypesUI();
 
-        // ✅ Cache session data ahead of time (avoids jank on click)
+        ballChoiceMenu?.Build();
+        RefreshPlayButtonState();
+
         CacheSessionStartData();
 
-        levelArtController?.Refresh(); 
+        levelArtController?.Refresh();
 
-        yield return new WaitForSeconds(1f); // just to let the main menu settle visually before we do more work
+        yield return new WaitForSeconds(1f);
 
         PopupManager.Instance?.WarmupSession();
     }
@@ -73,18 +208,76 @@ public class MainMenuUI : MonoBehaviour
 
     private void OnPlayPressed()
     {
-        if (playLocked) return;
+        if (playLocked)
+            return;
+
+        BallSelectionManager manager = BallSelection;
+
+        if (manager == null || !manager.HasRequiredSelection)
+        {
+            PlayUiSfx(SfxCue.ButtonClickNegative);
+
+            ballChoiceMenu?.ShowIncompleteSelectionMessage();
+
+            Debug.LogWarning(
+                "[MainMenuUI] Select exactly three animals before playing."
+            );
+
+            return;
+        }
+
+        if (!IsOutOfTriesPopupOpen &&
+            PlayerProgress.HasRetryLimitForCurrentLevel() &&
+            PlayerProgress.CurrentLevelRetriesRemaining() <= 0)
+        {
+            PlayUiSfx(SfxCue.ButtonClickNegative);
+            ShowOutOfTriesPopupFromMainMenu();
+            return;
+        }
+
+        PlayUiSfx(SfxCue.ButtonClick);
+
         playLocked = true;
 
         if (playButton != null)
-            playButton.interactable = false; // prevents spam + extra work
+            playButton.interactable = false;
+
+        CloudSaveManager.StartPlayTimer();
+
+        BallEventManager.RaiseMainMenuPopupClosed();
+        PopupNavigationSlider.Instance?.DestroyOtherTabPopups();
 
         mainMenuAnimator.SetTrigger("Out");
 
         if (playPressedRoutine != null)
             StopCoroutine(playPressedRoutine);
 
-        playPressedRoutine = StartCoroutine(PlayPressedRoutine());
+        AnalyticsEvents.MainMenuExit("play_pressed");
+
+        playPressedRoutine = StartCoroutine(
+            PlayPressedRoutine()
+        );
+    }
+
+    private void ShowOutOfTriesPopupFromMainMenu()
+    {
+        if (IsOutOfTriesPopupOpen) return;
+
+        PlayUiSfx(SfxCue.ButtonClick);
+
+        if (prefabLibrary == null || outOfTriesContainer == null)
+        {
+            Debug.LogWarning("[MainMenuUI] Missing prefabLibrary or outOfTriesContainer.");
+            return;
+        }
+
+        var prefab = prefabLibrary.GetRaw(OUT_OF_TRIES_POPUP);
+        if (prefab == null) return;
+
+        outOfTriesInstance = Instantiate(prefab, outOfTriesContainer);
+
+        // ✅ Main-menu context => HIDE quit button to prevent crash flow
+        OutOfTriesPopup.LastSpawned?.SetQuitButtonVisible(false);
     }
 
     private IEnumerator PlayPressedRoutine()
@@ -104,9 +297,190 @@ public class MainMenuUI : MonoBehaviour
         // ✅ Do the heavy stuff AFTER animation has started
         MergeLevelManager.SetLevel(cachedLevelNumber);
 
+        // ✅ checkpoint/retry state for this level start
+        PlayerProgress.OnLevelStarted(MergeLevelManager.CurrentGalaxyId, MergeLevelManager.CurrentLevelInGalaxy);
+
         PopupManager.Instance?.BeginSession(cachedIsNewLevel);
         PopupManager.Instance?.InitializeProgressBarNow();
 
-        Destroy(gameObject, 2.5f);
+        Destroy(gameObject, 0.65f);
+    }
+
+    public void ForceRefreshProgressUIAndCache()
+    {
+        // Refresh any level art / display
+        levelArtController?.Refresh();
+
+        // Re-cache which level should start when Play is pressed
+        CacheSessionStartData();
+    }
+
+    public void FlyHeartMenu()
+    {
+        if (CollectibleFlyService.Instance == null)
+        {
+            Debug.LogWarning("[CollectibleFlyController] CollectibleFlyService.Instance is null.");
+            return;
+        }
+
+        if (heartFlyTarget == null)
+        {
+            Debug.LogWarning("[CollectibleFlyController] heartFlyTarget not assigned.");
+            return;
+        }
+
+        // Use default spawn container (pass null)
+        CollectibleFlyService.Instance.Fly(heartMenuEntryId, heartMenuAmount, heartFlyTarget, null);
+    }
+
+    public void ShowGalaxyRoadmap()
+    {
+        if (roadmapOpenOrSpawning)
+            return;
+
+        PlayUiSfx(SfxCue.ButtonClick);
+
+        AnalyticsEvents.LogRoadmapView(
+            true,
+            MergeLevelManager.CurrentGalaxyId.ToString(),
+            MergeLevelManager.CurrentLevelNumber
+        );
+
+        if (roadmapInstance != null)
+        {
+            roadmapOpenOrSpawning = true;
+
+            roadmapInstance.gameObject.SetActive(true);
+            roadmapInstance.Initialize();
+            roadmapInstance.PlayIntro(false);
+
+            ResetRoadmapRectTransform(roadmapInstance.transform);
+            return;
+        }
+
+        roadmapOpenOrSpawning = true;
+
+        roadmapInstance = SpawnGalaxyRoadmap();
+
+        if (roadmapInstance == null)
+        {
+            roadmapOpenOrSpawning = false;
+            return;
+        }
+
+        roadmapInstance.OnClosedRoadmap += HandleRoadmapClosed;
+
+        roadmapInstance.PrepareProgressBeforeReveal();
+        roadmapInstance.Initialize();
+        roadmapInstance.PlayIntro(false);
+
+        ResetRoadmapRectTransform(roadmapInstance.transform);
+    }
+
+    private Popup_GalaxyRoadmap SpawnGalaxyRoadmap()
+    {
+        if (prefabLibrary == null || roadmapContainer == null)
+        {
+            Debug.LogWarning("[MainMenuUI] Missing prefabLibrary or roadmapContainer.");
+            return null;
+        }
+
+        var prefab = prefabLibrary.GetGalaxyRoadmap(GALAXY_ROADMAP);
+
+        if (prefab == null)
+        {
+            Debug.LogWarning("[MainMenuUI] GalaxyRoadmapPopup prefab not found.");
+            return null;
+        }
+
+        return Instantiate(prefab, roadmapContainer);
+    }
+
+    private void HandleRoadmapClosed()
+    {
+        roadmapOpenOrSpawning = false;
+
+        if (roadmapInstance != null)
+            roadmapInstance.OnClosedRoadmap -= HandleRoadmapClosed;
+
+        roadmapInstance = null;
+    }
+
+    private void ResetRoadmapRectTransform(Transform t)
+    {
+        var rt = t as RectTransform;
+
+        if (rt != null)
+        {
+            rt.anchoredPosition3D = Vector3.zero;
+        }
+        else
+        {
+            t.localPosition = Vector3.zero;
+        }
+
+        t.localRotation = Quaternion.identity;
+        t.localScale = Vector3.one;
+    }
+
+    private void HandleUnlockPopupRequested(BallType type)
+    {
+        ShowBallUnlockPopup(type);
+    }
+
+    private void ShowBallUnlockPopup(BallType type)
+    {
+        if (prefabLibrary == null)
+        {
+            Debug.LogWarning(
+                "[MainMenuUI] PrefabLibrary is not assigned."
+            );
+
+            return;
+        }
+
+        if (outOfTriesContainer == null)
+        {
+            Debug.LogWarning(
+                "[MainMenuUI] Popup container is not assigned."
+            );
+
+            return;
+        }
+
+        if (ballUnlockPopupInstance != null)
+        {
+            ballUnlockPopupInstance.Open(type);
+            return;
+        }
+
+        BallUnlockPopup popupPrefab =
+            prefabLibrary.GetBallUnlockPopup(
+                BALL_UNLOCK_POPUP
+            );
+
+        if (popupPrefab == null)
+            return;
+
+        ballUnlockPopupInstance = Instantiate(
+            popupPrefab,
+            outOfTriesContainer
+        );
+
+        ballUnlockPopupInstance.Closed +=
+            HandleBallUnlockPopupClosed;
+
+        ballUnlockPopupInstance.Open(type);
+    }
+
+    private void HandleBallUnlockPopupClosed()
+    {
+        if (ballUnlockPopupInstance != null)
+        {
+            ballUnlockPopupInstance.Closed -=
+                HandleBallUnlockPopupClosed;
+        }
+
+        ballUnlockPopupInstance = null;
     }
 }

@@ -10,6 +10,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <ItemGroup>
     <ProjectCapability Include="Unity" />
+    <ProjectCapability Include="EnableOnDemandExcludedFolderLoading" />
   </ItemGroup>
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -35,36 +36,47 @@
   </PropertyGroup>
   <PropertyGroup>
     <UnityProjectGenerator>Package</UnityProjectGenerator>
-    <UnityProjectGeneratorVersion>2.0.25</UnityProjectGeneratorVersion>
+    <UnityProjectGeneratorVersion>2.0.27</UnityProjectGeneratorVersion>
     <UnityProjectGeneratorStyle>SDK</UnityProjectGeneratorStyle>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>iOS:9</UnityBuildTarget>
     <UnityVersion>6000.2.15f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="/Users/user/.vscode/extensions/visualstudiotoolsforunity.vstuc-1.2.1/Analyzers/Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="/Users/user/.vscode/extensions/visualstudiotoolsforunity.vstuc-1.2.2/Analyzers/Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="/Applications/Unity/Hub/Editor/6000.2.15f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll" />
     <Analyzer Include="/Applications/Unity/Hub/Editor/6000.2.15f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll" />
     <Analyzer Include="/Applications/Unity/Hub/Editor/6000.2.15f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets/ZooMerge/Script/BallChoise/BallChoiceItemUI.cs" />
     <Compile Include="Assets/Samples/iOS 14 Advertising Support/1.0.1/01 Context Screen/Scripts/AutoSwitchLayout.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_TextEventHandler.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Collectables/CollectibleFlyService.cs" />
+    <Compile Include="Assets/ZooMerge/Script/FirebaseScript/CloudSaveManager.cs" />
+    <Compile Include="Assets/ZooMerge/Script/PlayerProgress/PlayerProgress.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/BallInfo.cs" />
+    <Compile Include="Assets/ZooMerge/Script/SettingsManager/SettingsPopup.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/EnvMapAnimator.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/ShipRayMarker.cs" />
     <Compile Include="Assets/ZooMerge/Script/UIScripts/BottomFloorSync.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_TextSelector_A.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Collectables/CoinFlyService.cs" />
+    <Compile Include="Assets/ZooMerge/Script/BallChoise/BallSelectionManager.cs" />
     <Compile Include="Assets/Samples/iOS 14 Advertising Support/1.0.1/01 Context Screen/Scripts/ContextScreenView.cs" />
     <Compile Include="Assets/ZooMerge/Script/Events/ParticleEvents.cs" />
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/HealthTween.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Events/AnalyticsEvents.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/Benchmark02.cs" />
     <Compile Include="Assets/MOST_HapticFeedback/Scripts/MOST_HapticFeedback.cs" />
+    <Compile Include="Assets/ZooMerge/Script/PopupManager/OutOfTriesPopup.cs" />
+    <Compile Include="Assets/ZooMerge/Script/BallChoise/BallChoiceMenu.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/CircleDragInput.cs" />
     <Compile Include="Assets/ZooMerge/Script/Reveal/GalaxyColorAnimator.cs" />
     <Compile Include="Assets/ZooMerge/Script/ATTManager/ATTRequest.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/CollectibleSpawnCircle.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallRegistry.cs" />
+    <Compile Include="Assets/ZooMerge/Script/CoolDownTimer/CooldownRewardProgress.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/BallFactoryAddressables.cs" />
     <Compile Include="Assets/ZooMerge/Script/SessionManager/EnemyProgressConfig.cs" />
     <Compile Include="Assets/ZooMerge/Script/EnemyScript/EnemyUnit.cs" />
@@ -75,16 +87,21 @@
     <Compile Include="Assets/ZooMerge/Script/PopupManager/MainMenuUI.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/TopBarCoinItemUI.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/Inventory.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/SfxPlayerPool.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_ExampleScript_01.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMPro_InstructionOverlay.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexShakeB.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallSet.cs" />
+    <Compile Include="Assets/ZooMerge/Script/PlayerProgress/RetriesTextBinder.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeLevelData/LevelArtController.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Economy/BallUnlockRequirementItemUI.cs" />
     <Compile Include="Assets/ZooMerge/Script/AdsManager/AdsManager.cs" />
     <Compile Include="Assets/ZooMerge/Script/Reveal/DissolveAnimatorDriver.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/BaseFlyingCollectible.cs" />
+    <Compile Include="Assets/ZooMerge/Script/BallChoise/CardSelectionVisualController.cs" />
     <Compile Include="Assets/ZooMerge/Script/EnemyScript/EnemyDieAnimatorEventRelay.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/DragSmoother.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Economy/BallUnlockManager.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexJitter.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupManager/PrefabLibrary.cs" />
     <Compile Include="Assets/ZooMerge/Script/AddressableScript/AddressablesPreloader.cs" />
@@ -93,8 +110,10 @@
     <Compile Include="Assets/ZooMerge/Script/SplashScreenController/EditorMainBootstrap.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupManager/Popup_GalaxyRoadmap.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexZoom.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Economy/RetryRefillPricingSO.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeLevelData/MergeLevelManager.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_TextSelector_B.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/SfxCue.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupMessageCenter/LosePopupContent.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/MergeCore.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/SkewTextExample.cs" />
@@ -102,11 +121,16 @@
     <Compile Include="Assets/ZooMerge/Script/Collectables/TopBarCurrencyItemUI.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/ShaderPropAnimator.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/FlyingCoinCollectible.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Collectables/FlyCollectiblePrefabRoot.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/CircleDropController.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/DoNotDestroyOnRebuild.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Economy/BallUnlockCatalogSO.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/SfxBehaviourTirgger.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Collectables/ICollectibleArriveHandler.cs" />
     <Compile Include="Assets/ZooMerge/Script/EnemyScript/EnemyIconController.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_TextInfoDebugTool.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/IBallFactory.cs" />
+    <Compile Include="Assets/ZooMerge/Script/SettingsManager/UserIdUIHelper.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/TopBarMergeItemUI.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexShakeA.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupMessageCenter/PopupMessageCenter.cs" />
@@ -129,28 +153,39 @@
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TextMeshSpawner.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupManager/PauseRestartPopup.cs" />
     <Compile Include="Assets/Samples/Ads Mediation/9.2.0/Unity LevelPlay Sample/Scripts/AdConfig.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Events/GameOverAlertAnimatorBridge.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/AudioManager.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/CoinCollectible.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupManager/WinLosePopup.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/AudioSfxLibrarySO.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupManager/PopupManager.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Economy/RetryRefillPricingRuntime.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/CameraController.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeLevelData/LevelArtController_Popup.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/Benchmark03.cs" />
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/GameHealthManager.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeLevelData/LevelArtDatabase.cs" />
+    <Compile Include="Assets/ZooMerge/Script/CoolDownTimer/CoinCooldown.cs" />
     <Compile Include="Assets/JMO Assets/Cartoon FX Remaster/CFXR Assets/Shaders/BeamController.cs" />
     <Compile Include="Assets/ZooMerge/Script/EnemyScript/EnemySessionTracker.cs" />
     <Compile Include="Assets/ZooMerge/Script/UIScripts/UIFloorAnchor.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/CollectibleFlightSettings.cs" />
     <Compile Include="Assets/ZooMerge/Script/Reveal/GalaxyRoadmapPrefabConfigurator.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Collectables/IFlyTargetUI.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Collectables/CooldownRewardScheduleSO.cs" />
     <Compile Include="Assets/ZooMerge/Script/FirebaseScript/FirebaseInitializer.cs" />
+    <Compile Include="Assets/ZooMerge/Script/UIScripts/UIHeartSweepAnimator.cs" />
+    <Compile Include="Assets/ZooMerge/Script/UIScripts/HeartIntroAnimation.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupManager/WinLoseContentBase.cs" />
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/ScreenMover.cs" />
     <Compile Include="Assets/ZooMerge/Script/FirebaseScript/RemoteAdConfig.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/FlyingCollectible.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/BallCollisionMerge.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/SfxMerge.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/DropdownSample.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/ProgressBarCoordinator.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexColorCycler.cs" />
+    <Compile Include="Assets/ZooMerge/Script/SettingsManager/IOSAudioSession.cs" />
     <Compile Include="Assets/ZooMerge/Script/EnemyScript/EnemyIconNode.cs" />
     <Compile Include="Assets/ZooMerge/Script/EnemyScript/SliderAnimator.cs" />
     <Compile Include="Assets/Samples/Ads Mediation/9.2.0/Unity LevelPlay Sample/Scripts/LevelPlaySample.cs" />
@@ -158,20 +193,28 @@
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallSortingService.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/ObjectSpin.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_PhoneNumberValidator.cs" />
+    <Compile Include="Assets/ZooMerge/Script/PopupManager/PopupNavigationSlider.cs" />
     <Compile Include="Assets/ZooMerge/Script/Events/BallEventManager.cs" />
     <Compile Include="Assets/ZooMerge/Animation/AsteroidFieldAnimator/AsteroidFieldAnimator.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TextConsoleSimulator.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TeleType.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Collectables/CollectibleFlyEntrySO.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_TextEventCheck.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallPicker.cs" />
+    <Compile Include="Assets/ZooMerge/Script/CoolDownTimer/CoinCooldownWidget.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeLevelData/LevelArtRevealController.cs" />
     <Compile Include="Assets/ZooMerge/Script/MergeCore/MergeSummaryPanel.cs" />
     <Compile Include="Assets/MOST_HapticFeedback/Scripts/HapticsExample.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TextMeshProFloatingText.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupMessageCenter/WinPopupContent.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Economy/BallUnlockPopup.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Collectables/CollectibleFlyTarget.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/CollectibleFlyController.cs" />
+    <Compile Include="Assets/ZooMerge/Script/AudioManager/MusicPlayer.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallStateSaver.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/SceneLineMarker.cs" />
+    <Compile Include="Assets/ZooMerge/Script/FirebaseScript/DebugPopup.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Collectables/AddRetriesOnArrive.cs" />
     <Compile Include="Assets/ZooMerge/Script/Controls/ReleaseOnDestroy.cs" />
     <Compile Include="Assets/ZooMerge/Script/ScoreSystems/MergeScoreDisplayController.cs" />
     <Compile Include="Assets/ZooMerge/Script/EffectCore/VortexSpinController.cs" />
@@ -180,14 +223,19 @@
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallSnapshot.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets/Firebase/Plugins/iOS/Firebase.Functions.dll" />
     <None Include="Assets/TextMesh Pro/Shaders/TMPro.cginc" />
+    <None Include="Assets/Firebase/m2repository/com/google/firebase/firebase-functions-unity/maven-metadata.xml" />
     <None Include="Assets/Spine/version.txt" />
     <None Include="Assets/JMO Assets/Cartoon FX Remaster/CFXR Assets/Shaders/CFXR_SETTINGS.cginc" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile Overlay.shader" />
     <None Include="Assets/TextMesh Pro/Examples &amp; Extras/Fonts/Roboto-Bold - License.txt" />
+    <None Include="Assets/Firebase/Plugins/x86_64/FirebaseCppFirestore.dll" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile-2-Pass.shader" />
     <None Include="Assets/Firebase/Plugins/Firebase.Analytics.dll" />
     <None Include="Assets/JMO Assets/Cartoon FX (legacy)/Shaders/CFX2 Particle Alpha Blend Add.shader" />
+    <None Include="Assets/ZooMerge/Textures/Shader/HeartLightSweep.shader" />
+    <None Include="Assets/ZooMerge/Animation/spine/export/Bug_2/ladybug.atlas.txt" />
     <None Include="Assets/TextMesh Pro/Examples &amp; Extras/Fonts/Unity - OFL.txt" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_Bitmap.shader" />
     <None Include="Assets/Firebase/Plugins/iOS/Firebase.Analytics.dll" />
@@ -202,11 +250,15 @@
     <None Include="Assets/TextMesh Pro/Examples &amp; Extras/Fonts/Anton OFL.txt" />
     <None Include="Assets/TextMesh Pro/Shaders/TMPro_Mobile.cginc" />
     <None Include="Assets/JMO Assets/Cartoon FX Remaster/CFXR Assets/Shaders/CFXR_PASSES.cginc" />
+    <None Include="Assets/Firebase/Plugins/Firebase.Functions.dll" />
     <None Include="Assets/JMO Assets/Cartoon FX Remaster/CFXR Assets/Shaders/CFXR.cginc" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF SSD.shader" />
+    <None Include="Assets/Firebase/m2repository/com/google/firebase/firebase-firestore-unity/maven-metadata.xml" />
     <None Include="Assets/Firebase/Plugins/x86_64/FirebaseCppAnalytics.dll" />
     <None Include="Assets/ZooMerge/Animation/spine/export/Enemies/Enemy_Triangle/triangle.atlas.txt" />
     <None Include="Assets/Firebase/Plugins/iOS/Firebase.RemoteConfig.dll" />
+    <None Include="Assets/Firebase/Plugins/x86_64/FirebaseCppAuth.dll" />
+    <None Include="Assets/Firebase/Plugins/iOS/Firebase.Firestore.dll" />
     <None Include="Assets/ZooMerge/Textures/Shader/StencilClippedLight.shader" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF-Surface-Mobile.shader" />
     <None Include="Assets/Firebase/Plugins/Firebase.TaskExtension.dll" />
@@ -215,7 +267,9 @@
     <None Include="Assets/ZooMerge/Textures/Shader/VortexPulseGlow.shader" />
     <None Include="Assets/TextMesh Pro/Shaders/SDFFunctions.hlsl" />
     <None Include="Assets/ZooMerge/Animation/Spine_animations/Pug/pug.atlas.txt" />
+    <None Include="Assets/Firebase/Plugins/Firebase.Auth.dll" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF-Surface.shader" />
+    <None Include="Assets/Firebase/Plugins/x86_64/FirebaseCppFunctions.dll" />
     <None Include="Assets/TextMesh Pro/Sprites/EmojiOne Attribution.txt" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_Bitmap-Custom-Atlas.shader" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF.shader" />
@@ -225,27 +279,34 @@
     <None Include="Assets/ZooMerge/Animation/spine/export/Enemies/Enemy_square/Enemy_lvl_3.atlas.txt" />
     <None Include="Assets/Firebase/m2repository/com/google/firebase/firebase-analytics-unity/maven-metadata.xml" />
     <None Include="Assets/TextMesh Pro/Shaders/TMPro_Properties.cginc" />
+    <None Include="Assets/Firebase/m2repository/com/google/firebase/firebase-auth-unity/maven-metadata.xml" />
     <None Include="Assets/MOST_HapticFeedback/Readme.txt" />
     <None Include="Assets/JMO Assets/Cartoon FX Remaster/CFXR Assets/Shaders/CFXR_URP.cginc" />
     <None Include="Assets/ZooMerge/Shaders/Grayscale Lerp.shader" />
     <None Include="Assets/ZooMerge/Animation/spine/export/Enemies/Enemy_lvl_2/Enemy_lvl_2.atlas.txt" />
     <None Include="Assets/TextMesh Pro/Shaders/TMPro_Surface.cginc" />
+    <None Include="Assets/Firebase/Plugins/iOS/Firebase.Auth.dll" />
     <None Include="Assets/TextMesh Pro/Resources/LineBreaking Following Characters.txt" />
     <None Include="Assets/ZooMerge/Animation/spine/export/Bug/ladybug.atlas.txt" />
+    <None Include="Assets/ZooMerge/Textures/Shader/SpriteLightSweep.shader" />
     <None Include="Assets/ZooMerge/Animation/spine/export/Doggy/pug.atlas.txt" />
     <None Include="Assets/ZooMerge/Shaders/BlackAndWhiteShaderTest.shader" />
     <None Include="Assets/ZooMerge/Textures/Shader/StencilMaskedParticle.shader" />
+    <None Include="Assets/Firebase/Plugins/Firebase.Firestore.dll" />
+    <None Include="Assets/ZooMerge/Animation/spine/export/Cat/catsinger.atlas.txt" />
     <None Include="Assets/JMO Assets/Cartoon FX (legacy)/Shaders/CFX2 Particle Alpha Blend Tint.shader" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile Masking.shader" />
     <None Include="Assets/Firebase/Plugins/x86_64/FirebaseCppApp-12_9_0.dll" />
+    <None Include="Assets/ZooMerge/Shaders/Silhouette.shader" />
+    <None Include="Assets/ZooMerge/Shaders/UIGrayscaleFaded.shader" />
     <None Include="Assets/Firebase/Plugins/Firebase.Platform.dll" />
     <None Include="Assets/Firebase/Plugins/x86_64/FirebaseCppRemoteConfig.dll" />
     <None Include="Assets/Firebase/Plugins/Firebase.RemoteConfig.dll" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF Overlay.shader" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_Bitmap-Mobile.shader" />
     <None Include="Assets/Firebase/Plugins/Google.MiniJson.dll" />
+    <None Include="Assets/ZooMerge/Textures/Shader/BehindBlur_URP.shader" />
     <None Include="Assets/TextMesh Pro/Fonts/LiberationSans - OFL.txt" />
-    <None Include="Assets/AddressableAssetsData/link.xml" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader" />
     <None Include="Assets/Firebase/Plugins/iOS/Firebase.App.dll" />
     <None Include="Assets/KrisDevelopment/FavoriteAssets/How To Use.txt" />
@@ -730,6 +791,10 @@
       <HintPath>/Applications/Unity/Hub/Editor/6000.2.15f1/Unity.app/Contents/Managed/UnityEngine/UnityEditor.XRModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Firebase.Functions">
+      <HintPath>Assets/Firebase/Plugins/Firebase.Functions.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Firebase.Analytics">
       <HintPath>Assets/Firebase/Plugins/Firebase.Analytics.dll</HintPath>
       <Private>False</Private>
@@ -750,8 +815,16 @@
       <HintPath>Assets/Firebase/Plugins/Firebase.RemoteConfig.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Firebase.Firestore">
+      <HintPath>Assets/Firebase/Plugins/Firebase.Firestore.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Firebase.TaskExtension">
       <HintPath>Assets/Firebase/Plugins/Firebase.TaskExtension.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Firebase.Auth">
+      <HintPath>Assets/Firebase/Plugins/Firebase.Auth.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.IO.Hashing">

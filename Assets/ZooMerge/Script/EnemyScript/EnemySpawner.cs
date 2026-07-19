@@ -34,7 +34,7 @@ public class EnemySpawner : MonoBehaviour
         currentEnemy.unit?.PlayEnter();
     }
 
-    public void ClearEnemy()
+    public void ClearEnemy( float delay = 2f)
     {
         if (delayedEnterRoutine != null)
         {
@@ -45,7 +45,7 @@ public class EnemySpawner : MonoBehaviour
         if (currentEnemy.root != null)
         {
             EnemySessionTracker.Unregister(currentEnemy.root);
-            Destroy(currentEnemy.root, 2f);
+            Destroy(currentEnemy.root, delay);
         }
         currentEnemy = default;
     }

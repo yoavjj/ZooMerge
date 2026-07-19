@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [ExecuteAlways]
-public class GalaxyColorAnimator : MonoBehaviour
+public class GalaxyColorAnimator : SfxBehaviourTirgger
 {
     [Header("Target")]
     [SerializeField] private Graphic targetGraphic; // Image / RawImage

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [ExecuteAlways]
-public class Popup_GalaxyRoadmap : MonoBehaviour
+public class Popup_GalaxyRoadmap : SfxBehaviourTirgger
 {
     [Header("Galaxy Progress")]
     [SerializeField] private GalaxyProgressSlider galaxyProgress;
@@ -169,33 +169,41 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
 
     public void PlayIntro(bool fromLevelFlow)
     {
+        isRevealMode = fromLevelFlow;
+
         if (animator == null)
             return;
 
-        isRevealMode = fromLevelFlow;
+        PlayUiSfx(SfxCue.UI_Roadmap_Appear);
 
-        string trigger = fromLevelFlow ? revealTrigger : popupTrigger;
+        animator.ResetTrigger(popupTrigger);
+        animator.ResetTrigger(revealTrigger);
+
+        if (!string.IsNullOrEmpty(closeTrigger))
+            animator.ResetTrigger(closeTrigger);
 
         if (fromLevelFlow)
         {
             levelArtController?.ShowPreviousGalaxyArt();
-
             levelArtController?.ShowCurrentStageArt();
 
             EnsureMaterialInstance();
 
-            // ✅ Start auto close
             if (autoCloseRoutine != null)
                 StopCoroutine(autoCloseRoutine);
 
             autoCloseRoutine = StartCoroutine(AutoCloseRoutine());
+
+            animator.SetTrigger(revealTrigger);
         }
         else
         {
             RestoreOriginalMaterial();
-        }
 
-        animator.SetTrigger(trigger);
+            // Normal navigation popup:
+            // uses the serialized "Popup" trigger.
+            animator.SetTrigger(popupTrigger);
+        }
     }
 
     private IEnumerator AutoCloseRoutine()
@@ -210,14 +218,15 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
         // optional: small delay to let animation play
         yield return new WaitForSeconds(2.5f);
 
-        Destroy(gameObject);
+        Destroy(gameObject, 2.5f);
     }
 
     public void ClosePopup()
     {
         // Prevent double-close calls
         if (!gameObject) return;
-
+        
+        PlayUiSfx(SfxCue.UI_Button_Click_Close);
         OnClosedRoadmap?.Invoke();
     }
 
@@ -225,7 +234,7 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
     {
         if (galaxyProgress == null) return;
 
-        galaxyProgress.SetCompletedProgress(cachedCompleted, cachedTotal, animate: true);
+        galaxyProgress.SetCompletedProgress(cachedCompleted, cachedTotal, animate: true, updateTexts: false);
 
         // ✅ IMPORTANT — same as working script
         galaxyProgress.OnAnimationComplete = null;
@@ -266,6 +275,19 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
 
         // ✅ show current galaxy art + reveal animation
         levelArtController?.ShowCurrentGalaxyArtAndReveal();
+    }
+
+    public void AE_PlayGalaxyAppearSfx(int galaxySlot)
+    {
+        SfxCue cue = galaxySlot switch
+        {
+            0 => SfxCue.GalaxyRoadmap_CurrentAppear,
+            1 => SfxCue.GalaxyRoadmap_NextAppear,
+            2 => SfxCue.GalaxyRoadmap_NextNextAppear,
+            _ => SfxCue.GalaxyRoadmap_CurrentAppear
+        };
+
+        PlayUiSfx(cue);
     }
 
     private void EnsureMaterialInstance()
@@ -332,5 +354,23 @@ public class Popup_GalaxyRoadmap : MonoBehaviour
 
             galaxyProgress.SetCompletedProgress(from, cachedTotal, animate: false);
         }
+    }
+
+    public void OpenFromNavigation()
+    {
+        // Important: set the mode before Initialize().
+        // Initialize() uses this value when deciding which galaxy to display.
+        isRevealMode = false;
+
+        if (autoCloseRoutine != null)
+        {
+            StopCoroutine(autoCloseRoutine);
+            autoCloseRoutine = null;
+        }
+
+        gameObject.SetActive(true);
+
+        Initialize();
+        PlayIntro(false);
     }
 }

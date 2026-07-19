@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class EnemyDieAnimatorEventRelay : MonoBehaviour
+public class EnemyDieAnimatorEventRelay : SfxBehaviourTirgger
 {
     public void OnEnemyDieAnimationFinished()
     {

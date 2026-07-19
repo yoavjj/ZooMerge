@@ -286,7 +286,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 1
+      scalar: 1.2
       minScalar: 0.5
       maxCurve:
         serializedVersion: 2
@@ -457,7 +457,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 160
+      scalar: 170
       minScalar: 80
       maxCurve:
         serializedVersion: 2
@@ -921,7 +921,7 @@ ParticleSystem:
     sphericalDirectionAmount: 0
     randomPositionAmount: 0
     radius:
-      value: 395
+      value: 420.9
       mode: 3
       spread: 0
       speed:
@@ -5115,7 +5115,7 @@ ParticleSystemRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 33
+  m_SortingOrder: 58
   m_RenderMode: 0
   m_MeshDistribution: 0
   m_SortMode: 0
@@ -5239,6 +5239,10 @@ PrefabInstance:
     - target: {fileID: 4962679096945689909, guid: 3a1a6f7bc9a5944ab91cb9b3162a6e85, type: 3}
       propertyPath: m_SortingLayer
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4962679096945689909, guid: 3a1a6f7bc9a5944ab91cb9b3162a6e85, type: 3}
+      propertyPath: m_SortingOrder
+      value: 53
       objectReference: {fileID: 0}
     - target: {fileID: 4962679096945689910, guid: 3a1a6f7bc9a5944ab91cb9b3162a6e85, type: 3}
       propertyPath: m_Name

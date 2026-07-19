@@ -12,6 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61b17a0fdcb00454bbd98c136c55a276, type: 3}
   m_Name: BallSet
   m_EditorClassIdentifier: 
+  ballTypeUIData:
+  - type: 0
+    profileSprite: {fileID: -4702881144674077283, guid: 23adc8e1476b14cb3b678805596d9309, type: 3}
+    mergeIcon: {fileID: -368216412898630414, guid: 37231eba180cb47a28400b8086acb727, type: 3}
+  - type: 1
+    profileSprite: {fileID: -6897395434648536221, guid: 18a9454725557480689d569ba0ab143a, type: 3}
+    mergeIcon: {fileID: 3562060809666312890, guid: 37231eba180cb47a28400b8086acb727, type: 3}
+  - type: 2
+    profileSprite: {fileID: -3988918356196897923, guid: c4cb673dc46fb40f189f1d0d43190a4c, type: 3}
+    mergeIcon: {fileID: 7627575107566281718, guid: 37231eba180cb47a28400b8086acb727, type: 3}
+  - type: 3
+    profileSprite: {fileID: 8992398688294211041, guid: cc71a539590b240529b8cddf72dd1fa7, type: 3}
+    mergeIcon: {fileID: -5169702173479814604, guid: c0338056158bf4d8eb1b6cd655e6222b, type: 3}
   entries:
   - id: Bug_1
     prefab:
@@ -51,6 +64,16 @@ MonoBehaviour:
       m_SubObjectGUID: 
       m_EditorAssetChanged: 0
     level: 4
+    includeInRandom: 0
+    type: 0
+  - id: Bug_5
+    prefab:
+      m_AssetGUID: 61a2203e33eba482bbbbcd645edbb2b5
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 5
     includeInRandom: 0
     type: 0
   - id: Turtle_1
@@ -93,6 +116,16 @@ MonoBehaviour:
     level: 4
     includeInRandom: 0
     type: 1
+  - id: Turtle_5
+    prefab:
+      m_AssetGUID: bd3c1c9a38e4e4902a0c8d5570089750
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 5
+    includeInRandom: 0
+    type: 1
   - id: Doggy_1
     prefab:
       m_AssetGUID: 7f6b75b51d39842ef923aa3e0027367f
@@ -133,31 +166,103 @@ MonoBehaviour:
     level: 4
     includeInRandom: 0
     type: 2
+  - id: Doggy_5
+    prefab:
+      m_AssetGUID: a482ad7ceb0684151a5d79d3c57abfc2
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 5
+    includeInRandom: 0
+    type: 2
+  - id: Cat_1
+    prefab:
+      m_AssetGUID: 7086ce3160ae6474a86c36995042df1d
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 1
+    includeInRandom: 1
+    type: 3
+  - id: Cat_2
+    prefab:
+      m_AssetGUID: 2d8364372a1d44c4fb15fe6e89db3da6
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 2
+    includeInRandom: 1
+    type: 3
+  - id: Cat_3
+    prefab:
+      m_AssetGUID: 22fad30a041bd4231b6d5f198c3b6df7
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 3
+    includeInRandom: 0
+    type: 3
+  - id: Cat_4
+    prefab:
+      m_AssetGUID: a96d43946bcc74c6387d34817228cf03
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 4
+    includeInRandom: 0
+    type: 3
+  - id: Cat_5
+    prefab:
+      m_AssetGUID: a7d4168d86dff43ccbcd3f87e4662be6
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    level: 5
+    includeInRandom: 0
+    type: 3
   physicsData:
   - id: 1
     finalLinearDamping: 2.5
     finalAngularDamping: 2.5
-    gravityStart: 0.55
+    gravityStart: 0.59
     gravityEnd: 0.65
     uniformScale: 0.45
   - id: 2
     finalLinearDamping: 3.5
     finalAngularDamping: 3.5
-    gravityStart: 0.55
+    gravityStart: 0.59
     gravityEnd: 0.75
     uniformScale: 0.65
   - id: 3
     finalLinearDamping: 4.5
     finalAngularDamping: 4.5
-    gravityStart: 0.55
+    gravityStart: 0.59
     gravityEnd: 0.85
     uniformScale: 0.75
   - id: 4
     finalLinearDamping: 5.5
     finalAngularDamping: 5.5
-    gravityStart: 0.55
+    gravityStart: 0.59
     gravityEnd: 0.9
     uniformScale: 1.05
+  - id: 5
+    finalLinearDamping: 5
+    finalAngularDamping: 5
+    gravityStart: 0.3
+    gravityEnd: 0.9
+    uniformScale: 1.3
+  - id: 51
+    finalLinearDamping: 5
+    finalAngularDamping: 5
+    gravityStart: 0.3
+    gravityEnd: 0.45
+    uniformScale: 1
   enemyPrefabs:
   - id: 1
     prefab:
@@ -216,3 +321,9 @@ MonoBehaviour:
     TouchingAnimation: level_4_Touching
     fallingAnimation: level_4_falling
     landAnimation: level_4_land
+  - level: 5
+    mergeAnimation: level_4-5
+    idleAnimation: level_5_idle
+    TouchingAnimation: level_5_Touching
+    fallingAnimation: level_5_falling
+    landAnimation: level_5_land

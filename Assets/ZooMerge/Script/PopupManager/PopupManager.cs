@@ -1,20 +1,26 @@
+using System;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
 using static BallEventManager;
+using System.Collections.Generic;
 //using UnityEngine.iOS;
 
-public class PopupManager : MonoBehaviour
+public class PopupManager : SfxBehaviourTirgger
 {
     public static PopupManager Instance { get; private set; }
 
     [Header("Refs")]
     [SerializeField] private PrefabLibrary prefabLibrary;
+    [SerializeField] private CollectibleFlyTarget heartFlyTarget;
 
     private const string MAIN_MENU = "MainMenuPopup";
     private const string WIN_LOSE = "WinLosePopup";
     private const string PAUSE = "PauseRestartPopup";
-    
+
+    private PauseRestartPopup pausePopup;
+    public static event Action OnForceClosePausePopup;
+
     [SerializeField] private BallSpawner ballSpawner;
     [SerializeField] LevelProgressBarSlider levelProgressBarSlider;
 
@@ -36,6 +42,8 @@ public class PopupManager : MonoBehaviour
     private bool endPopupLocked = false;
     private GameOverReason? lockedEndReason = null;
 
+    private readonly Dictionary<string, RectTransform> navigationPopups = new();
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -50,28 +58,41 @@ public class PopupManager : MonoBehaviour
     {
         if (ensureActivePanelOnStart != null && !ensureActivePanelOnStart.activeSelf)
             ensureActivePanelOnStart.SetActive(true);
+    }
 
-        if (prefabLibrary != null)
+    private void Update()
+    {
+        // Editor-only hotkey to open pause popup
+#if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
         {
-            var prefab = prefabLibrary.GetRaw(MAIN_MENU);
-            if (prefab != null)
-            {
-                mainMenuPopupInstance = Instantiate(prefab, transform);
-                mainMenuPopupInstance.SetActive(true);
-            }
+            // Only during active gameplay + not game over
+            if (!isSessionActive) return;
+            if (BallEventManager.IsGameOver) return;
+
+            ShowPauseRestartPopup();
         }
+#endif
     }
 
     private void OnEnable()
     {
         BallEventManager.OnBallTouchedGameOverLine += HandleBallTouchedGameOverLine;
         WinLosePopup.OnWinLoseClosed += UnlockEndPopup;
+
+        BallEventManager.OnSessionStarted += HandleSessionStarted;
+        BallEventManager.OnReturnToMainMenu += HandleReturnToMainMenu;
+        BallEventManager.OnGameOver += HandleSessionOver;
     }
 
     private void OnDisable()
     {
         BallEventManager.OnBallTouchedGameOverLine -= HandleBallTouchedGameOverLine;
         WinLosePopup.OnWinLoseClosed -= UnlockEndPopup;
+
+        BallEventManager.OnSessionStarted -= HandleSessionStarted;
+        BallEventManager.OnReturnToMainMenu -= HandleReturnToMainMenu;
+        BallEventManager.OnGameOver -= HandleSessionOver;
 
         if (winLosePopupRoutine != null) { StopCoroutine(winLosePopupRoutine); winLosePopupRoutine = null; }
     }
@@ -88,18 +109,21 @@ public class PopupManager : MonoBehaviour
     private void HandleBallTouchedGameOverLine(BallInfo info)
     {
         isSessionActive = false;
-        ShowEndLvlPopup(GameOverReason.Lost); // or whatever reason you want for this unique case
-    }
 
-    private void HandleGameOver(BallInfo info, GameOverReason reason)
-    {
-        isSessionActive = false;
-        ShowEndLvlPopup(reason);
+        // ✅ consume retry BEFORE popup reads retry count
+        CloudSaveManager.AddLoss(GameOverReason.Lost);
+
+        // ✅ analytics: level ended by losing
+        AnalyticsEvents.LevelEnd("lost");
+        
+        ShowEndLvlPopup(GameOverReason.Lost); // or whatever reason you want for this unique case
     }
 
     public void ShowPauseRestartPopup()
     {
         if (BallEventManager.PauseBlocked) return;
+
+        if (BallEventManager.IsGameOverCountdownActive) return;
         
         if (MergeScoreDisplayController.Instance != null &&
             MergeScoreDisplayController.Instance.HasActiveScorePopups)
@@ -114,6 +138,8 @@ public class PopupManager : MonoBehaviour
 
         pauseRestartPopupInstance.SetActive(true);
 
+        PlayUiSfx(SfxCue.ButtonClick);
+
         BallEventManager.RaiseSessionPaused(); // 🆕 Trigger pause animation/UI logic
     }
 
@@ -124,6 +150,10 @@ public class PopupManager : MonoBehaviour
 
     public void ShowEndLvlPopup(GameOverReason reason)
     {
+        isSessionActive = false;
+
+        ForceClosePausePopup(); // Ensure any open pause popup is closed immediately
+
         // ✅ If an end popup is already showing/locked, ignore any other attempt.
         if (endPopupLocked)
         {
@@ -161,6 +191,7 @@ public class PopupManager : MonoBehaviour
 
     public void ShowEnemyDefeatedMessage()
     {
+        ForceClosePausePopup();
         if (winLosePopupRoutine != null) StopCoroutine(winLosePopupRoutine);
         winLosePopupRoutine = StartCoroutine(ShowWinLosePopupAfterDelay(winLosePopupDelay, () =>
         {
@@ -175,6 +206,8 @@ public class PopupManager : MonoBehaviour
 
     private IEnumerator ShowWinLosePopupAfterDelay(float delay, System.Action showBody)
     {
+        isSessionActive = false;
+
         if (delay > 0f) yield return new WaitForSeconds(delay);
 
         if (gameUIPopupInstance == null)
@@ -190,15 +223,32 @@ public class PopupManager : MonoBehaviour
 
     public void ShowMainMenu()
     {
-        if (prefabLibrary != null)
-        {
-            var prefab = prefabLibrary.GetRaw(MAIN_MENU);
-            if (prefab != null)
-            {
-                mainMenuPopupInstance = Instantiate(prefab, transform);
-                mainMenuPopupInstance.SetActive(true);
-            }
-        }
+        RectTransform popup =
+            GetOrCreateNavigationPopup(MAIN_MENU);
+
+        if (popup == null)
+            return;
+
+        popup.gameObject.SetActive(true);
+        popup.anchoredPosition = Vector2.zero;
+
+        mainMenuPopupInstance = popup.gameObject;
+
+        BallEventManager.RaiseMainMenuPopupOpened();
+    }
+
+    private static void StretchToParent(RectTransform rect)
+    {
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        rect.anchoredPosition = Vector2.zero;
+        rect.localRotation = Quaternion.identity;
+        rect.localScale = Vector3.one;
     }
 
     public void BeginSessionDeferred(bool isNewLevel, bool restartmidlevel = false, int warmupFrames = 2)
@@ -223,6 +273,11 @@ public class PopupManager : MonoBehaviour
         ballSpawner?.BeginSession();
         BallEventManager.RaiseSessionStarted();
 
+        if (isNewLevel)
+        {
+            TryGrantHeartRewardForCompletedLevel();
+        }
+
         // ✅ wait 1 more frame before the expensive Addressables spawn
         yield return null;
 
@@ -239,6 +294,8 @@ public class PopupManager : MonoBehaviour
         InitializeProgressBarNow();
 
         beginSessionRoutine = null;
+
+        AnalyticsEvents_OnSessionStarted();
     }
 
     public void BeginSession(bool isNewLevel, bool restartmidlevel = false)
@@ -249,10 +306,14 @@ public class PopupManager : MonoBehaviour
         AdManager.Instance?.LoadBanner();
 
         // ✅ Ensure no duplicate enemy exists
-        EnemySpawner.Instance?.ClearEnemy();
+        EnemySpawner.Instance?.ClearEnemy(delay: 0.2f);
 
-        // Clean up any hanging preview or active ball
-        CircleDragInput.Instance?.ClearSpawnContainer();
+        // Clean up any hanging preview or active ball.
+        // ✅ But when restarting a saved mid-level, do NOT clear the restored cage balls.
+        if (!restartmidlevel)
+        {
+            CircleDragInput.Instance?.ClearSpawnContainer();
+        }
 
         ballSpawner?.BeginSession();
         BallEventManager.RaiseSessionStarted();
@@ -269,6 +330,8 @@ public class PopupManager : MonoBehaviour
         BallStateSaver.Instance.SaveState(BallRegistry.ActiveBalls.ToArray());
         BallEventManager.ResetMidLevelLossFlag();
         StartCoroutine(PromoteNextFrame());
+
+        AnalyticsEvents_OnSessionStarted();
     }
 
     private IEnumerator PromoteNextFrame()
@@ -318,6 +381,18 @@ public class PopupManager : MonoBehaviour
         isSessionActive = true;
     }
 
+    private void HandleSessionOver(BallInfo info, GameOverReason reason)
+    {
+        // ✅ Session is officially over
+        isSessionActive = false;
+
+        // ✅ If pause is open for any reason, kill it immediately
+        ForceClosePausePopup();
+
+        // ✅ Optional: extra hard block for system pause calls
+        lockedEndReason = reason;  // keeps consistency with your end popup lock
+    }
+
     private void HandleReturnToMainMenu()
     {
         isSessionActive = false;
@@ -334,7 +409,6 @@ public class PopupManager : MonoBehaviour
         TryShowPausePopupFromSystem();
     }
 
-    // ✅ CHANGED
     private void OnApplicationFocus(bool hasFocus)
     {
         if (hasFocus) return;
@@ -348,22 +422,120 @@ public class PopupManager : MonoBehaviour
 
     private void TryShowPausePopupFromSystem()
     {
-#if UNITY_EDITOR
-        return; // 👈 Skip showing pause popup in the Unity Editor
-#else
         if (pauseRestartPopupInstance != null) return;
 
         // Optional: Skip if main menu is active
         if (mainMenuPopupInstance != null && mainMenuPopupInstance.activeInHierarchy)
             return;
 
+        if (endPopupLocked) return;
+
         ShowPauseRestartPopup();
-#endif
     }
 
     public void WarmupSession()
     {
         ballSpawner?.WarmupPreview();
+    }
+
+    private void AnalyticsEvents_OnSessionStarted()
+    {
+        AnalyticsEvents.LevelStart("popup_manager_begin_session");
+    }
+
+    public void ForceClosePausePopup()
+    {
+        // Tell the pause popup (if it exists) to close itself properly
+        OnForceClosePausePopup?.Invoke();
+
+        // Extra safety: clear reference even if popup was already destroyed
+        ClearPausePopupReference();
+    }
+
+    private void TryGrantHeartRewardForCompletedLevel()
+    {
+        bool remoteConfigGrant = MergeLevelManager.PreviousCompletedLevelGrantsHeartOnComplete;
+
+        if (!remoteConfigGrant)
+            return;
+
+        CollectibleFlyService.Instance?.Fly("Heart_Session", 1, heartFlyTarget, null);
+    }
+
+    public RectTransform GetOrCreateNavigationPopup(string prefabId)
+    {
+        if (string.IsNullOrEmpty(prefabId))
+            return null;
+
+        if (navigationPopups.TryGetValue(
+                prefabId,
+                out RectTransform existing) &&
+            existing != null)
+        {
+            return existing;
+        }
+
+        if (prefabLibrary == null)
+            return null;
+
+        GameObject prefab = prefabLibrary.GetRaw(prefabId);
+
+        if (prefab == null)
+        {
+            Debug.LogWarning(
+                $"[PopupManager] Navigation popup not found: {prefabId}"
+            );
+
+            return null;
+        }
+
+        GameObject instance = Instantiate(prefab, transform);
+
+        RectTransform rect =
+            instance.transform as RectTransform;
+
+        if (rect == null)
+        {
+            Debug.LogWarning(
+                $"[PopupManager] Navigation popup needs a RectTransform: {prefabId}"
+            );
+
+            Destroy(instance);
+            return null;
+        }
+
+        StretchToParent(rect);
+
+        navigationPopups[prefabId] = rect;
+
+        if (prefabId == MAIN_MENU)
+            mainMenuPopupInstance = instance;
+
+        return rect;
+    }
+
+    public void DestroyNavigationPopupsExcept(string prefabIdToKeep)
+    {
+        List<string> idsToRemove = new();
+
+        foreach (var pair in navigationPopups)
+        {
+            string prefabId = pair.Key;
+            RectTransform popup = pair.Value;
+
+            if (prefabId == prefabIdToKeep)
+                continue;
+
+            if (popup != null)
+                Destroy(popup.gameObject);
+
+            idsToRemove.Add(prefabId);
+        }
+
+        foreach (string id in idsToRemove)
+        {
+            navigationPopups.Remove(id);
+        }
     }
 }
 

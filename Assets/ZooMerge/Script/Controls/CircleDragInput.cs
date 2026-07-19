@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using System.Collections;
 
 public class CircleDragInput : MonoBehaviour,
     IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerUpHandler
@@ -46,6 +47,10 @@ public class CircleDragInput : MonoBehaviour,
     [SerializeField] private GameObject screenBlocker; // full-screen UI panel (raycast target ON)
     [SerializeField] private bool blockOnSessionEnd = true;
 
+    [SerializeField] private float minTimeBetweenDrops = 0.12f; // tweak (0.08–0.15 feels good)
+    private float nextAllowedDropTime = 0f;
+    private bool pendingDrop = false;
+
     #endregion
 
     #region Runtime State
@@ -73,8 +78,9 @@ public class CircleDragInput : MonoBehaviour,
     private bool hasLastDropX;
 
     // Cooldown/spawn coroutine
-    private bool isSpawnCooldown = false;
     private Coroutine spawnDelayRoutine;
+
+    private Coroutine recenterAfterEndRoutine;
 
     // The actual prefab root for the current active ball (never a container)
     private Transform currentPrefabRoot;
@@ -119,11 +125,22 @@ public class CircleDragInput : MonoBehaviour,
     private void HandleSessionEndedBlock()
     {
         CancelActivePress();
-        
+
         if (!blockOnSessionEnd) return;
 
         if (screenBlocker != null)
             screenBlocker.SetActive(true);
+
+        // ✅ NEW: recenter after 4 seconds
+        if (recenterAfterEndRoutine != null) StopCoroutine(recenterAfterEndRoutine);
+        recenterAfterEndRoutine = StartCoroutine(RecenterAfterDelay(4f));
+    }
+
+    private IEnumerator RecenterAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        RecenterPlayerToZero();
+        recenterAfterEndRoutine = null;
     }
 
     private void HandleSessionStartedUnblock()
@@ -221,7 +238,7 @@ public class CircleDragInput : MonoBehaviour,
     public void OnPointerDown(PointerEventData eventData)
     {
         if (!inputEnabled) return;
-        if (isSpawnCooldown) return;
+        //if (isSpawnCooldown) return;
 
         // 🔹 Check if pointer is inside buffer zone (optional early return)
         if (hasCachedBufferZone)
@@ -273,7 +290,7 @@ public class CircleDragInput : MonoBehaviour,
     public void OnDrag(PointerEventData eventData)
     {
         if (!inputEnabled) return;
-        if (isSpawnCooldown) return;
+        //if (isSpawnCooldown) return;
         if (eventData.pointerId != activePointerId) return;
         if (activeBall == null || !activeBall.IsDraggable()) return;
 
@@ -314,7 +331,7 @@ public class CircleDragInput : MonoBehaviour,
     public void OnPointerUp(PointerEventData eventData)
     {
         if (!inputEnabled) return;
-        if (isSpawnCooldown) return;
+        //if (isSpawnCooldown) return;
         if (eventData.pointerId != activePointerId) return;
         if (BallEventManager.PauseBlocked || BallEventManager.IsGameOver)
         {
@@ -348,7 +365,7 @@ public class CircleDragInput : MonoBehaviour,
         if (Time.unscaledTime - pointerDownTime < minPressTimeBeforeDrop) return;
 
         dragSmoother.Reset();
-        DropAndSpawn();
+        RequestDrop();
     }
 
     #endregion
@@ -424,7 +441,7 @@ public class CircleDragInput : MonoBehaviour,
         if (spawner != null)
         {
             if (spawnDelayRoutine != null) StopCoroutine(spawnDelayRoutine);
-            isSpawnCooldown = true;
+            //isSpawnCooldown = true;
             spawnDelayRoutine = StartCoroutine(SpawnAfterDelay());
         }
     }
@@ -443,7 +460,7 @@ public class CircleDragInput : MonoBehaviour,
         else
             spawner.PromoteFromPreview();
 
-        isSpawnCooldown = false;
+        //isSpawnCooldown = false;
         spawnDelayRoutine = null;
     }
 
@@ -653,5 +670,25 @@ public class CircleDragInput : MonoBehaviour,
 
         // optional: clear hover visuals
         shipRayMarker?.DisableHighlight();
+    }
+
+    private void RequestDrop()
+    {
+        // If we’re still within the “too fast” window, queue it (no re-press needed)
+        if (Time.unscaledTime < nextAllowedDropTime)
+        {
+            pendingDrop = true;
+            return;
+        }
+
+        DoDropNow();
+    }
+
+    private void DoDropNow()
+    {
+        nextAllowedDropTime = Time.unscaledTime + minTimeBetweenDrops;
+        pendingDrop = false;
+
+        DropAndSpawn();
     }
 }

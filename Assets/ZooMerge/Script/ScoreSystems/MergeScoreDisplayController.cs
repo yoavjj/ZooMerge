@@ -7,7 +7,10 @@ public class MergeScoreDisplayController : MonoBehaviour
     [Header("Refs")]
     [SerializeField] private Transform poolContainer;
     [SerializeField] private Camera mainCamera;
-    [SerializeField] private Transform targetPoint;
+    //[SerializeField] private Transform targetPoint;
+
+    [SerializeField] private Canvas uiCanvas;
+    [SerializeField] private RectTransform uiTargetPoint;
 
     [Header("Popup Prefabs By Level")]
     [SerializeField] private List<ScorePopupInstance> scorePrefabsByLevel = new();
@@ -71,6 +74,15 @@ public class MergeScoreDisplayController : MonoBehaviour
     private void HandleSessionEnding() => sessionEnding = true;
     private void ClearSessionEnding() => sessionEnding = false;
 
+    private Vector3 GetUiTargetScreenPoint()
+    {
+        Camera uiCam = (uiCanvas != null && uiCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
+            ? uiCanvas.worldCamera
+            : null;
+
+        return RectTransformUtility.WorldToScreenPoint(uiCam, uiTargetPoint.position);
+    }
+
     private void ShowScoreAtPosition(Vector3 worldPos, int score, int level)
     {
         if (sessionEnding) return;
@@ -79,7 +91,7 @@ public class MergeScoreDisplayController : MonoBehaviour
         popup.SetPoolIndex(Mathf.Clamp(level - 1, 0, scorePrefabsByLevel.Count - 1));
         popup.Text.text = $"+{score}";
 
-        GameObject enemyGO = targetPoint != null ? targetPoint.gameObject : null;
+        GameObject enemyGO = uiTargetPoint != null ? uiTargetPoint.gameObject : null;
 
         // Base center (screen)
         Vector3 baseCenterScreen = (centerPoint != null)
@@ -97,11 +109,13 @@ public class MergeScoreDisplayController : MonoBehaviour
 
         Vector3 centerScreen = baseCenterScreen + new Vector3(rnd.x + slotOffset.x, rnd.y + slotOffset.y, 0f);
 
+        Vector3 targetScreen = GetUiTargetScreenPoint();
+
         popup.Init(
             screenStart: mainCamera.WorldToScreenPoint(worldPos),
             centerScreen: centerScreen,
             cam: mainCamera,
-            target: targetPoint,
+            targetScreen: targetScreen,   // ✅ changed
             toCenterDuration: toCenterDuration,
             toCenterCurve: toCenterCurve,
             centerHoldTime: centerHoldTime,

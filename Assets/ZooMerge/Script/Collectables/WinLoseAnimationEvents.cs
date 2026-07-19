@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class WinLoseAnimationEvents : MonoBehaviour
+public class WinLoseAnimationEvents : SfxBehaviourTirgger
 {
     [SerializeField] MergeSummaryPanel mergeSummaryPanel;
     public void TriggerSpawnWinCoins()
@@ -19,6 +19,12 @@ public class WinLoseAnimationEvents : MonoBehaviour
 
     public void AE_OnRevealFinished()
     {
+        if (WinLosePopup.SuppressSessionStartFromReveal)
+        {
+            // This reveal was used for quitting/navigation, not gameplay.
+            return;
+        }
+
         PopupManager.Instance?.BeginSession(isNewLevel: false);
         PopupManager.Instance?.InitializeProgressBarNow();
     }

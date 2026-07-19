@@ -51,7 +51,7 @@ public class FlyingCollectible : BaseFlyingCollectible
         return iconImage != null ? iconImage.sprite : null;
     }
 
-    public void LaunchToLocalPoint(
+    public override void LaunchToLocalPoint(
         Vector2 targetLocalPosition,
         float totalDuration,
         System.Action onArrive,
@@ -124,6 +124,9 @@ public class FlyingCollectible : BaseFlyingCollectible
         // 🔁 Snap back before flight
         rect.anchoredPosition = originalPos;
         rect.localRotation = originalRot;
+
+        // 🔊 Play one random woosh exactly when flight begins
+        PlayRandomWooshSfx();
 
         // ⏱️ Step 2: Calculate available time for the flight phase
         float flightDuration = totalDuration - holdDuration;

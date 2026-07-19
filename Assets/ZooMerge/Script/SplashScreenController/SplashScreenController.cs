@@ -20,6 +20,9 @@ public class SplashScreenController : MonoBehaviour
     [SerializeField] private Slider progressSlider;
     [SerializeField] private TextMeshProUGUI progressText;
 
+    [Header("User Persona UI")]
+    [SerializeField] private TextMeshProUGUI userIdText;
+
     [Header("Optional")]
     [SerializeField] private float minSplashTime = 1.0f;
     [SerializeField] private float maxWaitTime = 8.0f;
@@ -34,6 +37,7 @@ public class SplashScreenController : MonoBehaviour
     private bool firebaseDone = false;
     private bool adManagerCreated = false;
     private bool attDone = false;
+    private bool progressSynced = false;
 
     private float startTime;
     private float displayed = 0f;
@@ -45,8 +49,19 @@ public class SplashScreenController : MonoBehaviour
 
     private IEnumerator Start()
     {
+        AnalyticsEvents.SessionStart();
+        
         startTime = Time.time;
         SetProgress(0f);
+
+        // 1) Local fast resume
+        GameInventory.Instance.LoadFromPrefs();
+
+        int g = PlayerPrefs.GetInt("PROG_LastGalaxyId", 1);
+        int l = PlayerPrefs.GetInt("PROG_LastLevelInGalaxy", 1);
+        MergeLevelManager.SetProgress(g, l);
+
+        UserIdUIHelper.RefreshText(userIdText);
 
         // ✅ Short delay so the splash UI fully appears before heavy work starts
         if (startDelay > 0f)
@@ -54,11 +69,25 @@ public class SplashScreenController : MonoBehaviour
 
         // 1) Firebase
         FirebaseInitializer.WaitForFirebase(
-            onReady: () => { firebaseDone = true; },
+            onReady: () =>
+            {
+                // Sync progress from Firestore BEFORE we allow the splash to continue
+                CloudSaveManager.SyncProgressFromCloud(() =>
+                {
+                    CloudSaveManager.SyncEconomyFromCloud(() =>
+                    {
+                        progressSynced = true; // now means "progress + economy are synced"
+                        firebaseDone = true;
+                    });
+                });
+            },
             onError: (error) =>
             {
                 Debug.LogError($"[Splash] Firebase failed: {error}");
-                firebaseDone = true; // still continue
+
+                // If Firebase failed, we can't sync → continue using local prefs
+                progressSynced = true;
+                firebaseDone = true;
             }
         );
 
@@ -80,7 +109,7 @@ public class SplashScreenController : MonoBehaviour
         float attStartTime = -1f;   // start timing ATT once we know we're waiting for it
         bool attTimedOut = false;
 #else
-    bool attTimedOut = true;    // non-iOS: treat as done
+        bool attTimedOut = true;    // non-iOS: treat as done
 #endif
 
         while (true)
@@ -90,7 +119,7 @@ public class SplashScreenController : MonoBehaviour
                 adManagerCreated = true;
 
 #if UNITY_IOS
-            // Start ATT timer once AdManager exists (because ATTRequest is on that prefab)
+            // Start ATT timer once AdManager exists
             if (adManagerCreated && attStartTime < 0f)
                 attStartTime = Time.time;
 
@@ -102,26 +131,31 @@ public class SplashScreenController : MonoBehaviour
                 attTimedOut = true;
 #endif
 
-            // Stop waiting for firebase if timeout
-            bool firebaseTimedOut = !firebaseDone && (Time.time - phaseStart) >= maxWaitTime;
+            // We check if the JSON is actually parsed!
+            bool isJsonParsed = FirebaseInitializer.MergeScoreData != null && FirebaseInitializer.MergeScoreData.galaxies != null;
+
+            // Stop waiting if it takes too long (e.g., bad internet connection)
+            bool firebaseTimedOut = (!firebaseDone || !isJsonParsed) && (Time.time - phaseStart) >= maxWaitTime;
+
+            // Require BOTH the SDK to be done AND the JSON to be parsed AND the progress to be synced
+            bool isDataFullyLoaded = (firebaseDone && isJsonParsed && progressSynced);
 
             // Progress target
             float target = 0f;
-            if (firebaseDone || firebaseTimedOut) target = 0.5f;
+            if (isDataFullyLoaded || firebaseTimedOut) target = 0.5f;
             if (adManagerCreated) target = 0.75f;
 
-            // Option 1: if AdManager is created but Firebase is still working, creep upward (feels less "stuck")
-            if (adManagerCreated && !(firebaseDone || firebaseTimedOut))
+            // Creep upward if waiting on Firebase download
+            if (adManagerCreated && !(isDataFullyLoaded || firebaseTimedOut))
                 target = Mathf.Max(target, 0.85f);
 
-            // If ATT is done OR we timed out waiting for it, allow reaching 0.9
 #if UNITY_IOS
             if (attDone || attTimedOut) target = 0.9f;
 #else
-        target = 0.9f;
+            target = 0.9f;
 #endif
 
-            // Smooth step transitions (takes stepLerpTime seconds per jump)
+            // Smooth step transitions
             if (!Mathf.Approximately(target, _currentTarget))
             {
                 _currentTarget = target;
@@ -131,21 +165,32 @@ public class SplashScreenController : MonoBehaviour
             }
 
             _stepT += Time.deltaTime / Mathf.Max(0.0001f, stepLerpTime);
-            displayed = Mathf.Lerp(_stepFrom, _stepTo,
-                Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_stepT)));
+            displayed = Mathf.Lerp(_stepFrom, _stepTo, Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_stepT)));
             SetProgress(displayed);
 
-            // Exit condition: Firebase is done (or timed out) AND we reached 0.9 AND (ATT done or timed out)
+            // The moment Firebase grabs the real ID, update the UI (replaces "Connecting..." for new players)
+            if (!string.IsNullOrEmpty(
+                FirebaseInitializer.UserId))
+            {
+                UserIdUIHelper.RefreshText(userIdText);
+            }
+
 #if UNITY_IOS
             bool canProceed = (attDone || attTimedOut);
 #else
-        bool canProceed = true;
+            bool canProceed = true;
 #endif
 
-            if ((firebaseDone || firebaseTimedOut) && canProceed && displayed >= 0.9f - 0.0001f)
+            // PART 3: Only break the loop when the data is fully loaded!
+            if ((isDataFullyLoaded || firebaseTimedOut) && canProceed && displayed >= 0.9f - 0.0001f)
                 break;
 
             yield return null;
+        }
+
+        if (userIdText != null)
+        {
+            UserIdUIHelper.RefreshText(userIdText);
         }
 
         // Ensure minimum splash time
@@ -153,7 +198,7 @@ public class SplashScreenController : MonoBehaviour
         if (elapsed < minSplashTime)
             yield return new WaitForSeconds(minSplashTime - elapsed);
 
-        // Load main scene with progress (0.9 -> 1.0)
+        // Load main scene with progress
         yield return StartCoroutine(LoadMainSceneWithProgress());
     }
 
@@ -202,5 +247,17 @@ public class SplashScreenController : MonoBehaviour
 #else
         return true; // Android/Editor
 #endif
+    }
+
+    public void CopyUserIdToClipboard()
+    {
+        if (!UserIdUIHelper.TryCopyToClipboard())
+            return;
+
+        StartCoroutine(
+            UserIdUIHelper.FlashCopiedFeedback(
+                userIdText
+            )
+        );
     }
 }

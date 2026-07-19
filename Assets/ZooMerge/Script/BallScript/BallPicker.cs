@@ -7,101 +7,175 @@ public class BallPicker : MonoBehaviour
     [Header("Catalog")]
     [SerializeField] private BallSet ballSet;
 
-    [Header("Random Range (levels)")]
-    public int minLevel = 0;  // X
-    public int maxLevel = 1;  // Y (inclusive)
+    [Header("Random Range (Levels)")]
+    [SerializeField] private int minLevel = 0;
+    [SerializeField] private int maxLevel = 1;
 
-    public AssetReferenceGameObject PickRandom()
+    /// <summary>
+    /// Returns true when this entry is currently allowed to spawn.
+    /// </summary>
+    public bool IsEntryAllowed(BallSet.Entry entry)
     {
-        if (ballSet == null || ballSet.entries == null || ballSet.entries.Count == 0)
-            return null;
+        if (entry == null)
+            return false;
 
-        var pool = new List<BallSet.Entry>();
+        if (entry.prefab == null)
+            return false;
 
-        foreach (var e in ballSet.entries)
+        if (!entry.includeInRandom)
+            return false;
+
+        if (entry.level < minLevel || entry.level > maxLevel)
+            return false;
+
+        BallUnlockManager unlockManager =
+            BallUnlockManager.Instance;
+
+        if (unlockManager == null)
         {
-            if (e == null || e.prefab == null) continue;
-            if (!e.includeInRandom) continue;
-            if (e.level < minLevel || e.level > maxLevel) continue;
+            Debug.LogWarning(
+                "[BallPicker] BallUnlockManager.Instance is null."
+            );
 
-            pool.Add(e);
+            return false;
         }
 
-        if (pool.Count == 0) return null;
+        if (!unlockManager.IsUnlocked(entry.type))
+            return false;
 
-        return pool[Random.Range(0, pool.Count)].prefab;
+        BallSelectionManager selectionManager =
+            BallSelectionManager.Instance;
+
+        if (selectionManager == null)
+        {
+            Debug.LogWarning(
+                "[BallPicker] BallSelectionManager.Instance is null."
+            );
+
+            return false;
+        }
+
+        return selectionManager.IsSelected(entry.type);
     }
 
-    public bool TryPickRandomEntry(out BallSet.Entry entry, out string reason)
+    public bool TryPickRandomEntry(
+        out BallSet.Entry entry,
+        out string reason)
     {
-        reason = "";
         entry = null;
+        reason = string.Empty;
 
-        if (ballSet == null || ballSet.entries == null || ballSet.entries.Count == 0)
+        if (ballSet == null)
         {
-            reason = "No entries in ballSet.";
+            reason = "BallSet is not assigned.";
             return false;
         }
 
-        var valid = ballSet.entries.FindAll(e => e != null && e.includeInRandom && e.prefab != null);
-        if (valid.Count == 0)
+        if (ballSet.entries == null || ballSet.entries.Count == 0)
         {
-            reason = "No valid ball entries.";
+            reason = "BallSet contains no entries.";
             return false;
         }
 
-        entry = valid[Random.Range(0, valid.Count)];
-        return true;
-    }
+        BallSelectionManager selectionManager =
+            BallSelectionManager.Instance;
 
-    public bool TryPickRandom(out AssetReferenceGameObject prefab, out string reason)
-    {
-        prefab = null;
-        reason = "";
-
-        if (ballSet == null) { reason = "BallSet not assigned."; return false; }
-        if (ballSet.entries == null || ballSet.entries.Count == 0) { reason = "BallSet has no entries."; return false; }
-
-        var pool = new List<BallSet.Entry>();
-
-        foreach (var e in ballSet.entries)
+        if (selectionManager == null)
         {
-            if (e == null || e.prefab == null) continue;
-            if (!e.includeInRandom) continue;
-            if (e.level < minLevel || e.level > maxLevel) continue;
-
-            pool.Add(e);
+            reason = "BallSelectionManager.Instance is null.";
+            return false;
         }
+
+        if (!selectionManager.HasRequiredSelection)
+        {
+            reason =
+                $"Required selection is incomplete. " +
+                $"Selected {selectionManager.SelectedCount}/" +
+                $"{selectionManager.RequiredSelectionCount}.";
+
+            return false;
+        }
+
+        List<BallSet.Entry> pool = BuildValidPool();
 
         if (pool.Count == 0)
         {
-            reason = $"No entries in level range [{minLevel}..{maxLevel}] with includeInRandom=true.";
+            reason =
+                $"No spawnable entries for the selected ball types " +
+                $"in level range [{minLevel}..{maxLevel}].";
+
             return false;
         }
 
-        prefab = pool[Random.Range(0, pool.Count)].prefab;
+        entry = pool[Random.Range(0, pool.Count)];
         return true;
+    }
+
+    public bool TryPickRandom(
+        out AssetReferenceGameObject prefab,
+        out string reason)
+    {
+        prefab = null;
+
+        if (!TryPickRandomEntry(out BallSet.Entry entry, out reason))
+            return false;
+
+        prefab = entry.prefab;
+        return prefab != null;
+    }
+
+    public AssetReferenceGameObject PickRandom()
+    {
+        return TryPickRandom(
+            out AssetReferenceGameObject prefab,
+            out _
+        )
+            ? prefab
+            : null;
+    }
+
+    private List<BallSet.Entry> BuildValidPool()
+    {
+        var pool = new List<BallSet.Entry>();
+
+        if (ballSet == null || ballSet.entries == null)
+            return pool;
+
+        foreach (BallSet.Entry entry in ballSet.entries)
+        {
+            if (IsEntryAllowed(entry))
+                pool.Add(entry);
+        }
+
+        return pool;
     }
 
     public float GetScaleForEntry(BallSet.Entry entry)
     {
         if (entry == null || ballSet == null)
         {
-            Debug.LogWarning("[BallPicker] GetScaleForEntry: entry or ballSet is null.");
+            Debug.LogWarning(
+                "[BallPicker] GetScaleForEntry: entry or BallSet is null."
+            );
+
             return 1f;
         }
 
-        var data = ballSet.GetPhysicsFor(entry);
+        BallSet.BallPhysicsData data =
+            ballSet.GetPhysicsFor(entry);
+
         if (data == null)
         {
-            Debug.LogWarning($"[BallPicker] No physics data for entry: {entry.type} level {entry.level}");
+            Debug.LogWarning(
+                $"[BallPicker] No physics data for " +
+                $"{entry.type}, level {entry.level}."
+            );
+
             return 1f;
         }
-        return data.uniformScale > 0f ? data.uniformScale : 1f;
-    }
 
-    internal bool TryPickRandomEntry(out BallSet.Entry entry, out object why)
-    {
-        throw new System.NotImplementedException();
+        return data.uniformScale > 0f
+            ? data.uniformScale
+            : 1f;
     }
 }

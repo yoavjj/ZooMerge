@@ -3,13 +3,14 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GalaxyProgressSlider : MonoBehaviour
+public class GalaxyProgressSlider : SfxBehaviourTirgger
 {
     [Header("UI")]
     [SerializeField] private Slider slider;
 
     [Header("Optional Progress Text")]
     [SerializeField] private TextMeshProUGUI progressText; // shows "1/10"
+    [SerializeField] private TextMeshProUGUI levelNameText;
 
     [Header("Animation")]
     [SerializeField, Min(0f)] private float animDuration = 0.25f;
@@ -49,35 +50,65 @@ public class GalaxyProgressSlider : MonoBehaviour
     /// New: set both the numeric text and the fill using current/total.
     /// Example: current=1 total=10 -> text "1/10" and fill 0.1 (if useLevelOverTotal is true)
     /// </summary>
-    public void SetLevelIndexProgress(int levelIndex1Based, int total, bool animate = true)
+    public void SetLevelIndexProgress(int levelIndex1Based, int total, bool animate = true, bool updateTexts = true)
     {
         int safeTotal = Mathf.Max(1, total);
-
-        // Level 1 started => 0 completed
         int completed = Mathf.Clamp(levelIndex1Based - 1, 0, safeTotal);
-
-        ApplyProgress(completed, safeTotal, animate);
+        ApplyProgress(completed, safeTotal, animate, updateTexts);
     }
 
-    public void SetCompletedProgress(int completed, int total, bool animate = true)
+    public void SetCompletedProgress(int completed, int total, bool animate = true, bool updateTexts = true)
     {
         int safeTotal = Mathf.Max(1, total);
         int safeCompleted = Mathf.Clamp(completed, 0, safeTotal);
-
-        ApplyProgress(safeCompleted, safeTotal, animate);
+        ApplyProgress(safeCompleted, safeTotal, animate, updateTexts);
     }
 
-    private void ApplyProgress(int completed, int total, bool animate)
+    private void ApplyProgress(
+        int completed,
+        int total,
+        bool animate,
+        bool updateTexts)
     {
-        // Text
+        if (updateTexts)
+        {
+            if (levelNameText != null)
+            {
+                levelNameText.text =
+                    MergeLevelManager.CurrentGalaxyName;
+            }
+        }
+
         if (progressText != null)
-            progressText.text = $"{completed}/{total}";
+        {
+            progressText.text =
+                $"{completed}/{total}";
+        }
 
-        // Fill
-        float normalized = (float)completed / total;
+        float normalized =
+            (float)completed / total;
 
-        if (animate) AnimateTo(normalized);
-        else SetInstant(normalized);
+        bool isFinalProgress =
+            completed >= total;
+
+        if (animate)
+        {
+            if (isFinalProgress &&
+                slider != null &&
+                slider.value < normalized)
+            {
+                // 🔊 Final progress fill sound.
+                PlayUiSfx(
+                    SfxCue.SliderProgress_Collect
+                );
+            }
+
+            AnimateTo(normalized);
+        }
+        else
+        {
+            SetInstant(normalized);
+        }
     }
 
     private IEnumerator AnimateRoutine(float from, float to)

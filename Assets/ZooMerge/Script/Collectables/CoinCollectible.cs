@@ -24,4 +24,9 @@ public class CoinCollectible : BaseFlyingCollectible
     {
 
     }
+
+    public override void LaunchToLocalPoint(Vector2 endPosition, float duration, System.Action onComplete = null, float delayTime = 0, float startScale = 1f, float endScale = 1f, AnimationCurve positionCurve = null, AnimationCurve scaleCurve = null)
+    {
+        
+    }
 }

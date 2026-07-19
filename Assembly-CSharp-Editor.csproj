@@ -10,6 +10,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <ItemGroup>
     <ProjectCapability Include="Unity" />
+    <ProjectCapability Include="EnableOnDemandExcludedFolderLoading" />
   </ItemGroup>
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -35,40 +36,52 @@
   </PropertyGroup>
   <PropertyGroup>
     <UnityProjectGenerator>Package</UnityProjectGenerator>
-    <UnityProjectGeneratorVersion>2.0.25</UnityProjectGeneratorVersion>
+    <UnityProjectGeneratorVersion>2.0.27</UnityProjectGeneratorVersion>
     <UnityProjectGeneratorStyle>SDK</UnityProjectGeneratorStyle>
     <UnityProjectType>Editor:5</UnityProjectType>
     <UnityBuildTarget>iOS:9</UnityBuildTarget>
     <UnityVersion>6000.2.15f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="/Users/user/.vscode/extensions/visualstudiotoolsforunity.vstuc-1.2.1/Analyzers/Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="/Users/user/.vscode/extensions/visualstudiotoolsforunity.vstuc-1.2.2/Analyzers/Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="/Applications/Unity/Hub/Editor/6000.2.15f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll" />
     <Analyzer Include="/Applications/Unity/Hub/Editor/6000.2.15f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll" />
     <Analyzer Include="/Applications/Unity/Hub/Editor/6000.2.15f1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets/Editor/RemoteConfigEditor.cs" />
     <Compile Include="Assets/JMO Assets/Cartoon FX Remaster/CFXR Assets/Editor/CFXR_ShaderImporter.cs" />
+    <Compile Include="Assets/Editor/AudioSfxEntryDrawer.cs" />
     <Compile Include="Assets/ZooMerge/Editor/ReadOnlyAttribute.cs" />
+    <Compile Include="Assets/Editor/EnemyHitSfxEntryDrawer.cs" />
     <Compile Include="Assets/Editor/PostProcessInfoPlist.cs" />
+    <Compile Include="Assets/Editor/WooshSfxEntryDrawer.cs" />
+    <Compile Include="Assets/Editor/AdminProgressEditor.cs" />
     <Compile Include="Assets/Editor/windowHierarchyPrefrences.cs" />
     <Compile Include="Assets/Editor/Hierarchy.cs" />
     <Compile Include="Assets/ZooMerge/Editor/ReadOnlyDrawer.cs" />
+    <Compile Include="Assets/Editor/EditorAudioPreview.cs" />
+    <Compile Include="Assets/Editor/MergeBlockedSfxEntryDrawer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets/Firebase/Editor/FirebaseFirestore_version-12.9.0_manifest.txt" />
     <None Include="Assets/Firebase/Editor/FirebaseRemoteConfig_version-12.9.0_manifest.txt" />
     <None Include="Assets/Firebase/Editor/RemoteConfigDependencies.xml" />
     <None Include="Assets/ExternalDependencyManager/Editor/1.2.186/Google.IOSResolver.dll" />
     <None Include="Assets/LevelPlay/Editor/IronSourceSDKDependencies.xml" />
-    <None Include="Assets/Editor/MediationAdapterDependencies.xml" />
     <None Include="Assets/LevelPlay/Editor/ISUnityAdsAdapterDependencies.xml" />
     <None Include="Assets/ExternalDependencyManager/Editor/Google.VersionHandler.dll" />
     <None Include="Assets/ExternalDependencyManager/Editor/1.2.186/Google.PackageManagerResolver.dll" />
     <None Include="Assets/ExternalDependencyManager/Editor/1.2.186/Google.VersionHandlerImpl.dll" />
     <None Include="Assets/ExternalDependencyManager/Editor/external-dependency-manager_version-1.2.186_manifest.txt" />
     <None Include="Assets/ExternalDependencyManager/Editor/1.2.186/Google.JarResolver.dll" />
+    <None Include="Assets/Firebase/Editor/AuthDependencies.xml" />
+    <None Include="Assets/Firebase/Editor/FirestoreDependencies.xml" />
     <None Include="Assets/Firebase/Editor/AppDependencies.xml" />
+    <None Include="Assets/Firebase/Editor/FirebaseFunctions_version-12.9.0_manifest.txt" />
     <None Include="Assets/Firebase/Editor/FirebaseAnalytics_version-12.9.0_manifest.txt" />
+    <None Include="Assets/Firebase/Editor/FirebaseAuth_version-12.9.0_manifest.txt" />
+    <None Include="Assets/Firebase/Editor/FunctionsDependencies.xml" />
     <None Include="Assets/Firebase/Editor/AnalyticsDependencies.xml" />
     <None Include="Assets/Firebase/Editor/Firebase.Editor.dll" />
   </ItemGroup>
@@ -585,6 +598,10 @@
       <HintPath>/Applications/Unity/Hub/Editor/6000.2.15f1/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Firebase.Functions">
+      <HintPath>Assets/Firebase/Plugins/Firebase.Functions.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.VisualScripting.YamlDotNet">
       <HintPath>Library/PackageCache/com.unity.visualscripting@b4d700247d4b/Editor/VisualScripting.Core/Dependencies/YamlDotNet/Unity.VisualScripting.YamlDotNet.dll</HintPath>
       <Private>False</Private>
@@ -617,6 +634,10 @@
       <HintPath>Assets/Firebase/Plugins/Firebase.RemoteConfig.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Firebase.Firestore">
+      <HintPath>Assets/Firebase/Plugins/Firebase.Firestore.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.Plastic.Newtonsoft.Json">
       <HintPath>Library/PackageCache/com.unity.collab-proxy@3351acaba9c9/Lib/Editor/Unity.Plastic.Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
@@ -631,6 +652,10 @@
     </Reference>
     <Reference Include="Unity.VisualScripting.IonicZip">
       <HintPath>Library/PackageCache/com.unity.visualscripting@b4d700247d4b/Editor/VisualScripting.Core/Dependencies/DotNetZip/Unity.VisualScripting.IonicZip.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Firebase.Auth">
+      <HintPath>Assets/Firebase/Plugins/Firebase.Auth.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="unityplastic">

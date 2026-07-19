@@ -46,9 +46,8 @@ public class MergeSummaryPanel : MonoBehaviour
         isSummaryBusy = true; // 🔒 BLOCK play button
 
         // ✅ Show ALL configured types, not just the ones in the snapshot
-        List<BallType> allTypes = MergeSessionTracker.Instance
-            .GetTypeConfigs()
-            .ConvertAll(config => config.type);
+        List<BallType> allTypes =
+            MergeSessionTracker.Instance.GetConfiguredTypes();
 
         topBarMenu.PrepareTypes(allTypes);
 

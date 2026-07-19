@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public abstract class TopBarCurrencyItemUI : MonoBehaviour
+public abstract class TopBarCurrencyItemUI : SfxBehaviourTirgger
 {
     [SerializeField] protected Image iconImage;
     [SerializeField] protected TextMeshProUGUI countText;
@@ -42,14 +42,23 @@ public abstract class TopBarCurrencyItemUI : MonoBehaviour
     {
         pendingCount = value;
 
-        if (animator != null && !string.IsNullOrEmpty(addAnimationName))
+        // ✅ Only play "Add" animation if value is increasing
+        bool isIncrease = pendingCount > count;
+
+        if (isIncrease && animator != null && !string.IsNullOrEmpty(addAnimationName))
         {
             animator.Play(addAnimationName, 0, 0f);
         }
         else
         {
-            ApplyPendingCount();
+            ApplyPendingCount(); // decrease or same value -> update immediately
         }
+    }
+
+    public void SetCountImmediate(int value)
+    {
+        pendingCount = value;
+        ApplyPendingCount();
     }
 
     public virtual void ApplyPendingCount()

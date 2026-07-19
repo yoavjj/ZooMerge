@@ -34,7 +34,7 @@ public struct CollectibleFlightData
    CollectibleFlyController
 --------------------------------------------------- */
 
-public class CollectibleFlyController : MonoBehaviour
+public class CollectibleFlyController : SfxBehaviourTirgger
 {
     /* ---------------------------
        Inspector References
@@ -51,11 +51,17 @@ public class CollectibleFlyController : MonoBehaviour
 
     [Header("Coin Collectible Prefab")]
     [SerializeField] private FlyingCoinCollectible coinCollectiblePrefab;
+    [SerializeField] private FlyingCoinCollectible cooldownCoinCollectiblePrefab;  // cooldown version
 
     [SerializeField, Tooltip("UI container for collectibles")]
     private RectTransform coinPrefabContainer;
     [SerializeField, Tooltip("Flight settings for Coin collectibles")]
     private CollectibleFlightSettings coinSettings;
+    
+    [Header("Optional Fly Target Overrides")]
+    [SerializeField] private CollectibleFlyTarget heartFlyTarget; // target on your UI (tries/heart icon)
+    [SerializeField] private string heartWinLoseEntryId = "Heart_winlose";
+    [SerializeField] private int heartWinLoseAmount = 1;
 
     [Header("UI references")]
     [SerializeField] private LevelProgressBarSlider progressBar;
@@ -63,6 +69,12 @@ public class CollectibleFlyController : MonoBehaviour
 
     [Header("Canvas Context")]
     [SerializeField] private Canvas rootCanvas;
+
+    public enum CoinSpawnSource
+    {
+        Session,
+        Cooldown
+    }
 
     /* ---------------------------
        Runtime
@@ -205,13 +217,24 @@ public class CollectibleFlyController : MonoBehaviour
         }
     }
 
-    public void SpawnCoinsToTopBar()
+    public void SpawnPendingEnemyCoinsToTopBar() // session enemy coins
     {
         int totalCoins = MergeLevelManager.ConsumePendingEnemyCoins();
-        if (totalCoins <= 0)
-            return;
+        SpawnCoinsToTopBar(totalCoins, null, CoinSpawnSource.Session);
+    }
 
-        if (coinCollectiblePrefab == null || coinPrefabContainer == null)
+    public void SpawnCoinsToTopBar(int amount, RectTransform overrideSpawnContainer = null, CoinSpawnSource source = CoinSpawnSource.Session)
+    {
+        if (amount <= 0) return;
+
+        RectTransform spawnContainer = overrideSpawnContainer != null ? overrideSpawnContainer : coinPrefabContainer;
+
+        FlyingCoinCollectible prefabToUse =
+            (source == CoinSpawnSource.Cooldown && cooldownCoinCollectiblePrefab != null)
+                ? cooldownCoinCollectiblePrefab
+                : coinCollectiblePrefab;
+
+        if (prefabToUse == null || spawnContainer == null)
         {
             Debug.LogWarning("⚠️ Coin prefab or container not set.");
             return;
@@ -228,11 +251,13 @@ public class CollectibleFlyController : MonoBehaviour
         {
             Debug.LogWarning("⚠️ Coin icon not found on TopBarCoinItemUI.");
             return;
-        }
+        } 
+
+        PlayUiSfx(SfxCue.Cooldown_Collect);
 
         Vector2 targetScreenPoint = coinUI.GetFlyTargetScreenPoint();
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            coinPrefabContainer,
+            spawnContainer,
             targetScreenPoint,
             uiCam,
             out Vector2 targetLocalPoint
@@ -240,12 +265,14 @@ public class CollectibleFlyController : MonoBehaviour
 
         StartCoroutine(
             SpawnCoinRoutine(
-                totalCoins,
+                amount,
                 coinIcon,
                 targetLocalPoint,
                 coinSettings.holdDuration,
                 coinSettings.shortFlyDuration,
-                coinUI
+                coinUI,
+                spawnContainer,
+                prefabToUse
             )
         );
     }
@@ -256,9 +283,11 @@ public class CollectibleFlyController : MonoBehaviour
         Vector2 targetLocal,
         float holdDuration,
         float flyDuration,
-        TopBarCoinItemUI coinUI)
+        TopBarCoinItemUI coinUI,
+        RectTransform spawnContainer,
+        FlyingCoinCollectible prefabToUse)
     {
-        var collectible = Instantiate(coinCollectiblePrefab, coinPrefabContainer);
+        var collectible = Instantiate(prefabToUse, spawnContainer);
 
         collectible.Rect.anchoredPosition = coinSettings.spawnOffset;
         collectible.SetIcon(icon);
@@ -270,11 +299,8 @@ public class CollectibleFlyController : MonoBehaviour
             totalDuration: flyDuration,
             onArrive: () =>
             {
-                // 1️⃣ Update inventory (source of truth)
-                GameInventory.Instance.Add(CurrencyType.Coins, totalCoins);
-
-                // 2️⃣ Animate UI delta (this updates countText correctly)
-                coinUI.AddCoins(totalCoins);
+                GameInventory.Instance.Add(CurrencyType.Coins, totalCoins); // delta
+                coinUI.AddCoins(totalCoins);                               // visual
             },
             delay: 0f,
             arcHeight: coinSettings.arcHeight,
@@ -361,6 +387,24 @@ public class CollectibleFlyController : MonoBehaviour
 
         // Copy position
         coinPrefabContainer.anchoredPosition = target.anchoredPosition;
+    }
+
+    public void FlyHeartWinLose()
+    {
+        if (CollectibleFlyService.Instance == null)
+        {
+            Debug.LogWarning("[CollectibleFlyController] CollectibleFlyService.Instance is null.");
+            return;
+        }
+
+        if (heartFlyTarget == null)
+        {
+            Debug.LogWarning("[CollectibleFlyController] heartFlyTarget not assigned.");
+            return;
+        }
+
+        // Use default spawn container (pass null)
+        CollectibleFlyService.Instance.Fly(heartWinLoseEntryId, heartWinLoseAmount, heartFlyTarget, null);
     }
 
 

@@ -1,12 +1,21 @@
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class BallCollisionMerge : MonoBehaviour
+public class BallCollisionMerge : SfxBehaviourTirgger
 {
     [SerializeField] private BallInfo self;
     private MergeCore core;
     private bool initialized;
+
+    [Header("Blocked Merge Impact Audio")]
+    [SerializeField, Min(0f)]
+    private float minimumAudibleImpact = 0.5f;
+
+    [SerializeField, Min(0.01f)]
+    private float maximumImpact = 8f;
+
+    [SerializeField, Range(0f, 1f)]
+    private float minimumImpactVolume = 0.15f;
 
     private void Awake()
     {
@@ -30,7 +39,14 @@ public class BallCollisionMerge : MonoBehaviour
             return;
         }
 
-        if (col.collider.gameObject.layer != LayerMask.NameToLayer("Ball")) return;
+        if (col.collider.CompareTag("Enclosure"))
+        {
+            TryPlayEnvironmentImpactSfx(col);
+            return;
+        }
+
+        if (col.collider.gameObject.layer != LayerMask.NameToLayer("Ball"))
+            return;
 
         if (!col.collider.TryGetComponent(out BallInfo other) || other == self)
         {
@@ -91,12 +107,21 @@ public class BallCollisionMerge : MonoBehaviour
         float z = (self.transform.position.z + other.transform.position.z) * 0.5f;
         var spawnAt = new Vector3(contact.x, contact.y, z);
 
+        float impactSpeed = col.relativeVelocity.magnitude;
+
+        float impactVolume = CalculateImpactVolume(impactSpeed);
+
         bool merged = core.TryMergeAt(self, other, spawnAt);
 
         if (!merged)
         {
             //Debug.Log($"❌ Merge failed between: {self.name} and {other.name}");
-            
+
+            if (impactSpeed >= minimumAudibleImpact)
+            {
+                PlayRandomMergeBlockedSfx(impactVolume);
+            }
+
             self.DropController?.ReleasePauseBlockIfActive();
             other.DropController?.ReleasePauseBlockIfActive();
 
@@ -108,6 +133,8 @@ public class BallCollisionMerge : MonoBehaviour
         }
         else
         {
+            PlayRandomMergeSfx();
+
             //Debug.Log($"✅ Merge succeeded: {self.name} + {other.name}");
             BallRegistry.Unregister(self);
             BallRegistry.Unregister(other);
@@ -119,6 +146,33 @@ public class BallCollisionMerge : MonoBehaviour
             if (other.DropController != null)
                 SpineSortingOrderManager.ReleaseOrder(other.DropController.GetAssignedOrder());
         }
+    }
+
+    private void TryPlayEnvironmentImpactSfx(Collision2D col)
+    {
+        float impactSpeed = col.relativeVelocity.magnitude;
+
+        if (impactSpeed < minimumAudibleImpact)
+            return;
+
+        float impactVolume = CalculateImpactVolume(impactSpeed);
+
+        PlayRandomMergeBlockedSfx(impactVolume);
+    }
+
+    private float CalculateImpactVolume(float impactSpeed)
+    {
+        float normalizedImpact = Mathf.InverseLerp(
+            minimumAudibleImpact,
+            maximumImpact,
+            impactSpeed
+        );
+
+        return Mathf.Lerp(
+            minimumImpactVolume,
+            1f,
+            normalizedImpact
+        );
     }
 
     private void ApplyAntiStackNudge(BallInfo a, BallInfo b, Collision2D col, float strength = 0.6f)
@@ -154,7 +208,13 @@ public class BallCollisionMerge : MonoBehaviour
         if (controllerB != null && b.IsMergeReady) controllerA.AccelerateSettle(0.55f);
     }
 
-    // (optional) keep this to merge on sustained contact too
-    private void OnCollisionStay2D(Collision2D col) => OnCollisionEnter2D(col);
+    private void OnCollisionStay2D(Collision2D col)
+    {
+        if (col.collider.CompareTag("Enclosure"))
+            return;
+
+        if (col.collider.gameObject.layer == LayerMask.NameToLayer("Ball"))
+            OnCollisionEnter2D(col);
+    }
 }
 

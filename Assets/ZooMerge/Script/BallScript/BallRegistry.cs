@@ -6,14 +6,13 @@ public static class BallRegistry
     private static readonly HashSet<BallInfo> activeBalls = new();
     private static readonly List<BallSnapshot> savedBalls = new();
 
-
     public static IReadOnlyCollection<BallInfo> ActiveBalls => activeBalls;
+    public static int SavedBallCount => savedBalls.Count;
 
     public static void Register(BallInfo ball)
     {
         if (ball != null)
             activeBalls.Add(ball);
-        //Debug.Log($"Ball registered: {ball.name}. Total active balls: {activeBalls.Count}");
     }
 
     public static void Unregister(BallInfo ball)
@@ -23,7 +22,6 @@ public static class BallRegistry
             activeBalls.Remove(ball);
             MergeAttemptTracker.ClearForBall(ball); // 🧼 Clear related merge attempts
         }
-        //Debug.Log($"Ball unregistered: {ball.name}. Total active balls: {activeBalls.Count}");
     }
 
     public static void Clear()
@@ -40,14 +38,24 @@ public static class BallRegistry
         {
             if (ball == null) continue;
 
+            var dc = ball.DropController;
+
+            // Don’t save balls that are currently touching the gameOver area
+            if (dc != null && dc.IsTouchingGameOver)
+                continue;
+
             var transform = ball.transform;
+
+            int sOrder = dc != null ? dc.GetAssignedOrder() : 0;
+
             savedBalls.Add(new BallSnapshot
             {
                 position = transform.position,
                 rotation = transform.rotation,
                 level = ball.Level,
                 type = ball.Type,
-                scale = transform.localScale.x
+                scale = transform.localScale.x,
+                sortingOrder = sOrder
             });
         }
 
@@ -84,13 +92,22 @@ public static class BallRegistry
                     Debug.LogWarning($"[RestoreState] No physics found for type {snapshot.type} level {snapshot.level}");
                 }
 
+                // ✅ Apply the saved sorting order back to BOTH:
+                // 1) the controller field (so next SaveState is correct)
+                // 2) the renderer (so visuals are correct right now)
+                if (info.DropController != null)
+                {
+                    info.DropController.SetAssignedOrder(snapshot.sortingOrder);
+
+                    // Optional: tell your sorting manager this order is in use so new balls don't overlap it
+                    SpineSortingOrderManager.ClaimOrder(snapshot.sortingOrder);
+                }
+
                 BallRegistry.Register(info);
                 info.Controller?.PlayIntroNewMidLevel();
                 info.MarkAsMergeReady(true);
                 info.DropController?.SetDraggable(false);
-
-                // ✅ Log restored ball info
-                //Debug.Log($"🟠 Restored ball: Level={snapshot.level}, Type={snapshot.type}, Pos={snapshot.position}");
+                info.DropController?.EnableGameOverCheckImmediate();
             }
             else
             {
@@ -98,7 +115,11 @@ public static class BallRegistry
             }
         }
 
-        Debug.Log($"✅ Restored {savedBalls.Count} balls.");
+        Debug.Log($"✅ Restored {savedBalls.Count} balls with original sorting orders.");
     }
 
+    public static bool IsActive(BallInfo ball)
+    {
+        return ball != null && activeBalls.Contains(ball);
+    }
 }

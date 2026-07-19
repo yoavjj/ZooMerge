@@ -206,8 +206,8 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.043649822, y: 0.01949966}
-  m_Radius: 0.57
+  m_Offset: {x: -0.043649822, y: 0.022259006}
+  m_Radius: 0.56448126
 --- !u!114 &5851181042025422468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -238,6 +238,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   self: {fileID: 5851181042025422468}
+  minimumAudibleImpact: 0.5
+  maximumImpact: 8
+  minimumImpactVolume: 0.095
 --- !u!114 &4418756854189810729
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -255,7 +258,7 @@ MonoBehaviour:
   motionTarget: {fileID: 8422373706153632681}
   reflectionGO: {fileID: 4654477355353186071}
   reflectionActivateDelay: 0.8
-  gameOverDelay: 3
+  gameOverDelay: 1
   animator: {fileID: 3686269408378783255}
   circle: {fileID: 4761097750715079777}
   introTinyRadius: 0.02
@@ -314,7 +317,11 @@ MonoBehaviour:
     m_RotationOrder: 4
   ballInfo: {fileID: 5851181042025422468}
   noFrictionMat2D: {fileID: 6200000, guid: fdaa517dc3ed842aeb5366d04f6bf5f7, type: 2}
-  requiredGameOverContactTime: 3
+  requiredGameOverContactTime: 5
+  gameOverLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  ignoreBallCollisionsWhileFalling: 1
 --- !u!50 &6490610289939855596
 Rigidbody2D:
   serializedVersion: 5

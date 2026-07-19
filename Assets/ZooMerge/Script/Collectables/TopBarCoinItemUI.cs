@@ -11,47 +11,55 @@ public class TopBarCoinItemUI : TopBarCurrencyItemUI
 
     private int pendingAddAmount;
 
-    public void AddCoins(int amount)
+    private bool saveCoinsToCloudAfterCountUp;
+
+    public void AddCoins(int amount, bool saveToCloudAfterCountUp = false)
     {
         if (amount <= 0)
             return;
+
+        saveCoinsToCloudAfterCountUp = saveToCloudAfterCountUp;
 
         pendingAddAmount = amount;
 
         startCount = count;
         targetCount = count + pendingAddAmount;
 
-        // Show +X text
         if (addAmountText != null)
         {
             addAmountText.gameObject.SetActive(true);
             addAmountText.text = $"+{pendingAddAmount}";
         }
 
-        // Trigger animation ONLY
         if (animator != null && !string.IsNullOrEmpty(addAnimationName))
         {
             animator.Play(addAnimationName, 0, 0f);
         }
         else
         {
-            ApplyAddCoins(); // fallback
+            ApplyAddCoins();
+
+            if (saveCoinsToCloudAfterCountUp)
+            {
+                saveCoinsToCloudAfterCountUp = false;
+                CloudSaveManager.SaveCoinsOnly();
+            }
         }
     }
 
-    // 🔔 CALLED BY ANIMATION EVENT
     public void ApplyAddCoins()
     {
+        // UI only
         count = targetCount;
         pendingAddAmount = 0;
 
         UpdateCountText();
 
-        // Hide +X text
         if (addAmountText != null)
             addAmountText.gameObject.SetActive(false);
     }
 
+    //getting called from animation event, so we can sync the actual count update with the visual "Add" effect
     public void AnimateCountUp()
     {
         StopAllCoroutines();
@@ -60,7 +68,7 @@ public class TopBarCoinItemUI : TopBarCurrencyItemUI
 
     private IEnumerator CountUpRoutine()
     {
-        const float duration = 0.25f; // tweak to taste
+        const float duration = 0.25f;
         float t = 0f;
 
         while (t < duration)
@@ -68,14 +76,19 @@ public class TopBarCoinItemUI : TopBarCurrencyItemUI
             t += Time.unscaledDeltaTime;
             float p = Mathf.Clamp01(t / duration);
 
-            int value = Mathf.RoundToInt(
-                Mathf.Lerp(startCount, targetCount, p)
-            );
-
+            int value = Mathf.RoundToInt(Mathf.Lerp(startCount, targetCount, p));
             countText.text = value.ToString();
             yield return null;
         }
 
+        // ✅ finalize BOTH the text and the cached count
         countText.text = targetCount.ToString();
+        count = targetCount;
+
+        if (saveCoinsToCloudAfterCountUp)
+        {
+            saveCoinsToCloudAfterCountUp = false;
+            CloudSaveManager.SaveCoinsOnly();
+        }
     }
 }

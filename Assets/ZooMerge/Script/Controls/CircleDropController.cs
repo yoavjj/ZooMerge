@@ -51,6 +51,13 @@ public class CircleDropController : MonoBehaviour
     [SerializeField] private float requiredGameOverContactTime = 3f;
     private Coroutine gameOverTouchRoutine;
 
+    [SerializeField] private LayerMask gameOverLayer; // set to the layer your GameOver trigger is on
+    private bool isTouchingGameOver = false;
+    public bool IsTouchingGameOver => isTouchingGameOver;
+
+    [SerializeField] private int ignoreBallCollisionsWhileFalling = 1;
+    private int ignoredBallHitsLeft;
+
     // Settling
     private float finalLinearDamping;
     private float finalAngularDamping;
@@ -69,6 +76,15 @@ public class CircleDropController : MonoBehaviour
     private int assignedSortingOrder = 5;
 
     public int GetAssignedOrder() => assignedSortingOrder;
+
+    public void SetAssignedOrder(int order)
+    {
+        assignedSortingOrder = order;
+
+        // Keep the renderer in sync too (if you have it)
+        if (spineRenderer != null)
+            spineRenderer.sortingOrder = order;
+    }
 
     // --- Cached animation names (filled once) ---
     private string animIdle;
@@ -106,6 +122,8 @@ public class CircleDropController : MonoBehaviour
         BallEventManager.OnGameOverAnimation += HandleGameOverAnimation;
         BallEventManager.OnSessionWonAnimation += HandleSessionWonAnimation;
         BallEventManager.OnReturnToMainMenu += HandleReturnToMainMenu;
+
+        BallEventManager.OnGameOver += HandleGlobalGameOver;
     }
 
     private void OnDisable()
@@ -114,10 +132,16 @@ public class CircleDropController : MonoBehaviour
         BallEventManager.OnSessionWonAnimation -= HandleSessionWonAnimation;
         BallEventManager.OnReturnToMainMenu -= HandleReturnToMainMenu;
 
+        BallEventManager.OnGameOver -= HandleGlobalGameOver;
+
         if (CircleDragInput.Instance != null)
             CircleDragInput.Instance.ClearActiveBall(this);
 
         if (introRoutine != null) { StopCoroutine(introRoutine); introRoutine = null; }
+
+        // ✅ Important: if this ball is despawned/merged while touching GameOver,
+        // tell the UI countdown that this ball is gone.
+        CancelGameOverCountdown(notifySaved: true);
 
         ReleasePauseBlockIfActive();
     }
@@ -188,6 +212,9 @@ public class CircleDropController : MonoBehaviour
                 PlaySpine(animFalling, true);
             }
         }
+
+        // ✅ reset "ignore first ball collision" each drop
+        ignoredBallHitsLeft = ignoreBallCollisionsWhileFalling;
     }
 
     public void SetDraggable(bool value)
@@ -215,34 +242,57 @@ public class CircleDropController : MonoBehaviour
         {
             wallContacts++;
             if (circle != null && noFrictionMat2D != null)
-                circle.sharedMaterial = noFrictionMat2D; // zero friction only while touching walls
-            return; // skip settle for walls
+                circle.sharedMaterial = noFrictionMat2D;
+            return;
         }
 
         if (isDragging) return;
 
-        if (hasLanded) return; // ✅ Already landed — skip
-        
+        // ✅ Always release pause-block as soon as we collide with *anything*
+        // (even if we ignore this collision for landing)
         ReleasePauseBlockIfActive();
 
-        hasLanded = true; // ✅ Mark as landed on ANY collision
+        // GameOver-touch priority stays
+        if (gameOverCheckEnabled && isTouchingGameOver && ballInfo != null && BallRegistry.IsActive(ballInfo))
+        {
+            TryStartGameOverFlowIfTouching();
+
+            if (animator != null)
+                animator.SetTrigger("Touching");
+
+            CacheAnimNamesIfNeeded();
+            if (spineAnimation != null && !string.IsNullOrEmpty(animTouching) && SpineHasAnimation(animTouching))
+                PlaySpine(animTouching, true);
+
+            return;
+        }
+
+        // ✅ NEW: ignore first collision with another ball while falling
+        if (!hasLanded && ignoredBallHitsLeft > 0)
+        {
+            bool hitAnotherBall = collision.collider.GetComponentInParent<BallInfo>() != null;
+            if (hitAnotherBall)
+            {
+                ignoredBallHitsLeft--;
+                return;
+            }
+        }
+
+        if (hasLanded) return;
+
+        hasLanded = true;
         CacheAnimNamesIfNeeded();
 
         if (spineAnimation != null)
         {
             if (!string.IsNullOrEmpty(animLand) && SpineHasAnimation(animLand))
             {
-                var entry = PlaySpine(animLand, false); // play landing once
-
-                // Queue idle after landing
+                var entry = PlaySpine(animLand, false);
                 if (!string.IsNullOrEmpty(animIdle) && SpineHasAnimation(animIdle))
-                {
                     entry.Complete += delegate { PlaySpine(animIdle, true); };
-                }
             }
             else if (!string.IsNullOrEmpty(animIdle) && SpineHasAnimation(animIdle))
             {
-                // Fallback straight to idle if no land anim
                 PlaySpine(animIdle, true);
             }
         }
@@ -264,6 +314,9 @@ public class CircleDropController : MonoBehaviour
                 circle.sharedMaterial = originalMat2D; // restore on exit
         }
 
+        // ✅ NEW: If we're still touching GameOver, never restore idle/falling here.
+        if (gameOverCheckEnabled && isTouchingGameOver && ballInfo != null && BallRegistry.IsActive(ballInfo))
+            return;
 
         if (!hasLanded) return; // ✅ do not force idle until landed
 
@@ -276,23 +329,31 @@ public class CircleDropController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("GameOver"))
-        {
-            gameOverTouchRoutine = StartCoroutine(WaitToTriggerGameOver());
+        if (!other.CompareTag("GameOver")) return;
 
-            if (animator != null)
-                animator.SetBool("IsSaved", false);
-        }
+        isTouchingGameOver = true;
+
+        if (!gameOverCheckEnabled) return;
+        TryStartGameOverFlowIfTouching();
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
         if (!other.CompareTag("GameOver")) return;
 
+        // ✅ Track state (useful if you also added manual overlap start)
+        isTouchingGameOver = false;
+
+        // ✅ Optional safety: if we're not active, ignore exits too
+        // (prevents weird cases where an inactive ball cancels something)
+        if (ballInfo == null) return;
+        if (!BallRegistry.IsActive(ballInfo)) return;
+
         if (gameOverTouchRoutine != null)
         {
             if (animator != null)
                 animator.SetBool("IsSaved", true);
+            BallEventManager.RaiseBallGameOverSaved(ballInfo);
 
             StopCoroutine(gameOverTouchRoutine);
             gameOverTouchRoutine = null;
@@ -328,7 +389,9 @@ public class CircleDropController : MonoBehaviour
     {
         yield return new WaitForSeconds(gameOverDelay);
         // ✅ Animator: Trigger "Touching"
-        if (animator != null) animator.SetTrigger("Touching");
+        if (animator != null && !animator.GetCurrentAnimatorStateInfo(0).IsName("Touching"))
+            animator.SetTrigger("Touching");
+        BallEventManager.RaiseBallGameOverAlertStarted(ballInfo, requiredGameOverContactTime);
 
         // 🔹 Play Touching animation via Spine
         CacheAnimNamesIfNeeded();
@@ -336,15 +399,66 @@ public class CircleDropController : MonoBehaviour
             PlaySpine(animTouching, true);
 
         yield return new WaitForSeconds(requiredGameOverContactTime);
-        BallEventManager.RaiseBallTouchedGameOverLine(ballInfo, GameOverReason.Lost);
+
+        if (BallEventManager.IsGameOver)
+        {
+            gameOverTouchRoutine = null;
+            yield break;
+        }
+
+        BallEventManager.RaiseBallTouchedGameOverLine(
+            ballInfo,
+            BallEventManager.GameOverReason.Lost
+        );
+
         gameOverTouchRoutine = null;
     }
 
-
+    [System.Obsolete]
     private IEnumerator EnableGameOverCheckAfterDelay()
     {
         yield return new WaitForSeconds(gameOverDelay);
         gameOverCheckEnabled = true;
+
+        // ✅ If we already entered while checks were disabled, start now.
+        if (isTouchingGameOver)
+        {
+            TryStartGameOverFlowIfTouching();
+            yield break;
+        }
+
+        // 🔁 Fallback: if we never got an Enter event (already overlapping at spawn/drop),
+        // do a physics overlap check once.
+        if (IsCurrentlyOverlappingGameOver())
+            TryStartGameOverFlowIfTouching();
+    }
+
+    [System.Obsolete]
+    private bool IsCurrentlyOverlappingGameOver()
+    {
+        if (circle == null) return false;
+
+        // Make sure triggers are included
+        var filter = new ContactFilter2D
+        {
+            useTriggers = true,
+            useLayerMask = (gameOverLayer.value != 0)
+        };
+
+        if (filter.useLayerMask)
+            filter.layerMask = gameOverLayer;
+
+        var results = new Collider2D[16];
+        int count = circle.OverlapCollider(filter, results);
+
+        for (int i = 0; i < count; i++)
+        {
+            var c = results[i];
+            if (c != null && c.CompareTag("GameOver"))
+                return true;
+        }
+
+        return false;
     }
 
     private IEnumerator SettleAfterTime(float duration)
@@ -462,6 +576,15 @@ public class CircleDropController : MonoBehaviour
     public Spine.TrackEntry PlaySpine(string anim, bool loop = false)
     {
         if (spineAnimation == null) return null;
+
+        // --- Prevent animation flickering/restarting ---
+        var currentTrack = spineAnimation.AnimationState.GetCurrent(0);
+        if (currentTrack != null && currentTrack.Animation.Name == anim)
+        {
+            // It is already playing this exact animation, so just leave it alone!
+            return currentTrack;
+        }
+
         return spineAnimation.AnimationState.SetAnimation(0, anim, loop);
     }
 
@@ -641,5 +764,59 @@ public class CircleDropController : MonoBehaviour
         }
 
         animNamesCached = true;
+    }
+
+    private void TryStartGameOverFlowIfTouching()
+    {
+        if (ballInfo == null) return;
+        if (!BallRegistry.IsActive(ballInfo)) return;
+        if (gameOverTouchRoutine != null) return;
+
+        // Already inside? Start the same flow you start on trigger enter.
+        gameOverTouchRoutine = StartCoroutine(WaitToTriggerGameOver());
+
+        if (animator != null)
+            animator.SetBool("IsSaved", false);
+    }
+
+    public void EnableGameOverCheckImmediate()
+    {
+        gameOverCheckEnabled = true;
+
+        // If we’re already touching the gameOver trigger (or we entered before enabling),
+        // start the flow now.
+        if (isTouchingGameOver)
+            TryStartGameOverFlowIfTouching();
+    }
+
+    private void HandleGlobalGameOver(BallInfo _, GameOverReason __)
+    {
+        // Stop any pending lose countdown on this ball
+        if (gameOverTouchRoutine != null)
+        {
+            StopCoroutine(gameOverTouchRoutine);
+            gameOverTouchRoutine = null;
+        }
+
+        // Make sure we don't re-start it
+        isTouchingGameOver = false;
+    }
+
+    public void CancelGameOverCountdown(bool notifySaved = true)
+    {
+        bool wasTouching = isTouchingGameOver || gameOverTouchRoutine != null;
+
+        if (gameOverTouchRoutine != null)
+        {
+            StopCoroutine(gameOverTouchRoutine);
+            gameOverTouchRoutine = null;
+        }
+
+        isTouchingGameOver = false;
+
+        if (notifySaved && wasTouching && ballInfo != null)
+        {
+            BallEventManager.RaiseBallGameOverSaved(ballInfo);
+        }
     }
 }

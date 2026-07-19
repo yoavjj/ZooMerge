@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [ExecuteAlways]
-public class LevelArtRevealController : MonoBehaviour
+public class LevelArtRevealController : SfxBehaviourTirgger
 {
     [Header("Database")]
     [SerializeField] private LevelArtDatabase levelArtDatabase;

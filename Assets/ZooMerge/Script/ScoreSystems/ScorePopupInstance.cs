@@ -41,16 +41,19 @@ public class ScorePopupInstance : MonoBehaviour
 
     private bool outTriggered = false;
     private bool cancelled;
+    private Vector3 targetScreen;
 
     private void OnEnable()
     {
         BallEventManager.OnEnemySessionEnded += HandleEnemySessionEndedGlobal;
+        BallEventManager.OnBallTouchedGameOverLine += HandleBallTouchedGameOverLine;
         BallEventManager.OnEnemyDefeatImminent += HandleEnemyDefeatImminent;
     }
 
     private void OnDisable()
     {
         BallEventManager.OnEnemySessionEnded -= HandleEnemySessionEndedGlobal;
+        BallEventManager.OnBallTouchedGameOverLine -= HandleBallTouchedGameOverLine;
         BallEventManager.OnEnemyDefeatImminent -= HandleEnemyDefeatImminent;
 
         if (flyRoutine != null) StopCoroutine(flyRoutine);
@@ -66,7 +69,7 @@ public class ScorePopupInstance : MonoBehaviour
         Vector3 screenStart,
         Vector3 centerScreen,
         Camera cam,
-        Transform target,
+        Vector3 targetScreen,   // ✅ changed
         float toCenterDuration,
         AnimationCurve toCenterCurve,
         float centerHoldTime,
@@ -84,7 +87,7 @@ public class ScorePopupInstance : MonoBehaviour
         InUse = true;
         this.onComplete = onComplete;
         this.cam = cam;
-        this.target = target;
+        this.targetScreen = targetScreen;
         this.popupScore = score;
         this.enemyGO = enemy;
 
@@ -189,7 +192,7 @@ public class ScorePopupInstance : MonoBehaviour
         // Phase 2: fast fly to target
         // --------------------
         Vector3 start = transform.position;
-        Vector3 end = cam.WorldToScreenPoint(target.position);
+        Vector3 end = targetScreen;
         Vector3 control = start + new Vector3(
             Random.Range(-xRange, xRange),
             Random.Range(yMin, yMax),
@@ -242,6 +245,11 @@ public class ScorePopupInstance : MonoBehaviour
         yield return new WaitForSeconds(delay);
         InUse = false;
         onComplete?.Invoke(this);
+    }
+
+    private void HandleBallTouchedGameOverLine(BallInfo _)
+    {
+        HandleEnemySessionEndedGlobal(); // calls CancelAndReturn()
     }
 
     private void HandleEnemySessionEndedGlobal()

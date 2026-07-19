@@ -8,4 +8,5 @@ public struct BallSnapshot
     public int level;
     public BallType type;
     public float scale;
+    public int sortingOrder;
 }

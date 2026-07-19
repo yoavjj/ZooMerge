@@ -10,7 +10,7 @@ public interface IWinLoseContent
     void OnShown();
 }
 
-public class WinLosePopup : MonoBehaviour
+public class WinLosePopup : SfxBehaviourTirgger
 {
     public static WinLosePopup Instance { get; private set; }
 
@@ -18,6 +18,13 @@ public class WinLosePopup : MonoBehaviour
     [SerializeField] private Transform contentRoot;
     [SerializeField] private PrefabLibrary prefabLibrary;
 
+    [Header("Out Of Tries Popup (Spawned)")]
+    [SerializeField] private Transform outOfTriesContainer; // e.g. PopupsRoot / same container you use for roadmap/reveal
+    private GameObject outOfTriesInstance;
+    private bool IsOutOfTriesPopupOpen => outOfTriesInstance != null;
+
+
+    private const string OUT_OF_TRIES_POPUP = "OutOfTriesPopup";
     private const string WIN = "WinContent";
     private const string LOSE = "LoseContent";
     private const string LEVEL_COMPLETE = "LevelCompleteContent";
@@ -71,6 +78,8 @@ public class WinLosePopup : MonoBehaviour
     [SerializeField] private bool preloadLevelRevealOnStart = true;
     [SerializeField] private bool keepRevealInactiveWhenIdle = true;
 
+    public static bool SuppressSessionStartFromReveal { get; private set; }
+
     private enum DeferredAction
     {
         None,
@@ -90,6 +99,8 @@ public class WinLosePopup : MonoBehaviour
     {
         if (mergeSummaryPanel != null)
             mergeSummaryPanel.onAllCollectiblesFinished += HandleSummaryReady;
+
+        OutOfTriesPopup.RetriesPurchased += HandleRetriesPurchased;
     }
 
     private void OnDisable()
@@ -111,6 +122,8 @@ public class WinLosePopup : MonoBehaviour
 
         if (roadmapInstance != null)
             roadmapInstance.OnClosedRoadmap -= HandleRoadmapClosed;
+
+        OutOfTriesPopup.RetriesPurchased -= HandleRetriesPurchased;
     }
 
     public void SetMessage(string msg)
@@ -183,9 +196,24 @@ public class WinLosePopup : MonoBehaviour
                 }
 
             case GameOverReason.Lost:
-                levelMessageText.text = $"Try Again: Level {currentLevel}";
-                playButtonText.text = "Retry";
-                break;
+                {
+                    levelMessageText.text = $"Try Again: Level {currentLevel}";
+
+                    if (!PlayerProgress.HasRetryLimitForCurrentLevel())
+                    {
+                        playButtonText.text = "Retry"; // checkpoint / tutorial unlimited
+                    }
+                    else
+                    {
+                        int g = MergeLevelManager.CurrentGalaxyId;
+                        int l = MergeLevelManager.CurrentLevelInGalaxy;
+
+                        int remainingAfterLoss = PlayerProgress.PeekRetriesAfterLoss(g, l);
+                        playButtonText.text = $"Retry ({remainingAfterLoss}/{PlayerProgress.GetRetryCap()})";
+                    }
+
+                    break;
+                }
 
             default:
                 levelMessageText.text = $"Level {currentLevel}";
@@ -202,7 +230,7 @@ public class WinLosePopup : MonoBehaviour
             return;
         }
 
-        collectibleFlyController.SpawnCoinsToTopBar();
+        collectibleFlyController.SpawnPendingEnemyCoinsToTopBar();
     }
     private void HandleEnemyDone(int index)
     {
@@ -251,14 +279,59 @@ public class WinLosePopup : MonoBehaviour
 
     public void OnMainMenuButtonPressed()
     {
+        PlayUiSfx(SfxCue.ButtonClick);
+
+        if (IsSummaryBusy())
+            return;
+
+        ApplyProgressBeforeMainMenu();
+
+        OnWinLoseClosed?.Invoke();
+
+        AnalyticsEvents.MainMenuEnter("from_game");
+
         PopupManager.Instance?.ConfirmReturnToMainMenu();
+
         animator.SetTrigger("Out");
         PlayContentOut();
         Destroy(gameObject, 1f);
     }
 
+    private void ApplyProgressBeforeMainMenu()
+    {
+        // ✅ Full level completed:
+        // going to main menu should keep the next-level progress,
+        // same as if the player pressed Play.
+        if (currentReason == GameOverReason.Won && levelCompleteContext)
+        {
+            MergeLevelManager.PeekNextProgress(out int nextG, out int nextL);
+
+            PlayerProgress.SetResumePoint(nextG, nextL, 0);
+            MergeLevelManager.SetProgress(nextG, nextL, 0);
+
+            CloudSaveManager.ForceCloudProgressMap(nextG, nextL, 0);
+
+            Debug.Log($"[WinLosePopup] MainMenu after level complete -> saved next level G{nextG} L{nextL}");
+            return;
+        }
+
+        // ✅ Mid-level progress:
+        // returning to main menu restarts this level from enemy 0.
+        int g = MergeLevelManager.CurrentGalaxyId;
+        int l = MergeLevelManager.CurrentLevelInGalaxy;
+
+        PlayerProgress.SetResumePoint(g, l, 0);
+        MergeLevelManager.SetProgress(g, l, 0);
+
+        CloudSaveManager.ForceCloudProgressMap(g, l, 0);
+
+        Debug.Log($"[WinLosePopup] MainMenu from mid-level -> restart current level G{g} L{l}");
+    }
+
     public void ShowGalaxyRoadmap(bool fromLevelFlow = false)
     {
+        PlayUiSfx(SfxCue.ButtonClick);
+        
         // ✅ If already open/spawning, ignore repeated clicks
         if (roadmapOpenOrSpawning)
             return;
@@ -269,9 +342,18 @@ public class WinLosePopup : MonoBehaviour
             deferredAction = DeferredAction.ShowGalaxyRoadmap; // last wins
             deferredRoadmapFromLevelFlow = fromLevelFlow;
             return;
-        }
+        } 
 
         deferredAction = DeferredAction.None;
+
+        if (!fromLevelFlow)
+        {
+            AnalyticsEvents.LogRoadmapView(
+            !fromLevelFlow,
+            MergeLevelManager.CurrentGalaxyId.ToString(), // Convert to string if your Log method expects string
+            MergeLevelManager.CurrentLevelNumber
+        );
+        }
 
         // ✅ If we cached an instance but it got destroyed, clear it
         if (roadmapInstance == null)
@@ -350,13 +432,36 @@ public class WinLosePopup : MonoBehaviour
 
     public void OnPlayPressed()
     {
+        // 1. Check if the button has already been pressed successfully
+        if (playPressedLocked)
+            return;
+
         if (IsSummaryBusy())
         {
             deferredAction = DeferredAction.PlayPressed; // last wins
             return;
         }
 
-        deferredAction = DeferredAction.None; // optional: clear if you want
+        int g = MergeLevelManager.CurrentGalaxyId;
+        int l = MergeLevelManager.CurrentLevelInGalaxy;
+
+        // ✅ If player has 0 retries left, show OutOfTries popup instead of retrying
+        if (currentReason == GameOverReason.Lost &&
+            PlayerProgress.IsOnNewLevel(g, l) &&
+            PlayerProgress.NewLevelRetriesRemaining <= 0)
+        {
+            ShowOutOfTriesPopup();
+            PlayUiSfx(SfxCue.ButtonClickNegative);
+            return;
+        }
+
+        PlayUiSfx(SfxCue.ButtonClick);
+
+
+        // 2. Lock the button so it cannot be pressed again
+        playPressedLocked = true;
+
+        deferredAction = DeferredAction.None; // clear if you want
         HandleContinue();
 
         if (!IsNewLevel())
@@ -365,7 +470,10 @@ public class WinLosePopup : MonoBehaviour
             return;
         }
 
+        PlayerProgress.OnLevelStarted(MergeLevelManager.CurrentGalaxyId, MergeLevelManager.CurrentLevelInGalaxy);
+
         StartNextLevelFlow();
+        OnWinLoseClosed?.Invoke();
     }
 
     private bool IsSummaryBusy()
@@ -396,6 +504,9 @@ public class WinLosePopup : MonoBehaviour
 
     private void HandleNormalRestart()
     {
+        // ✅ This path is an actual session restart, so allow AE_OnRevealFinished to begin the session.
+        WinLosePopup.SetSuppressSessionStartFromReveal(false);
+
         BallEventManager.RaiseResetCounters(keepUI: true);
 
         PopupManager.Instance?.BeginSession(isNewLevel: false);
@@ -413,7 +524,7 @@ public class WinLosePopup : MonoBehaviour
 
         PlayContentOut();
         animator?.SetTrigger("Out");
-        Destroy(gameObject, 1.5f);
+        Destroy(gameObject, 2.5f);
     }
 
     private void StartNextLevelFlow()
@@ -445,6 +556,12 @@ public class WinLosePopup : MonoBehaviour
 
                 // Advance level only after reveal is done showing
                 MergeLevelManager.AdvanceLevel();
+
+                PlayerProgress.CheckpointGalaxyId = MergeLevelManager.CurrentGalaxyId;
+                PlayerProgress.CheckpointLevelInGalaxy = 1;
+                PlayerProgress.SaveNow();
+                
+                PlayerProgress.CaptureFromManagers();
                 BallEventManager.RaiseResetCounters(keepUI: false);
                 levelArtRevealInstance.updateProgressBarSlider();
             }
@@ -452,6 +569,8 @@ public class WinLosePopup : MonoBehaviour
         else
         {
             // ✅ Galaxy-end: advance into the next galaxy, then show roadmap popup
+            int completedGalaxyId = MergeLevelManager.CurrentGalaxyId;
+
             // ✅ 1. Spawn popup FIRST
             var roadmap = SpawnGalaxyRoadmap();
             if (roadmap != null)
@@ -464,6 +583,7 @@ public class WinLosePopup : MonoBehaviour
 
             // ✅ 2. THEN advance level
             MergeLevelManager.AdvanceLevel();
+            PlayerProgress.CaptureFromManagers();
             BallEventManager.RaiseResetCounters(keepUI: false);
         }
 
@@ -492,7 +612,7 @@ public class WinLosePopup : MonoBehaviour
         if (!isGalaxyEnd && keepRevealInactiveWhenIdle && levelArtRevealInstance != null)
             levelArtRevealInstance.gameObject.SetActive(false);
 
-        Destroy(gameObject, 4.8f);
+        Destroy(gameObject, 6f);
         playPressedRoutine = null;
     }
 
@@ -618,22 +738,121 @@ public class WinLosePopup : MonoBehaviour
 
     private void HandleSummaryReady()
     {
-        if (playButtonAnimator == null || string.IsNullOrEmpty(readyTrigger))
-            return;
+        // Decide if we're out of retries (only relevant on Loss)
+        bool outOfRetries =
+            currentReason == GameOverReason.Lost &&
+            PlayerProgress.HasRetryLimitForCurrentLevel() &&
+            PlayerProgress.CurrentLevelRetriesRemaining() <= 0;
 
-        playButtonAnimator.ResetTrigger(readyTrigger);
-        playButtonAnimator.SetTrigger(readyTrigger);
+        // ✅ If out of retries: spawn popup AFTER collectibles finish
+        // and DO NOT play the play-button "Ready" animation.
+        if (outOfRetries)
+        {
+            ShowOutOfTriesPopup();
+
+            // important: don't auto-run deferred PlayPressed (it would bypass popup)
+            deferredAction = DeferredAction.None;
+            deferredRoadmapFromLevelFlow = false;
+        }
+        else
+        {
+            // Normal behavior: do the "Ready" button FX
+            if (playButtonAnimator != null && !string.IsNullOrEmpty(readyTrigger))
+            {
+                playButtonAnimator.ResetTrigger(readyTrigger);
+                playButtonAnimator.SetTrigger(readyTrigger);
+            }
+        }
+
+        // ---- existing progress saving logic stays the same ----
+        if (currentReason == GameOverReason.Won)
+        {
+            // ✅ Only advance to NEXT LEVEL when the whole level is complete
+            if (levelCompleteContext)
+            {
+                MergeLevelManager.PeekNextProgress(out int nextG, out int nextL);
+                PlayerProgress.SetResumePoint(nextG, nextL, 0); // new level always starts at enemy 0
+            }
+            else
+            {
+                // Mid-level enemy win: DO NOT jump levels
+                PlayerProgress.CaptureFromManagers();
+            }
+        }
+        else
+        {
+            PlayerProgress.CaptureFromManagers();
+        }
+
+        CloudSaveManager.SaveSnapshot(currentReason == GameOverReason.Won);
 
         // ✅ run last cached action (only one)
         var action = deferredAction;
         var roadmapFlow = deferredRoadmapFromLevelFlow;
 
-        deferredAction = DeferredAction.None; // clear first to avoid loops
+        deferredAction = DeferredAction.None;
         deferredRoadmapFromLevelFlow = false;
+
+        // Important: if out-of-retries, don't auto-run deferred PlayPressed (it would bypass your popup)
+        if (outOfRetries)
+            return;
 
         if (action == DeferredAction.PlayPressed)
             OnPlayPressed();
         else if (action == DeferredAction.ShowGalaxyRoadmap)
             ShowGalaxyRoadmap(roadmapFlow);
+    }
+
+    private void ShowOutOfTriesPopup()
+    {
+        if (IsOutOfTriesPopupOpen) return;
+
+        if (prefabLibrary == null || outOfTriesContainer == null)
+        {
+            Debug.LogWarning("[WinLosePopup] Missing prefabLibrary or outOfTriesContainer.");
+            return;
+        }
+
+        var prefab = prefabLibrary.GetRaw(OUT_OF_TRIES_POPUP);
+        if (prefab == null) return;
+
+        outOfTriesInstance = Instantiate(prefab, outOfTriesContainer);
+        ResetRectTransform(outOfTriesInstance.transform);
+
+        // ✅ ADD: gameplay context => allow quit button
+        OutOfTriesPopup.LastSpawned?.SetQuitButtonVisible(true);
+    }
+
+    private void HandleRetriesPurchased()
+    {
+        // ✅ Important: the popup may still be animating out.
+        // Clear the reference immediately so gating won't think it's still "out of tries".
+        outOfTriesInstance = null;
+
+        // Update button label
+        if (playButtonText != null)
+            playButtonText.text = "Play";
+
+        // Play the ready animation
+        if (playButtonAnimator != null && !string.IsNullOrEmpty(readyTrigger))
+        {
+            playButtonAnimator.ResetTrigger(readyTrigger);
+            playButtonAnimator.SetTrigger(readyTrigger);
+        }
+
+        collectibleFlyController?.FlyHeartWinLose();
+
+        // Allow pressing again
+        playPressedLocked = false;
+    }
+
+    public static void SetSuppressSessionStartFromReveal(bool value)
+    {
+        SuppressSessionStartFromReveal = value;
+    } 
+
+    public void PlayUiSfxButtonClick()
+    {
+        PlayUiSfx(SfxCue.ButtonClick);
     }
 }
