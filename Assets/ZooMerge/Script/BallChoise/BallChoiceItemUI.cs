@@ -27,10 +27,28 @@ public class BallChoiceItemUI : MonoBehaviour
     private AnimationCurve selectedFadeCurve =
         AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
+    [Header("Locked Appearance")]
+    [SerializeField] private CanvasGroup lockedCanvasGroup;
+
+    [SerializeField, Min(0f)]
+    private float lockedFadeDuration = 0.2f;
+
+    [Header("Unlock Reveal")]
+    [SerializeField]
+    private BallCardRevealAnimator revealAnimator;
+
+    [SerializeField]
+    private AnimationCurve lockedFadeCurve =
+        AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+    private Coroutine lockedFadeRoutine;
+    private bool isLocked;
+
     public BallType Type { get; private set; }
     public bool IsSelected { get; private set; }
 
     public event Action<BallChoiceItemUI> Clicked;
+    public event Action RevealFinished;
 
     private Coroutine selectedFadeRoutine;
 
@@ -39,7 +57,11 @@ public class BallChoiceItemUI : MonoBehaviour
         if (selectionButton != null)
             selectionButton.onClick.AddListener(HandleButtonPressed);
 
+        if (revealAnimator != null)
+            revealAnimator.RevealFinished += HandleRevealFinished;
+
         SetSelectionNumberImmediate(false, 0);
+        SetLockedStateImmediate(false);
     }
 
     private void OnDisable()
@@ -49,15 +71,32 @@ public class BallChoiceItemUI : MonoBehaviour
             StopCoroutine(selectedFadeRoutine);
             selectedFadeRoutine = null;
         }
+
+        if (lockedFadeRoutine != null)
+        {
+            StopCoroutine(lockedFadeRoutine);
+            lockedFadeRoutine = null;
+        }
     }
 
     private void OnDestroy()
     {
         if (selectionButton != null)
             selectionButton.onClick.RemoveListener(HandleButtonPressed);
+
+        if (revealAnimator != null)
+            revealAnimator.RevealFinished -= HandleRevealFinished;
     }
 
-    public void Initialize(BallType type, Sprite profileSprite)
+    private void HandleRevealFinished()
+    {
+        RevealFinished?.Invoke();
+    }
+
+    public void Initialize(
+        BallType type,
+        Sprite profileSprite,
+        bool locked = false)
     {
         Type = type;
 
@@ -69,12 +108,124 @@ public class BallChoiceItemUI : MonoBehaviour
             false,
             0
         );
+
+        SetLockedState(
+            locked,
+            immediate: true
+        );
+    }
+
+    public void SetLockedState(
+        bool locked,
+        bool immediate = false)
+    {
+        bool stateChanged = isLocked != locked;
+        isLocked = locked;
+
+        float targetAlpha = locked ? 1f : 0f;
+
+        if (immediate || !stateChanged)
+        {
+            SetLockedCanvasImmediate(targetAlpha);
+        }
+        else
+        {
+            AnimateLockedCanvas(targetAlpha);
+        }
+
+        RefreshCardVisual(immediate);
+    }
+
+    private void SetLockedStateImmediate(bool locked)
+    {
+        isLocked = locked;
+
+        SetLockedCanvasImmediate(
+            locked ? 1f : 0f
+        );
+
+        RefreshCardVisual(immediate: true);
+    }
+
+    private void SetLockedCanvasImmediate(float alpha)
+    {
+        if (lockedFadeRoutine != null)
+        {
+            StopCoroutine(lockedFadeRoutine);
+            lockedFadeRoutine = null;
+        }
+
+        if (lockedCanvasGroup == null)
+            return;
+
+        lockedCanvasGroup.alpha = alpha;
+
+        // The main selection button should continue receiving clicks
+        // so it can open the unlock popup.
+        lockedCanvasGroup.interactable = false;
+        lockedCanvasGroup.blocksRaycasts = false;
+    }
+
+    private void AnimateLockedCanvas(float targetAlpha)
+    {
+        if (lockedCanvasGroup == null)
+            return;
+
+        if (lockedFadeRoutine != null)
+            StopCoroutine(lockedFadeRoutine);
+
+        lockedFadeRoutine = StartCoroutine(
+            AnimateLockedCanvasRoutine(targetAlpha)
+        );
+    }
+
+    private IEnumerator AnimateLockedCanvasRoutine(
+    float targetAlpha)
+    {
+        float startAlpha = lockedCanvasGroup.alpha;
+
+        if (lockedFadeDuration <= 0f)
+        {
+            lockedCanvasGroup.alpha = targetAlpha;
+            lockedFadeRoutine = null;
+            yield break;
+        }
+
+        float elapsed = 0f;
+
+        while (elapsed < lockedFadeDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+
+            float normalizedTime = Mathf.Clamp01(
+                elapsed / lockedFadeDuration
+            );
+
+            float curvedTime = lockedFadeCurve != null
+                ? lockedFadeCurve.Evaluate(normalizedTime)
+                : normalizedTime;
+
+            lockedCanvasGroup.alpha = Mathf.Lerp(
+                startAlpha,
+                targetAlpha,
+                curvedTime
+            );
+
+            yield return null;
+        }
+
+        lockedCanvasGroup.alpha = targetAlpha;
+        lockedFadeRoutine = null;
     }
 
     public void SetDisplayOnly(bool showFullColor = true)
     {
         if (selectionButton != null)
             selectionButton.interactable = false;
+
+        isLocked = false;
+
+        SetLockedCanvasImmediate(0f);
 
         if (selectionVisualController != null)
         {
@@ -94,6 +245,21 @@ public class BallChoiceItemUI : MonoBehaviour
             selectedNumberText.text = string.Empty;
     }
 
+    public void PlayUnlockReveal()
+    {
+        if (revealAnimator == null)
+        {
+            Debug.LogWarning(
+                $"[{nameof(BallChoiceItemUI)}] " +
+                $"Reveal animator is not assigned on {gameObject.name}."
+            );
+
+            return;
+        }
+
+        revealAnimator.PlayReveal();
+    }
+
     public void Refresh()
     {
         SetAnimalTypeText();
@@ -109,8 +275,7 @@ public class BallChoiceItemUI : MonoBehaviour
 
         IsSelected = isSelected;
 
-        if (selectionVisualController != null)
-            selectionVisualController.SetSelected(isSelected);
+        RefreshCardVisual(immediate: false);
 
         if (selectedNumberText != null)
         {
@@ -148,12 +313,7 @@ public class BallChoiceItemUI : MonoBehaviour
     {
         IsSelected = isSelected;
 
-        if (selectionVisualController != null)
-        {
-            selectionVisualController.SetSelectedImmediate(
-                isSelected
-            );
-        }
+        RefreshCardVisual(immediate: true);
 
         SetSelectionNumberImmediate(
             isSelected,
@@ -267,5 +427,29 @@ public class BallChoiceItemUI : MonoBehaviour
 
         profileImage.sprite = sprite;
         profileImage.enabled = sprite != null;
+    }
+
+    private void RefreshCardVisual(bool immediate)
+    {
+        if (selectionVisualController == null)
+            return;
+
+        // Locked cards remain full color.
+        // Unlocked cards use their real selection state.
+        bool showFullColor =
+            isLocked || IsSelected;
+
+        if (immediate)
+        {
+            selectionVisualController.SetSelectedImmediate(
+                showFullColor
+            );
+        }
+        else
+        {
+            selectionVisualController.SetSelected(
+                showFullColor
+            );
+        }
     }
 }

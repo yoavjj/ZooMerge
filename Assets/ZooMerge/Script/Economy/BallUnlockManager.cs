@@ -10,8 +10,6 @@ public class BallUnlockManager : MonoBehaviour
 
     public event Action<BallType> OnBallUnlocked;
 
-    private const string UnlockKeyPrefix = "BALL_UNLOCKED_";
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -35,18 +33,18 @@ public class BallUnlockManager : MonoBehaviour
         BallUnlockCatalogSO.UnlockDefinition definition =
             GetDefinition(type);
 
-        // Missing definitions are treated as locked.
-        // This prevents newly added animals from accidentally becoming usable.
         if (definition == null)
             return false;
 
         if (definition.unlockedByDefault)
             return true;
 
-        return PlayerPrefs.GetInt(GetUnlockKey(type), 0) == 1;
+        return BallUnlockSave.IsUnlocked(type);
     }
 
-    public bool CanUnlock(BallType type, out string reason)
+    public bool CanUnlock(
+        BallType type,
+        out string reason)
     {
         reason = string.Empty;
 
@@ -55,106 +53,199 @@ public class BallUnlockManager : MonoBehaviour
 
         if (definition == null)
         {
-            reason = $"No unlock definition exists for {type}.";
+            reason =
+                $"No unlock definition exists for {type}.";
+
             return false;
         }
 
         if (IsUnlocked(type))
         {
-            reason = $"{type} is already unlocked.";
-            return true;
+            reason =
+                $"{type} is already unlocked.";
+
+            return false;
         }
 
         int currentCoins =
-            GameInventory.Instance.Get(CurrencyType.Coins);
+            GameInventory.Instance.Get(
+                CurrencyType.Coins
+            );
 
         if (currentCoins < definition.coinCost)
         {
             reason =
                 $"Not enough coins for {type}. " +
-                $"Need {definition.coinCost}, have {currentCoins}.";
+                $"Need {definition.coinCost}, " +
+                $"have {currentCoins}.";
 
             return false;
         }
 
-        foreach (
-            BallUnlockCatalogSO.MergeRequirement requirement
-            in definition.mergeRequirements)
+        if (definition.mergeRequirements != null)
         {
-            if (requirement == null)
-                continue;
-
-            int currentAmount =
-                GameInventory.Instance.Get(requirement.type);
-
-            if (currentAmount < requirement.requiredAmount)
+            foreach (
+                BallUnlockCatalogSO.MergeRequirement requirement
+                in definition.mergeRequirements)
             {
-                reason =
-                    $"Not enough {requirement.type} merges for {type}. " +
-                    $"Need {requirement.requiredAmount}, " +
-                    $"have {currentAmount}.";
+                if (requirement == null)
+                    continue;
 
-                return false;
+                int currentAmount =
+                    GameInventory.Instance.Get(
+                        requirement.type
+                    );
+
+                if (currentAmount <
+                    requirement.requiredAmount)
+                {
+                    reason =
+                        $"Not enough {requirement.type} merges " +
+                        $"for {type}. " +
+                        $"Need {requirement.requiredAmount}, " +
+                        $"have {currentAmount}.";
+
+                    return false;
+                }
             }
         }
 
         return true;
     }
 
-    public bool TryUnlock(BallType type, out string reason)
+    public bool TryUnlock(
+        BallType type,
+        out string reason)
     {
         reason = string.Empty;
 
         if (IsUnlocked(type))
         {
             reason = $"{type} is already unlocked.";
-            return true;
-        }
-
-        if (!CanUnlock(type, out reason))
             return false;
+        }
 
         BallUnlockCatalogSO.UnlockDefinition definition =
             GetDefinition(type);
 
         if (definition == null)
         {
-            reason = $"No unlock definition exists for {type}.";
+            reason =
+                $"No unlock definition exists for {type}.";
+
             return false;
         }
 
-        // Merge values are requirements only; they are not consumed.
-        // Coins are paid when the animal is unlocked.
-        if (!GameInventory.Instance.Spend(
-                CurrencyType.Coins,
-                definition.coinCost))
+        // Validate every cost before deducting anything.
+        if (!CanUnlock(type, out reason))
+            return false;
+
+        // Spend coins without notifying yet.
+        if (definition.coinCost > 0)
         {
-            reason = $"Could not spend coins to unlock {type}.";
-            return false;
+            bool coinsSpent =
+                GameInventory.Instance.Spend(
+                    CurrencyType.Coins,
+                    definition.coinCost,
+                    notify: false
+                );
+
+            if (!coinsSpent)
+            {
+                reason =
+                    $"Could not spend coins to unlock {type}.";
+
+                return false;
+            }
         }
 
-        PlayerPrefs.SetInt(GetUnlockKey(type), 1);
-        PlayerPrefs.Save();
+        // Merge requirements are now consumed as part of the purchase.
+        if (definition.mergeRequirements != null)
+        {
+            foreach (
+                BallUnlockCatalogSO.MergeRequirement requirement
+                in definition.mergeRequirements)
+            {
+                if (requirement == null ||
+                    requirement.requiredAmount <= 0)
+                {
+                    continue;
+                }
+
+                bool mergesSpent =
+                    GameInventory.Instance.Spend(
+                        requirement.type,
+                        requirement.requiredAmount,
+                        notify: false
+                    );
+
+                if (!mergesSpent)
+                {
+                    reason =
+                        $"Could not spend " +
+                        $"{requirement.requiredAmount} " +
+                        $"{requirement.type} merges.";
+
+                    Debug.LogError(
+                        $"[BallUnlockManager] Purchase validation " +
+                        $"passed, but spending merges failed for " +
+                        $"{requirement.type}."
+                    );
+
+                    return false;
+                }
+            }
+        }
+
+        // Save the permanent local unlock.
+        BallUnlockSave.SetUnlocked(
+            type,
+            true
+        );
+
+        // Notify all inventory UI once, after every deduction is complete.
+        GameInventory.Instance.NotifyChanged();
 
         OnBallUnlocked?.Invoke(type);
 
         reason = $"{type} unlocked.";
+
+        // Save coins, merges, and unlock state to Firestore.
+        CloudSaveManager.SyncEconomyNow();
+
         return true;
+    }
+
+    public void RestoreUnlockFromCloud(
+        BallType type,
+        bool unlocked)
+    {
+        BallUnlockCatalogSO.UnlockDefinition definition =
+            GetDefinition(type);
+
+        if (definition == null)
+            return;
+
+        if (definition.unlockedByDefault)
+            return;
+
+        BallUnlockSave.SetUnlocked(
+            type,
+            unlocked
+        );
     }
 
     public void ResetUnlocks()
     {
-        foreach (
-            BallType type
-            in Enum.GetValues(typeof(BallType)))
-        {
-            PlayerPrefs.DeleteKey(GetUnlockKey(type));
-        }
+        BallUnlockSave.ResetAll();
 
-        PlayerPrefs.Save();
+        Debug.Log(
+            "[BallUnlockManager] All saved unlocks were reset."
+        );
     }
 
-    public string GetRequirementSummary(BallType type)
+    public string GetRequirementSummary(
+        BallType type)
     {
         BallUnlockCatalogSO.UnlockDefinition definition =
             GetDefinition(type);
@@ -170,26 +261,47 @@ public class BallUnlockManager : MonoBehaviour
             $"{GameInventory.Instance.Get(CurrencyType.Coins)}" +
             $"/{definition.coinCost}";
 
-        foreach (
-            BallUnlockCatalogSO.MergeRequirement requirement
-            in definition.mergeRequirements)
+        if (definition.mergeRequirements != null)
         {
-            if (requirement == null)
-                continue;
+            foreach (
+                BallUnlockCatalogSO.MergeRequirement requirement
+                in definition.mergeRequirements)
+            {
+                if (requirement == null)
+                    continue;
 
-            int current =
-                GameInventory.Instance.Get(requirement.type);
+                int current =
+                    GameInventory.Instance.Get(
+                        requirement.type
+                    );
 
-            result +=
-                $", {requirement.type}: " +
-                $"{current}/{requirement.requiredAmount}";
+                result +=
+                    $", {requirement.type}: " +
+                    $"{current}/{requirement.requiredAmount}";
+            }
         }
 
         return result;
     }
 
-    private BallUnlockCatalogSO.UnlockDefinition GetDefinition(
-        BallType type)
+    public void DebugUnlock(BallType type)
+    {
+        BallUnlockSave.SetUnlocked(
+            type,
+            true
+        );
+
+        OnBallUnlocked?.Invoke(type);
+
+        Debug.Log(
+            $"[BallUnlockManager] Debug unlocked {type}. " +
+            $"Stored value: " +
+            $"{BallUnlockSave.GetRawSavedValue(type)}"
+        );
+    }
+
+    private BallUnlockCatalogSO.UnlockDefinition
+        GetDefinition(BallType type)
     {
         if (unlockCatalog == null)
         {
@@ -203,27 +315,11 @@ public class BallUnlockManager : MonoBehaviour
         return unlockCatalog.GetDefinition(type);
     }
 
-    private static string GetUnlockKey(BallType type)
-    {
-        return $"{UnlockKeyPrefix}{type}";
-    }
-
 #if UNITY_EDITOR
     [ContextMenu("Reset All Ball Unlocks")]
     private void ResetAllUnlocks()
     {
-        foreach (
-            BallType type
-            in Enum.GetValues(typeof(BallType)))
-        {
-            PlayerPrefs.DeleteKey(GetUnlockKey(type));
-        }
-
-        PlayerPrefs.Save();
-
-        Debug.Log(
-            "[BallUnlockManager] All saved ball unlocks were reset."
-        );
+        ResetUnlocks();
     }
 #endif
 }

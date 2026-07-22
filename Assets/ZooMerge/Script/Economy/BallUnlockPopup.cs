@@ -32,8 +32,10 @@ public class BallUnlockPopup : MonoBehaviour
     [Header("Animator")]
     [SerializeField] private Animator animator;
     [SerializeField] private string inTrigger = "In";
+    [SerializeField] private string outTrigger = "Out";
 
     public event Action Closed;
+    public event Action<BallType> AnimalUnlocked;
 
     [Header("Opening")]
     [SerializeField, Range(1, 5)]
@@ -41,6 +43,7 @@ public class BallUnlockPopup : MonoBehaviour
 
     private Coroutine openRoutine;
     private bool isOpening;
+    private bool isCompletingPurchase;
 
     private readonly List<BallUnlockRequirementItemUI>
         spawnedRequirements = new();
@@ -49,13 +52,14 @@ public class BallUnlockPopup : MonoBehaviour
     private BallType targetType;
 
     public BallType TargetType => targetType;
+    
 
     private void Awake()
     {
         if (launchButton != null)
         {
             launchButton.onClick.AddListener(
-                HandleLaunchPressed
+                PurchaseWithCoins
             );
         }
     }
@@ -85,7 +89,7 @@ public class BallUnlockPopup : MonoBehaviour
         if (launchButton != null)
         {
             launchButton.onClick.RemoveListener(
-                HandleLaunchPressed
+                PurchaseWithCoins
             );
         }
     }
@@ -106,6 +110,7 @@ public class BallUnlockPopup : MonoBehaviour
     private IEnumerator OpenRoutine(BallType type)
     {
         isOpening = true;
+        isCompletingPurchase = false;
         targetType = type;
 
         BallUnlockCatalogSO.UnlockDefinition definition =
@@ -189,6 +194,14 @@ public class BallUnlockPopup : MonoBehaviour
         spawnedAnimalCard.SetDisplayOnly(
             showFullColor: true
         );
+
+        spawnedAnimalCard.RevealFinished +=
+        HandleAnimalCardRevealFinished;
+    }
+
+    private void HandleAnimalCardRevealFinished()
+    {
+        Close();
     }
 
     private void BuildRequirements(
@@ -310,6 +323,11 @@ public class BallUnlockPopup : MonoBehaviour
         if (!gameObject.activeInHierarchy)
             return;
 
+        // The popup is already playing the successful reveal.
+        // Do not rebuild the requirement items and reset their sliders.
+        if (isCompletingPurchase)
+            return;
+
         Refresh();
     }
 
@@ -347,7 +365,7 @@ public class BallUnlockPopup : MonoBehaviour
             manager.CanUnlock(targetType, out _);
     }
 
-    private void HandleLaunchPressed()
+    private void PurchaseWithCoins()
     {
         BallUnlockManager manager =
             BallUnlockManager.Instance;
@@ -361,10 +379,17 @@ public class BallUnlockPopup : MonoBehaviour
             return;
         }
 
+        // Prevent inventory notifications from rebuilding the
+        // requirement sliders during a successful purchase.
+        isCompletingPurchase = true;
+
         if (!manager.TryUnlock(
                 targetType,
                 out string result))
         {
+            // Purchase failed, so normal refreshing is allowed again.
+            isCompletingPurchase = false;
+
             Debug.Log(
                 $"[BallUnlockPopup] Could not unlock " +
                 $"{targetType}: {result}"
@@ -378,10 +403,20 @@ public class BallUnlockPopup : MonoBehaviour
             $"[BallUnlockPopup] {result}"
         );
 
-        Refresh();
+        if (launchButton != null)
+            launchButton.interactable = false;
 
-        // You can later play an unlock animation here.
-        // gameObject.SetActive(false);
+        if (spawnedAnimalCard != null)
+        {
+            spawnedAnimalCard.PlayUnlockReveal();
+        }
+        else
+        {
+            // Safety fallback if the card failed to spawn.
+            Close();
+        }
+
+        AnimalUnlocked?.Invoke(targetType);
     }
 
     private void PlayInAnimation()
@@ -400,6 +435,9 @@ public class BallUnlockPopup : MonoBehaviour
     {
         if (spawnedAnimalCard != null)
         {
+            spawnedAnimalCard.RevealFinished -=
+                HandleAnimalCardRevealFinished;
+
             Destroy(spawnedAnimalCard.gameObject);
             spawnedAnimalCard = null;
         }
@@ -437,13 +475,27 @@ public class BallUnlockPopup : MonoBehaviour
         if (isOpening)
             return;
 
+        if (animator == null ||
+            string.IsNullOrEmpty(outTrigger))
+        {
+            FinishClose();
+            return;
+        }
+
+        animator.ResetTrigger(inTrigger);
+        animator.ResetTrigger(outTrigger);
+        animator.SetTrigger(outTrigger);
+    }
+
+    public void AE_FinishClose()
+    {
         FinishClose();
     }
 
     private void FinishClose()
     {
         Closed?.Invoke();
-        Destroy(gameObject);
+        Destroy(gameObject,1.5f);
     }
 
     public void AE_PlayRequirementFillAnimations()

@@ -5,6 +5,10 @@ using System;
 
 public class DebugPopup : MonoBehaviour
 {
+    [Header("Debug Ball Unlock")]
+    [SerializeField]
+    private BallType debugBallType = BallType.Cat;
+
     GameHealthManager healthManager;
 
     [Header("Debug Fly Collectible")]
@@ -154,5 +158,95 @@ public class DebugPopup : MonoBehaviour
         }
 
         CollectibleFlyService.Instance.Fly(heartEntryId, 1, heartFlyTarget, overrideSpawnContainer);
+    }
+
+    [ContextMenu("Debug: Unlock Selected Ball")]
+    public void DebugUnlockSelectedBall()
+    {
+        BallUnlockManager manager =
+            BallUnlockManager.Instance;
+
+        if (manager == null)
+        {
+            Debug.LogError(
+                "[DebugPopup] BallUnlockManager.Instance is null."
+            );
+
+            return;
+        }
+
+        manager.DebugUnlock(debugBallType);
+
+        Debug.Log(
+            $"[DebugPopup] Unlocked {debugBallType}. " +
+            $"Saved value: " +
+            $"{BallUnlockSave.GetRawSavedValue(debugBallType)}"
+        );
+    }
+
+    [ContextMenu("Debug: Print Selected Ball Unlock")]
+    public void DebugPrintSelectedBallUnlock()
+    {
+        BallUnlockManager manager =
+            BallUnlockManager.Instance;
+
+        if (manager == null)
+        {
+            Debug.LogError(
+                "[DebugPopup] BallUnlockManager.Instance is null."
+            );
+
+            return;
+        }
+
+        Debug.Log(
+            $"[DebugPopup] Type: {debugBallType}, " +
+            $"IsUnlocked: {manager.IsUnlocked(debugBallType)}, " +
+            $"Saved value: " +
+            $"{BallUnlockSave.GetRawSavedValue(debugBallType)}"
+        );
+    }
+
+    [ContextMenu("Debug: Reset Selected Ball Purchase")]
+    public void DebugResetSelectedBallPurchase()
+    {
+        BallUnlockSave.ResetUnlock(
+            debugBallType
+        );
+
+        BallChoiceMenu menu =
+            FindFirstObjectByType<BallChoiceMenu>(
+                FindObjectsInactive.Include
+            );
+
+        if (menu != null)
+            menu.RefreshAll();
+
+        Debug.Log(
+            $"[DebugPopup] Locally reset purchase for " +
+            $"{debugBallType}. Saving reset to cloud..."
+        );
+
+        CloudSaveManager.SaveEconomyStateImmediate(
+            success =>
+            {
+                if (success)
+                {
+                    Debug.Log(
+                        $"[DebugPopup] Cloud reset saved for " +
+                        $"{debugBallType}. It will remain locked " +
+                        "after restarting the app."
+                    );
+                }
+                else
+                {
+                    Debug.LogError(
+                        $"[DebugPopup] Failed to save the cloud reset " +
+                        $"for {debugBallType}. The cloud may unlock it " +
+                        "again on the next startup."
+                    );
+                }
+            }
+        );
     }
 }

@@ -118,6 +118,9 @@ public class MainMenuUI : SfxBehaviourTirgger
             ballUnlockPopupInstance.Closed -=
                 HandleBallUnlockPopupClosed;
 
+            ballUnlockPopupInstance.AnimalUnlocked -=
+                HandleAnimalUnlocked;
+
             Destroy(ballUnlockPopupInstance.gameObject);
             ballUnlockPopupInstance = null;
         }
@@ -470,7 +473,15 @@ public class MainMenuUI : SfxBehaviourTirgger
         ballUnlockPopupInstance.Closed +=
             HandleBallUnlockPopupClosed;
 
+        ballUnlockPopupInstance.AnimalUnlocked +=
+            HandleAnimalUnlocked;
+
         ballUnlockPopupInstance.Open(type);
+    }
+
+    private void HandleAnimalUnlocked(BallType type)
+    {
+        ballChoiceMenu?.RefreshAll();
     }
 
     private void HandleBallUnlockPopupClosed()
@@ -479,6 +490,9 @@ public class MainMenuUI : SfxBehaviourTirgger
         {
             ballUnlockPopupInstance.Closed -=
                 HandleBallUnlockPopupClosed;
+
+            ballUnlockPopupInstance.AnimalUnlocked -=
+                HandleAnimalUnlocked;
         }
 
         ballUnlockPopupInstance = null;

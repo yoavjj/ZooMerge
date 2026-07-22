@@ -78,6 +78,7 @@ public class BallChoiceMenu : MonoBehaviour
             CreateItem(type);
 
         RefreshSelectionVisuals();
+        RefreshLockedVisuals(immediate: true);
     }
 
     private void SubscribeToSelectionManager(
@@ -124,7 +125,19 @@ public class BallChoiceMenu : MonoBehaviour
             ? ballSet.GetProfileSprite(type)
             : null;
 
-        item.Initialize(type, profileSprite);
+        BallUnlockManager unlockManager =
+            BallUnlockManager.Instance;
+
+        bool isLocked =
+            unlockManager != null &&
+            !unlockManager.IsUnlocked(type);
+
+        item.Initialize(
+            type,
+            profileSprite,
+            isLocked
+        );
+
         item.Clicked += HandleItemClicked;
 
         itemsByType[type] = item;
@@ -190,13 +203,19 @@ public class BallChoiceMenu : MonoBehaviour
 
     public void RefreshAll()
     {
-        foreach (BallChoiceItemUI item in itemsByType.Values)
+        foreach (
+            BallChoiceItemUI item
+            in itemsByType.Values)
         {
             if (item != null)
                 item.Refresh();
         }
 
         RefreshSelectionVisuals();
+
+        // Animated transition:
+        // locked alpha 1 -> unlocked alpha 0.
+        RefreshLockedVisuals(immediate: false);
     }
 
     private void RefreshSelectionVisuals()
@@ -290,5 +309,39 @@ public class BallChoiceMenu : MonoBehaviour
 
         messageLocked = false;
         messageCooldownRoutine = null;
+    }
+
+    private void RefreshLockedVisuals(
+    bool immediate = false)
+    {
+        BallUnlockManager unlockManager =
+            BallUnlockManager.Instance;
+
+        if (unlockManager == null)
+        {
+            Debug.LogWarning(
+                "[BallChoiceMenu] BallUnlockManager.Instance is null."
+            );
+
+            return;
+        }
+
+        foreach (
+            KeyValuePair<BallType, BallChoiceItemUI> pair
+            in itemsByType)
+        {
+            BallChoiceItemUI item = pair.Value;
+
+            if (item == null)
+                continue;
+
+            bool isLocked =
+                !unlockManager.IsUnlocked(pair.Key);
+
+            item.SetLockedState(
+                isLocked,
+                immediate
+            );
+        }
     }
 }
