@@ -43,6 +43,7 @@ public class BallChoiceItemUI : MonoBehaviour
 
     private Coroutine lockedFadeRoutine;
     private bool isLocked;
+    private bool forceFullColor;
 
     public BallType Type { get; private set; }
     public bool IsSelected { get; private set; }
@@ -99,6 +100,7 @@ public class BallChoiceItemUI : MonoBehaviour
         bool locked = false)
     {
         Type = type;
+        forceFullColor = false;
 
         SetProfileSprite(profileSprite);
         Refresh();
@@ -218,21 +220,21 @@ public class BallChoiceItemUI : MonoBehaviour
         lockedFadeRoutine = null;
     }
 
-    public void SetDisplayOnly(bool showFullColor = true)
+    public void SetDisplayOnly(
+        bool showFullColor = true,
+        bool showLockedOverlay = false)
     {
         if (selectionButton != null)
             selectionButton.interactable = false;
 
-        isLocked = false;
+        forceFullColor = showFullColor;
+        isLocked = showLockedOverlay;
 
-        SetLockedCanvasImmediate(0f);
+        SetLockedCanvasImmediate(
+            showLockedOverlay ? 1f : 0f
+        );
 
-        if (selectionVisualController != null)
-        {
-            selectionVisualController.SetSelectedImmediate(
-                showFullColor
-            );
-        }
+        RefreshCardVisual(immediate: true);
 
         if (selectedCanvasGroup != null)
         {
@@ -434,10 +436,10 @@ public class BallChoiceItemUI : MonoBehaviour
         if (selectionVisualController == null)
             return;
 
-        // Locked cards remain full color.
-        // Unlocked cards use their real selection state.
         bool showFullColor =
-            isLocked || IsSelected;
+            forceFullColor ||
+            isLocked ||
+            IsSelected;
 
         if (immediate)
         {
@@ -451,5 +453,13 @@ public class BallChoiceItemUI : MonoBehaviour
                 showFullColor
             );
         }
+    }
+
+    public void AE_HideLockedOverlay()
+    {
+        SetLockedState(
+            false,
+            immediate: false
+        );
     }
 }

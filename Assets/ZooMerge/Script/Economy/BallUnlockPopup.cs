@@ -33,6 +33,7 @@ public class BallUnlockPopup : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private string inTrigger = "In";
     [SerializeField] private string outTrigger = "Out";
+    [SerializeField] private string outRevealTrigger = "OutReveal";
 
     public event Action Closed;
     public event Action<BallType> AnimalUnlocked;
@@ -192,7 +193,8 @@ public class BallUnlockPopup : MonoBehaviour
         );
 
         spawnedAnimalCard.SetDisplayOnly(
-            showFullColor: true
+            showFullColor: true,
+            showLockedOverlay: true
         );
 
         spawnedAnimalCard.RevealFinished +=
@@ -201,7 +203,7 @@ public class BallUnlockPopup : MonoBehaviour
 
     private void HandleAnimalCardRevealFinished()
     {
-        Close();
+        CloseAfterReveal();
     }
 
     private void BuildRequirements(
@@ -483,19 +485,40 @@ public class BallUnlockPopup : MonoBehaviour
         }
 
         animator.ResetTrigger(inTrigger);
+        animator.ResetTrigger(outRevealTrigger);
         animator.ResetTrigger(outTrigger);
+
         animator.SetTrigger(outTrigger);
     }
 
-    public void AE_FinishClose()
+    private void CloseAfterReveal()
     {
-        FinishClose();
+        if (isOpening)
+            return;
+
+        if (animator == null ||
+            string.IsNullOrEmpty(outRevealTrigger))
+        {
+            FinishClose();
+            return;
+        }
+
+        animator.ResetTrigger(inTrigger);
+        animator.ResetTrigger(outTrigger);
+        animator.ResetTrigger(outRevealTrigger);
+
+        animator.SetTrigger(outRevealTrigger);
     }
 
-    private void FinishClose()
+    public void AE_FinishClose(float delay = 0f)
+    {
+        FinishClose(delay);
+    }
+
+    private void FinishClose(float delay = 0f)
     {
         Closed?.Invoke();
-        Destroy(gameObject,1.5f);
+        Destroy(gameObject, delay);
     }
 
     public void AE_PlayRequirementFillAnimations()
