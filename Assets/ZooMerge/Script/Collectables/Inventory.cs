@@ -19,6 +19,9 @@ public sealed class Inventory
     public event Action OnChanged;
     public event Action OnCoinsReduced;
 
+    public event Action<BallType, int, int> OnBallReduced;
+    public event Action<CurrencyType, int, int> OnCurrencyReduced;
+
     public void NotifyChanged()
     {
         OnChanged?.Invoke();
@@ -59,20 +62,30 @@ public sealed class Inventory
         if (amount <= 0)
             return true;
 
-        int current = Get(type);
+        int previousValue = Get(type);
 
-        if (current < amount)
+        if (previousValue < amount)
             return false;
 
-        ballValues[type] =
-            current - amount;
+        int newValue =
+            previousValue - amount;
+
+        ballValues[type] = newValue;
 
         PlayerPrefs.SetInt(
             GetBallKey(type),
-            ballValues[type]
+            newValue
         );
 
         PlayerPrefs.Save();
+
+        // Dedicated top-bar reduction event.
+        // This still fires when notify is false.
+        OnBallReduced?.Invoke(
+            type,
+            previousValue,
+            newValue
+        );
 
         if (notify)
             OnChanged?.Invoke();
@@ -123,20 +136,30 @@ public sealed class Inventory
         if (amount <= 0)
             return true;
 
-        int current = Get(type);
+        int previousValue = Get(type);
 
-        if (current < amount)
+        if (previousValue < amount)
             return false;
 
-        currencyValues[type] =
-            current - amount;
+        int newValue =
+            previousValue - amount;
+
+        currencyValues[type] = newValue;
 
         PlayerPrefs.SetInt(
             GetCurrencyKey(type),
-            currencyValues[type]
+            newValue
         );
 
         PlayerPrefs.Save();
+
+        // Dedicated top-bar reduction event.
+        // This still fires when notify is false.
+        OnCurrencyReduced?.Invoke(
+            type,
+            previousValue,
+            newValue
+        );
 
         if (notify)
         {

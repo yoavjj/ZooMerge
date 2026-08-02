@@ -60,7 +60,21 @@ public class WinLosePopup : SfxBehaviourTirgger
 
     [SerializeField, Min(0f)] private float levelRevealDuration = 4.5f;      // ✅ how long reveal stays on screen
     [SerializeField, Min(0f)] private float revealOutDuration = 0.6f;        // ✅ how long reveal "Out" takes
-    
+
+    [Header("Ball Choice")]
+    [SerializeField] private BallChoiceMenu ballChoiceMenu;
+
+    [Header("Hero Selection Panel")]
+    [SerializeField] private GameObject heroPanelHolder;
+
+    private BallSelectionManager BallSelection =>
+        BallSelectionManager.Instance;
+
+    private BallUnlockPopup ballUnlockPopupInstance;
+
+    private const string BALL_UNLOCK_POPUP =
+        "BallUnlockPopup";
+
     private Coroutine playPressedRoutine;
 
     private bool isContinue = false;
@@ -101,6 +115,12 @@ public class WinLosePopup : SfxBehaviourTirgger
             mergeSummaryPanel.onAllCollectiblesFinished += HandleSummaryReady;
 
         OutOfTriesPopup.RetriesPurchased += HandleRetriesPurchased;
+
+        if (ballChoiceMenu != null)
+        {
+            ballChoiceMenu.UnlockPopupRequested +=
+                HandleUnlockPopupRequested;
+        }
     }
 
     private void OnDisable()
@@ -124,6 +144,176 @@ public class WinLosePopup : SfxBehaviourTirgger
             roadmapInstance.OnClosedRoadmap -= HandleRoadmapClosed;
 
         OutOfTriesPopup.RetriesPurchased -= HandleRetriesPurchased;
+
+        if (ballChoiceMenu != null)
+        {
+            ballChoiceMenu.UnlockPopupRequested -=
+                HandleUnlockPopupRequested;
+        }
+
+        if (levelProgressBarSlider != null)
+        {
+            levelProgressBarSlider.OnEnemyMarkedDone -=
+                HandleEnemyDone;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+
+        if (mergeSummaryPanel != null)
+        {
+            mergeSummaryPanel.onAllCollectiblesFinished -=
+                HandleSummaryReady;
+        }
+
+        OutOfTriesPopup.RetriesPurchased -=
+            HandleRetriesPurchased;
+
+        if (ballChoiceMenu != null)
+        {
+            ballChoiceMenu.UnlockPopupRequested -=
+                HandleUnlockPopupRequested;
+        }
+
+        if (levelProgressBarSlider != null)
+        {
+            levelProgressBarSlider.OnEnemyMarkedDone -=
+                HandleEnemyDone;
+        }
+
+        if (roadmapInstance != null)
+        {
+            roadmapInstance.OnClosedRoadmap -=
+                HandleRoadmapClosed;
+
+            Destroy(roadmapInstance.gameObject);
+            roadmapInstance = null;
+        }
+
+        if (ballUnlockPopupInstance != null)
+        {
+            ballUnlockPopupInstance.Closed -=
+                HandleBallUnlockPopupClosed;
+
+            ballUnlockPopupInstance.AnimalUnlocked -=
+                HandleAnimalUnlocked;
+
+            Destroy(ballUnlockPopupInstance.gameObject);
+            ballUnlockPopupInstance = null;
+        }
+
+        if (outOfTriesInstance != null)
+        {
+            Destroy(outOfTriesInstance);
+            outOfTriesInstance = null;
+        }
+
+        if (levelArtRevealInstance != null)
+        {
+            Destroy(levelArtRevealInstance.gameObject);
+            levelArtRevealInstance = null;
+        }
+
+        if (applyRoutine != null)
+        {
+            StopCoroutine(applyRoutine);
+            applyRoutine = null;
+        }
+
+        if (playPressedRoutine != null)
+        {
+            StopCoroutine(playPressedRoutine);
+            playPressedRoutine = null;
+        }
+    }
+
+    private void HandleUnlockPopupRequested(
+    BallType type)
+    {
+        ShowBallUnlockPopup(type);
+    }
+
+    private void ShowBallUnlockPopup(
+    BallType type)
+    {
+        if (prefabLibrary == null)
+        {
+            Debug.LogWarning(
+                "[WinLosePopup] PrefabLibrary is not assigned."
+            );
+
+            return;
+        }
+
+        if (outOfTriesContainer == null)
+        {
+            Debug.LogWarning(
+                "[WinLosePopup] Popup container is not assigned."
+            );
+
+            return;
+        }
+
+        // Reuse the existing popup when one is already alive.
+        if (ballUnlockPopupInstance != null)
+        {
+            ballUnlockPopupInstance.Open(type);
+            return;
+        }
+
+        BallUnlockPopup popupPrefab =
+            prefabLibrary.GetBallUnlockPopup(
+                BALL_UNLOCK_POPUP
+            );
+
+        if (popupPrefab == null)
+        {
+            Debug.LogWarning(
+                "[WinLosePopup] BallUnlockPopup prefab not found."
+            );
+
+            return;
+        }
+
+        ballUnlockPopupInstance = Instantiate(
+            popupPrefab,
+            outOfTriesContainer
+        );
+
+        ResetRectTransform(
+            ballUnlockPopupInstance.transform
+        );
+
+        ballUnlockPopupInstance.Closed +=
+            HandleBallUnlockPopupClosed;
+
+        ballUnlockPopupInstance.AnimalUnlocked +=
+            HandleAnimalUnlocked;
+
+        ballUnlockPopupInstance.Open(type);
+    }
+
+    private void HandleBallUnlockPopupClosed()
+    {
+        if (ballUnlockPopupInstance != null)
+        {
+            ballUnlockPopupInstance.Closed -=
+                HandleBallUnlockPopupClosed;
+
+            ballUnlockPopupInstance.AnimalUnlocked -=
+                HandleAnimalUnlocked;
+        }
+
+        ballUnlockPopupInstance = null;
+    }
+
+    private void HandleAnimalUnlocked(
+    BallType type)
+    {
+        ballChoiceMenu?.RefreshAll();
     }
 
     public void SetMessage(string msg)
@@ -132,24 +322,40 @@ public class WinLosePopup : SfxBehaviourTirgger
             messageText.text = msg;
     }
 
-    public void SetLevelMessage(int currentLevel, GameOverReason reason)
+    public void SetLevelMessage(
+        int currentLevel,
+        GameOverReason reason)
     {
-        if (levelMessageText == null || playButtonText == null) return;
-
-        // Build merge summary
-        if (mergeSummaryPanel != null && MergeSessionTracker.Instance != null)
+        if (levelMessageText == null ||
+            playButtonText == null)
         {
-            var snapshot = MergeSessionTracker.Instance.GetCurrentSnapshot();
-            mergeSummaryPanel.Build(snapshot);
+            return;
         }
 
         currentReason = reason;
+
+        RefreshHeroPanelVisibility(reason);
+
+        // Build merge summary
+        if (mergeSummaryPanel != null &&
+            MergeSessionTracker.Instance != null)
+        {
+            var snapshot =
+                MergeSessionTracker.Instance
+                    .GetCurrentSnapshot();
+
+            mergeSummaryPanel.Build(snapshot);
+        }
 
         BuildContent(reason);
 
         if (animator != null)
         {
-            animator.SetTrigger(reason == GameOverReason.Won ? "Win" : "Lose");
+            animator.SetTrigger(
+                reason == GameOverReason.Won
+                    ? "Win"
+                    : "Lose"
+            );
         }
 
         if (levelProgressBarSlider != null)
@@ -219,6 +425,28 @@ public class WinLosePopup : SfxBehaviourTirgger
                 levelMessageText.text = $"Level {currentLevel}";
                 playButtonText.text = $"Level {currentLevel}";
                 break;
+        }
+    }
+
+    private void RefreshHeroPanelVisibility(
+    GameOverReason reason)
+    {
+        if (heroPanelHolder == null)
+            return;
+
+        bool shouldShow =
+            reason == GameOverReason.Won &&
+            (
+                levelCompleteContext ||
+                MergeLevelManager.IsLastLevelInCurrentGalaxy
+            );
+
+        heroPanelHolder.SetActive(shouldShow);
+
+        if (shouldShow)
+        {
+            ballChoiceMenu?.SetClearSelectionOnBuild(false);
+            ballChoiceMenu?.Build();
         }
     }
 
@@ -432,17 +660,33 @@ public class WinLosePopup : SfxBehaviourTirgger
 
     public void OnPlayPressed()
     {
-        // 1. Check if the button has already been pressed successfully
         if (playPressedLocked)
             return;
 
         if (IsSummaryBusy())
         {
-            deferredAction = DeferredAction.PlayPressed; // last wins
+            deferredAction = DeferredAction.PlayPressed;
+
+            return;
+        }
+
+        BallSelectionManager selectionManager = BallSelection;
+
+        if (selectionManager == null ||
+            !selectionManager.HasRequiredSelection)
+        {
+            PlayUiSfx(
+                SfxCue.ButtonClickNegative
+            );
+
+            ballChoiceMenu?.
+                ShowIncompleteSelectionMessage();
+
             return;
         }
 
         int g = MergeLevelManager.CurrentGalaxyId;
+
         int l = MergeLevelManager.CurrentLevelInGalaxy;
 
         // ✅ If player has 0 retries left, show OutOfTries popup instead of retrying
@@ -676,6 +920,7 @@ public class WinLosePopup : SfxBehaviourTirgger
         }
 
         levelCompleteContext = toLevelEnd;  // already in your code
+        RefreshHeroPanelVisibility(currentReason);
 
         if (toLevelEnd && preloadLevelRevealOnStart && !MergeLevelManager.IsLastLevelInCurrentGalaxy)
         {
@@ -849,10 +1094,5 @@ public class WinLosePopup : SfxBehaviourTirgger
     public static void SetSuppressSessionStartFromReveal(bool value)
     {
         SuppressSessionStartFromReveal = value;
-    } 
-
-    public void PlayUiSfxButtonClick()
-    {
-        PlayUiSfx(SfxCue.ButtonClick);
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,6 +29,21 @@ public class BallUnlockPopup : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private Button launchButton;
+
+    [Header("Message Panel")]
+    [SerializeField] private Animator messagePanelAnimator;
+    [SerializeField] private TextMeshProUGUI messageText;
+    [SerializeField] private string messageTrigger = "In";
+
+    [SerializeField, Min(0f)]
+    private float messageCooldown = 0.75f;
+
+    [SerializeField, TextArea]
+    private string insufficientResourcesMessage =
+        "Not enough resources.";
+
+    private bool messageLocked;
+    private Coroutine messageCooldownRoutine;
 
     [Header("Animator")]
     [SerializeField] private Animator animator;
@@ -82,6 +98,13 @@ public class BallUnlockPopup : MonoBehaviour
             openRoutine = null;
         }
 
+        if (messageCooldownRoutine != null)
+        {
+            StopCoroutine(messageCooldownRoutine);
+            messageCooldownRoutine = null;
+        }
+
+        messageLocked = false;
         isOpening = false;
     }
 
@@ -362,9 +385,11 @@ public class BallUnlockPopup : MonoBehaviour
             return;
         }
 
+        // Keep the button clickable while locked.
+        // Affordability is checked when the player presses it.
         launchButton.interactable =
             !manager.IsUnlocked(targetType) &&
-            manager.CanUnlock(targetType, out _);
+            !isCompletingPurchase;
     }
 
     private void PurchaseWithCoins()
@@ -381,16 +406,49 @@ public class BallUnlockPopup : MonoBehaviour
             return;
         }
 
-        // Prevent inventory notifications from rebuilding the
-        // requirement sliders during a successful purchase.
+        if (isCompletingPurchase)
+            return;
+
+        // Keep the button clickable, but show feedback
+        // when the requirements have not been met.
+        if (!manager.CanUnlock(
+                targetType,
+                out string reason))
+        {
+            if (!manager.IsUnlocked(targetType))
+            {
+                ShowMessage(
+                    insufficientResourcesMessage
+                );
+            }
+
+            Debug.Log(
+                $"[BallUnlockPopup] Cannot unlock " +
+                $"{targetType}: {reason}"
+            );
+
+            return;
+        }
+
+        // Prevent inventory notifications from rebuilding
+        // the requirement sliders during the reveal.
         isCompletingPurchase = true;
+
+        if (launchButton != null)
+            launchButton.interactable = false;
 
         if (!manager.TryUnlock(
                 targetType,
                 out string result))
         {
-            // Purchase failed, so normal refreshing is allowed again.
             isCompletingPurchase = false;
+
+            if (launchButton != null)
+                launchButton.interactable = true;
+
+            ShowMessage(
+                insufficientResourcesMessage
+            );
 
             Debug.Log(
                 $"[BallUnlockPopup] Could not unlock " +
@@ -405,20 +463,61 @@ public class BallUnlockPopup : MonoBehaviour
             $"[BallUnlockPopup] {result}"
         );
 
-        if (launchButton != null)
-            launchButton.interactable = false;
-
         if (spawnedAnimalCard != null)
         {
             spawnedAnimalCard.PlayUnlockReveal();
         }
         else
         {
-            // Safety fallback if the card failed to spawn.
             Close();
         }
 
         AnimalUnlocked?.Invoke(targetType);
+    }
+
+    private void ShowMessage(string message)
+    {
+        if (messageLocked)
+            return;
+
+        messageLocked = true;
+
+        if (messageText != null)
+            messageText.text = message;
+
+        if (messagePanelAnimator != null &&
+            !string.IsNullOrEmpty(messageTrigger))
+        {
+            messagePanelAnimator.ResetTrigger(
+                messageTrigger
+            );
+
+            messagePanelAnimator.SetTrigger(
+                messageTrigger
+            );
+        }
+
+        if (messageCooldownRoutine != null)
+        {
+            StopCoroutine(
+                messageCooldownRoutine
+            );
+        }
+
+        messageCooldownRoutine =
+            StartCoroutine(
+                MessageCooldownRoutine()
+            );
+    }
+
+    private IEnumerator MessageCooldownRoutine()
+    {
+        yield return new WaitForSecondsRealtime(
+            messageCooldown
+        );
+
+        messageLocked = false;
+        messageCooldownRoutine = null;
     }
 
     private void PlayInAnimation()

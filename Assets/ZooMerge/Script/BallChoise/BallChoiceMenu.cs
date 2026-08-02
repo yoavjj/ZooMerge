@@ -344,4 +344,9 @@ public class BallChoiceMenu : MonoBehaviour
             );
         }
     }
+
+    public void SetClearSelectionOnBuild(bool value)
+    {
+        clearSelectionOnBuild = value;
+    }
 }

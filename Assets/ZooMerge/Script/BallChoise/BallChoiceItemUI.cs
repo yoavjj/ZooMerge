@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BallChoiceItemUI : MonoBehaviour
+public class BallChoiceItemUI : SfxBehaviourTirgger
 {
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI animalTypeText;
@@ -401,6 +401,7 @@ public class BallChoiceItemUI : MonoBehaviour
 
     private void HandleButtonPressed()
     {
+        PlayUiSfx(SfxCue.ButtonClick);
         Clicked?.Invoke(this);
     }
 

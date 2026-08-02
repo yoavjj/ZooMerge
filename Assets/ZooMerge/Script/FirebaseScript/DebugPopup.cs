@@ -110,13 +110,51 @@ public class DebugPopup : MonoBehaviour
 
     public void RestartInventory()
     {
+        // Reset local coins and merge balances.
         GameInventory.Instance.ResetAll();
+
+        // Reset locally purchased animal unlocks.
         BallUnlockManager.Instance?.ResetUnlocks();
 
-        // Reset retries back to 1 (starting amount)
+        // Reset retry hearts.
         PlayerProgress.NewLevelRetriesRemaining = 1;
-        PlayerProgress.SaveNow();          // if you have this
-        PlayerProgress.NotifyRetriesChanged(); // if you have this
+        PlayerProgress.SaveNow();
+        PlayerProgress.NotifyRetriesChanged();
+
+        // Refresh the animal selection menu immediately.
+        BallChoiceMenu menu =
+            FindFirstObjectByType<BallChoiceMenu>(
+                FindObjectsInactive.Include
+            );
+
+        if (menu != null)
+            menu.RefreshAll();
+
+        Debug.Log(
+            "[DebugPopup] Local inventory reset. " +
+            "Saving reset economy to cloud..."
+        );
+
+        // Save the reset coins, merges, unlocks, and retries to Firestore.
+        CloudSaveManager.SaveEconomyStateImmediate(
+            success =>
+            {
+                if (success)
+                {
+                    Debug.Log(
+                        "[DebugPopup] Inventory reset saved to cloud."
+                    );
+                }
+                else
+                {
+                    Debug.LogError(
+                        "[DebugPopup] Inventory was reset locally, " +
+                        "but the cloud reset failed. " +
+                        "Old cloud values may return after restarting."
+                    );
+                }
+            }
+        );
     }
 
     public void FinalMerge()
