@@ -9,9 +9,17 @@ public class TopBarMenu : MonoBehaviour
     [Header("UI")]
     [SerializeField] private Transform container;
     [SerializeField] private GameObject topBarItemPrefab;
+    [SerializeField] private RectTransform parentLayout;
 
     [Header("Canvas Context")]
     [SerializeField] private Canvas rootCanvas;
+
+    [Header("Purchase Reduction Animation")]
+    [SerializeField, Min(0f)]
+    private float reductionStartDelay = 0.35f;
+
+    [SerializeField, Min(0.01f)]
+    private float reductionDuration = 0.8f;
 
     private readonly Dictionary<BallType, TopBarMergeItemUI> itemsByType = new();
     private Camera uiCam;
@@ -25,21 +33,82 @@ public class TopBarMenu : MonoBehaviour
 
     private void OnEnable()
     {
-        GameInventory.Instance.OnCoinsReduced += HandleInventoryChanged;
+        GameInventory.Instance.OnBallReduced +=
+            HandleBallReduced;
+
+        GameInventory.Instance.OnCurrencyReduced +=
+            HandleCurrencyReduced;
+
+        if (BallUnlockManager.Instance != null)
+        {
+            BallUnlockManager.Instance.OnBallUnlocked +=
+                HandleBallUnlocked;
+        }
     }
 
     private void OnDisable()
     {
-        GameInventory.Instance.OnCoinsReduced -= HandleInventoryChanged;
+        GameInventory.Instance.OnBallReduced -=
+            HandleBallReduced;
+
+        GameInventory.Instance.OnCurrencyReduced -=
+            HandleCurrencyReduced;
+
+        if (BallUnlockManager.Instance != null)
+        {
+            BallUnlockManager.Instance.OnBallUnlocked -=
+                HandleBallUnlocked;
+        }
     }
 
-
-    private void HandleInventoryChanged()
+    private void HandleBallReduced(
+    BallType type,
+    int previousValue,
+    int newValue)
     {
-        if (!FirebaseInitializer.BootComplete)
+        if (!itemsByType.TryGetValue(
+                type,
+                out TopBarMergeItemUI item))
+        {
+            return;
+        }
+
+        if (item == null)
             return;
 
-        RefreshCoins();
+        item.AnimateCountReduction(
+            previousValue,
+            newValue,
+            reductionStartDelay,
+            reductionDuration
+        );
+    }
+
+    private void HandleCurrencyReduced(
+        CurrencyType type,
+        int previousValue,
+        int newValue)
+    {
+        if (type != CurrencyType.Coins)
+            return;
+
+        if (!TryGetOrCreateCoinItem(
+                out TopBarCoinItemUI coinItem))
+        {
+            return;
+        }
+
+        coinItem.AnimateCountReduction(
+            previousValue,
+            newValue,
+            reductionStartDelay,
+            reductionDuration
+        );
+    }
+
+    private void HandleBallUnlocked(BallType type)
+    {
+        TryGetOrCreateItem(type, out _);
     }
 
     public void RefreshCoins()
@@ -53,13 +122,20 @@ public class TopBarMenu : MonoBehaviour
 
     public void BuildAllBallTypesUI()
     {
-        if (MergeSessionTracker.Instance == null) return;
+        if (MergeSessionTracker.Instance == null)
+            return;
 
-        // Get all configured types from your tracker config
         List<BallType> allTypes =
             MergeSessionTracker.Instance.GetConfiguredTypes();
 
-        PrepareTypes(allTypes);   // creates items even if count is 0
+        foreach (BallType type in allTypes)
+        {
+            if (!IsBallUnlocked(type))
+                continue;
+
+            TryGetOrCreateItem(type, out _);
+        }
+
         RebuildLayoutImmediate();
     }
 
@@ -82,9 +158,15 @@ public class TopBarMenu : MonoBehaviour
     private void RebuildLayoutImmediate()
     {
         Canvas.ForceUpdateCanvases();
-        LayoutRebuilder.ForceRebuildLayoutImmediate(
-            container as RectTransform
-        );
+
+        if (parentLayout != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(
+                parentLayout
+            );
+        }
+
+        Canvas.ForceUpdateCanvases();
     }
 
     /// <summary>
@@ -92,7 +174,14 @@ public class TopBarMenu : MonoBehaviour
     /// </summary>
     public void RefreshValue(BallType type)
     {
-        int value = GameInventory.Instance.Get(type);
+        if (!IsBallUnlocked(type))
+        {
+            RemoveItem(type);
+            return;
+        }
+
+        int value =
+            GameInventory.Instance.Get(type);
 
         // 🔥 First time this currency appears
         if (!itemsByType.TryGetValue(type, out var item))
@@ -108,17 +197,39 @@ public class TopBarMenu : MonoBehaviour
         item.SetCount(value);
     }
 
+    private void RemoveItem(BallType type)
+    {
+        if (!itemsByType.TryGetValue(
+                type,
+                out TopBarMergeItemUI item))
+        {
+            return;
+        }
+
+        itemsByType.Remove(type);
+
+        if (item != null)
+            Destroy(item.gameObject);
+
+        RebuildLayoutImmediate();
+    }
+
     private void CreateItem(BallType type, int value)
     {
+        if (!IsBallUnlocked(type))
+            return;
+
         Sprite icon =
             MergeSessionTracker.Instance.GetIconForType(type);
 
         if (icon == null)
             return;
 
-        var go = Instantiate(topBarItemPrefab, container);
+        GameObject go =
+            Instantiate(topBarItemPrefab, container);
 
-        if (!go.TryGetComponent(out TopBarMergeItemUI item))
+        if (!go.TryGetComponent(
+                out TopBarMergeItemUI item))
         {
             Destroy(go);
             return;
@@ -128,6 +239,23 @@ public class TopBarMenu : MonoBehaviour
         item.Initialize(type, icon, value);
 
         itemsByType[type] = item;
+    }
+
+    private bool IsBallUnlocked(BallType type)
+    {
+        BallUnlockManager unlockManager =
+            BallUnlockManager.Instance;
+
+        if (unlockManager == null)
+        {
+            Debug.LogWarning(
+                "[TopBarMenu] BallUnlockManager.Instance is null."
+            );
+
+            return false;
+        }
+
+        return unlockManager.IsUnlocked(type);
     }
 
     private void Clear()
@@ -141,25 +269,38 @@ public class TopBarMenu : MonoBehaviour
     public bool TryGetItem(BallType type, out TopBarMergeItemUI item)
         => itemsByType.TryGetValue(type, out item);
 
-    public bool TryGetOrCreateItem(BallType type, out TopBarMergeItemUI item)
+    public bool TryGetOrCreateItem(
+        BallType type,
+        out TopBarMergeItemUI item)
     {
         if (itemsByType.TryGetValue(type, out item))
             return true;
 
-        // Create even if count is 0, because we need a fly target.
-        int value = GameInventory.Instance.Get(type);
+        if (!IsBallUnlocked(type))
+        {
+            item = null;
+            return false;
+        }
+
+        int value =
+            GameInventory.Instance.Get(type);
 
         Sprite icon =
             MergeSessionTracker.Instance.GetIconForType(type);
 
         if (icon == null)
+        {
+            item = null;
             return false;
+        }
 
-        var go = Instantiate(topBarItemPrefab, container);
+        GameObject go =
+            Instantiate(topBarItemPrefab, container);
 
         if (!go.TryGetComponent(out item))
         {
             Destroy(go);
+            item = null;
             return false;
         }
 
@@ -168,20 +309,22 @@ public class TopBarMenu : MonoBehaviour
 
         itemsByType[type] = item;
 
-        // Layout must update so the target position is correct
+        Canvas.ForceUpdateCanvases();
         RebuildLayoutImmediate();
 
         return true;
     }
 
-    public void PrepareTypes(List<BallType> upcomingTypes)
+    public void PrepareTypes(
+        List<BallType> upcomingTypes)
     {
-        foreach (var type in upcomingTypes)
+        foreach (BallType type in upcomingTypes)
         {
+            if (!IsBallUnlocked(type))
+                continue;
+
             if (!itemsByType.ContainsKey(type))
-            {
-                TryGetOrCreateItem(type, out _); // Will show item with current count (even if 0)
-            }
+                TryGetOrCreateItem(type, out _);
         }
     }
 

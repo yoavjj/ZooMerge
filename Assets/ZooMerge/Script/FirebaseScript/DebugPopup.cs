@@ -5,6 +5,10 @@ using System;
 
 public class DebugPopup : MonoBehaviour
 {
+    [Header("Debug Ball Unlock")]
+    [SerializeField]
+    private BallType debugBallType = BallType.Cat;
+
     GameHealthManager healthManager;
 
     [Header("Debug Fly Collectible")]
@@ -106,13 +110,51 @@ public class DebugPopup : MonoBehaviour
 
     public void RestartInventory()
     {
+        // Reset local coins and merge balances.
         GameInventory.Instance.ResetAll();
+
+        // Reset locally purchased animal unlocks.
         BallUnlockManager.Instance?.ResetUnlocks();
 
-        // Reset retries back to 1 (starting amount)
+        // Reset retry hearts.
         PlayerProgress.NewLevelRetriesRemaining = 1;
-        PlayerProgress.SaveNow();          // if you have this
-        PlayerProgress.NotifyRetriesChanged(); // if you have this
+        PlayerProgress.SaveNow();
+        PlayerProgress.NotifyRetriesChanged();
+
+        // Refresh the animal selection menu immediately.
+        BallChoiceMenu menu =
+            FindFirstObjectByType<BallChoiceMenu>(
+                FindObjectsInactive.Include
+            );
+
+        if (menu != null)
+            menu.RefreshAll();
+
+        Debug.Log(
+            "[DebugPopup] Local inventory reset. " +
+            "Saving reset economy to cloud..."
+        );
+
+        // Save the reset coins, merges, unlocks, and retries to Firestore.
+        CloudSaveManager.SaveEconomyStateImmediate(
+            success =>
+            {
+                if (success)
+                {
+                    Debug.Log(
+                        "[DebugPopup] Inventory reset saved to cloud."
+                    );
+                }
+                else
+                {
+                    Debug.LogError(
+                        "[DebugPopup] Inventory was reset locally, " +
+                        "but the cloud reset failed. " +
+                        "Old cloud values may return after restarting."
+                    );
+                }
+            }
+        );
     }
 
     public void FinalMerge()
@@ -154,5 +196,78 @@ public class DebugPopup : MonoBehaviour
         }
 
         CollectibleFlyService.Instance.Fly(heartEntryId, 1, heartFlyTarget, overrideSpawnContainer);
+    }
+
+    [ContextMenu("Debug: Unlock Selected Ball")]
+    public void DebugUnlockSelectedBall()
+    {
+        BallUnlockManager manager =
+            BallUnlockManager.Instance;
+
+        if (manager == null)
+        {
+            Debug.LogError(
+                "[DebugPopup] BallUnlockManager.Instance is null."
+            );
+
+            return;
+        }
+
+        manager.DebugUnlock(debugBallType);
+
+        Debug.Log(
+            $"[DebugPopup] Unlocked {debugBallType}. " +
+            $"Saved value: " +
+            $"{BallUnlockSave.GetRawSavedValue(debugBallType)}"
+        );
+    }
+
+    [ContextMenu("Debug: Print Selected Ball Unlock")]
+    public void DebugPrintSelectedBallUnlock()
+    {
+        BallUnlockManager manager =
+            BallUnlockManager.Instance;
+
+        if (manager == null)
+        {
+            Debug.LogError(
+                "[DebugPopup] BallUnlockManager.Instance is null."
+            );
+
+            return;
+        }
+
+        Debug.Log(
+            $"[DebugPopup] Type: {debugBallType}, " +
+            $"IsUnlocked: {manager.IsUnlocked(debugBallType)}, " +
+            $"Saved value: " +
+            $"{BallUnlockSave.GetRawSavedValue(debugBallType)}"
+        );
+    }
+
+    [ContextMenu("Debug: Reset Selected Ball Purchase")]
+    public void DebugResetSelectedBallPurchase()
+    {
+        BallUnlockManager manager =
+            BallUnlockManager.Instance;
+
+        if (manager == null)
+        {
+            Debug.LogError(
+                "[DebugPopup] BallUnlockManager.Instance is null."
+            );
+
+            return;
+        }
+
+        manager.DebugResetUnlock(
+            debugBallType
+        );
+
+        Debug.Log(
+            $"[DebugPopup] Reset {debugBallType} game ownership. " +
+            "If this was purchased through Apple IAP, Apple may still " +
+            "remember the non-consumable purchase."
+        );
     }
 }

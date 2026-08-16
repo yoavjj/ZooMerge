@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+[ExecuteAlways]
 public class BallUnlockRequirementItemUI : MonoBehaviour
 {
     [Header("UI")]
@@ -18,11 +19,74 @@ public class BallUnlockRequirementItemUI : MonoBehaviour
     private AnimationCurve fillCurve =
         AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
+    [Header("Completed Animator")]
+    [SerializeField] private Animator requirementAnimator;
+    [SerializeField] private string doneTrigger = "Done";
+
+    [Header("Completed Shader")]
+    [Tooltip("Graphic that receives the grayscale/color material.")]
+    [SerializeField] private Graphic targetGraphic;
+
+    [Tooltip("Material using the same shader as GalaxyColorAnimator.")]
+    [SerializeField] private Material sourceMaterial;
+
+    [SerializeField] private bool overrideMaterial = true;
+
+    [Tooltip("Shader float property controlled by the animation.")]
+    [SerializeField] private string blendProperty = "_Blend";
+
+    [Header("Animated Shader Value")]
+    [Tooltip("Keyframe this value in the Done animation.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float blend = 1f;
+
+    [Header("Completion Timing")]
+    [SerializeField, Range(0f, 1f)]
+    private float doneTriggerAtProgress = 0.88f;
+
     private Coroutine fillRoutine;
+    private Material runtimeMaterial;
+    private Material originalMaterial;
 
     private int cachedVisibleCurrent;
     private int cachedRequiredAmount;
     private float cachedTargetProgress;
+    private bool cachedRequirementComplete;
+    private bool donePlayed;
+
+    private void Reset()
+    {
+        if (targetGraphic == null)
+            targetGraphic = GetComponent<Graphic>();
+
+        if (requirementAnimator == null)
+            requirementAnimator = GetComponent<Animator>();
+    }
+
+    private void OnEnable()
+    {
+        EnsureMaterialInstance();
+        ApplyShaderValue();
+    }
+
+    private void OnValidate()
+    {
+        EnsureMaterialInstance();
+        ApplyShaderValue();
+    }
+
+    private void Update()
+    {
+        // Allows previewing the Blend value in Edit Mode.
+        if (!Application.isPlaying)
+            ApplyShaderValue();
+    }
+
+    private void OnDidApplyAnimationProperties()
+    {
+        // Called when the Animator keyframes the serialized blend field.
+        ApplyShaderValue();
+    }
 
     public void Initialize(
         string requirementName,
@@ -32,6 +96,14 @@ public class BallUnlockRequirementItemUI : MonoBehaviour
     {
         currentAmount = Mathf.Max(0, currentAmount);
         requiredAmount = Mathf.Max(0, requiredAmount);
+
+        donePlayed = false;
+
+        if (fillRoutine != null)
+        {
+            StopCoroutine(fillRoutine);
+            fillRoutine = null;
+        }
 
         if (iconImage != null)
         {
@@ -45,12 +117,15 @@ public class BallUnlockRequirementItemUI : MonoBehaviour
             ? Mathf.Min(currentAmount, requiredAmount)
             : currentAmount;
 
-        cachedTargetProgress =
-            requiredAmount > 0
-                ? Mathf.Clamp01(
-                    (float)currentAmount / requiredAmount
-                )
-                : 1f;
+        cachedTargetProgress = requiredAmount > 0
+            ? Mathf.Clamp01(
+                (float)currentAmount / requiredAmount
+            )
+            : 1f;
+
+        cachedRequirementComplete =
+            requiredAmount <= 0 ||
+            currentAmount >= requiredAmount;
 
         if (progressSlider != null)
         {
@@ -59,6 +134,7 @@ public class BallUnlockRequirementItemUI : MonoBehaviour
             progressSlider.wholeNumbers = false;
             progressSlider.interactable = false;
 
+            // Wait for the popup animation event.
             progressSlider.SetValueWithoutNotify(0f);
         }
 
@@ -67,10 +143,16 @@ public class BallUnlockRequirementItemUI : MonoBehaviour
             requirementText.text =
                 $"0/{cachedRequiredAmount}";
         }
+
+        EnsureMaterialInstance();
+        ApplyShaderValue();
     }
 
     public void PlayFillAnimation()
     {
+        if (!Application.isPlaying)
+            return;
+
         if (fillRoutine != null)
             StopCoroutine(fillRoutine);
 
@@ -95,6 +177,9 @@ public class BallUnlockRequirementItemUI : MonoBehaviour
         }
 
         UpdateProgressText(cachedVisibleCurrent);
+
+        if (cachedRequirementComplete)
+            PlayDone();
     }
 
     private IEnumerator AnimateProgressRoutine()
@@ -104,6 +189,7 @@ public class BallUnlockRequirementItemUI : MonoBehaviour
             : 0f;
 
         int startCount = 0;
+        bool doneTriggeredDuringFill = false;
 
         if (fillDuration <= 0f)
         {
@@ -115,6 +201,9 @@ public class BallUnlockRequirementItemUI : MonoBehaviour
             }
 
             UpdateProgressText(cachedVisibleCurrent);
+
+            if (cachedRequirementComplete)
+                PlayDone();
 
             fillRoutine = null;
             yield break;
@@ -156,6 +245,14 @@ public class BallUnlockRequirementItemUI : MonoBehaviour
 
             UpdateProgressText(visibleCount);
 
+            if (cachedRequirementComplete &&
+                !doneTriggeredDuringFill &&
+                normalizedTime >= doneTriggerAtProgress)
+            {
+                doneTriggeredDuringFill = true;
+                PlayDone();
+            }
+
             yield return null;
         }
 
@@ -167,6 +264,13 @@ public class BallUnlockRequirementItemUI : MonoBehaviour
         }
 
         UpdateProgressText(cachedVisibleCurrent);
+
+        // Safety in case the threshold was never reached.
+        if (cachedRequirementComplete &&
+            !doneTriggeredDuringFill)
+        {
+            PlayDone();
+        }
 
         fillRoutine = null;
     }
@@ -186,6 +290,92 @@ public class BallUnlockRequirementItemUI : MonoBehaviour
             $"{currentValue}/{cachedRequiredAmount}";
     }
 
+    public void PlayDone()
+    {
+        if (donePlayed)
+            return;
+
+        donePlayed = true;
+
+        if (requirementAnimator == null ||
+            string.IsNullOrEmpty(doneTrigger))
+        {
+            return;
+        }
+
+        requirementAnimator.ResetTrigger(doneTrigger);
+        requirementAnimator.SetTrigger(doneTrigger);
+    }
+
+    public void SetBlend(float value)
+    {
+        blend = Mathf.Clamp01(value);
+
+        EnsureMaterialInstance();
+        ApplyShaderValue();
+    }
+
+    private void EnsureMaterialInstance()
+    {
+        if (targetGraphic == null)
+            return;
+
+        if (originalMaterial == null)
+            originalMaterial = targetGraphic.material;
+
+        Material baseMaterial =
+            overrideMaterial && sourceMaterial != null
+                ? sourceMaterial
+                : targetGraphic.material;
+
+        if (baseMaterial == null)
+            return;
+
+        if (runtimeMaterial != null &&
+            targetGraphic.material == runtimeMaterial)
+        {
+            return;
+        }
+
+        // Avoid cloning our own runtime instance repeatedly.
+        if (runtimeMaterial != null)
+        {
+            if (Application.isPlaying)
+                Destroy(runtimeMaterial);
+            else
+                DestroyImmediate(runtimeMaterial);
+
+            runtimeMaterial = null;
+        }
+
+        runtimeMaterial = Instantiate(baseMaterial);
+        runtimeMaterial.name =
+            $"{baseMaterial.name}_{gameObject.name}_Runtime";
+
+        targetGraphic.material = runtimeMaterial;
+    }
+
+    private void ApplyShaderValue()
+    {
+        if (targetGraphic == null)
+            return;
+
+        Material material = targetGraphic.material;
+
+        if (material == null)
+            return;
+
+        if (material.HasProperty(blendProperty))
+        {
+            material.SetFloat(
+                blendProperty,
+                blend
+            );
+
+            targetGraphic.SetMaterialDirty();
+        }
+    }
+
     private void OnDisable()
     {
         if (fillRoutine != null)
@@ -193,5 +383,32 @@ public class BallUnlockRequirementItemUI : MonoBehaviour
             StopCoroutine(fillRoutine);
             fillRoutine = null;
         }
+
+        CleanupRuntimeMaterial();
+    }
+
+    private void OnDestroy()
+    {
+        CleanupRuntimeMaterial();
+    }
+
+    private void CleanupRuntimeMaterial()
+    {
+        if (runtimeMaterial == null)
+            return;
+
+        if (targetGraphic != null &&
+            targetGraphic.material == runtimeMaterial &&
+            originalMaterial != null)
+        {
+            targetGraphic.material = originalMaterial;
+        }
+
+        if (Application.isPlaying)
+            Destroy(runtimeMaterial);
+        else
+            DestroyImmediate(runtimeMaterial);
+
+        runtimeMaterial = null;
     }
 }

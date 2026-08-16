@@ -7,6 +7,7 @@ using UnityEngine;
 public class BallChoiceMenu : MonoBehaviour
 {
     public event Action<BallType> UnlockPopupRequested;
+    private BallUnlockManager subscribedUnlockManager;
 
     [Header("Data")]
     [SerializeField] private BallSet ballSet;
@@ -43,6 +44,7 @@ public class BallChoiceMenu : MonoBehaviour
     private void OnDisable()
     {
         UnsubscribeFromSelectionManager();
+        UnsubscribeFromUnlockManager();
 
         if (messageCooldownRoutine != null)
         {
@@ -70,6 +72,7 @@ public class BallChoiceMenu : MonoBehaviour
         }
 
         SubscribeToSelectionManager(manager);
+        SubscribeToUnlockManager();
 
         if (clearSelectionOnBuild)
             manager.ClearSelection();
@@ -78,6 +81,74 @@ public class BallChoiceMenu : MonoBehaviour
             CreateItem(type);
 
         RefreshSelectionVisuals();
+        RefreshLockedVisuals(immediate: true);
+    }
+
+    private void SubscribeToUnlockManager()
+    {
+        BallUnlockManager manager =
+            BallUnlockManager.Instance;
+
+        if (manager == null)
+            return;
+
+        if (subscribedUnlockManager == manager)
+            return;
+
+        UnsubscribeFromUnlockManager();
+
+        subscribedUnlockManager = manager;
+
+        subscribedUnlockManager.OnBallUnlockStateChanged +=
+            HandleUnlockStateChanged;
+    }
+
+    private void UnsubscribeFromUnlockManager()
+    {
+        if (subscribedUnlockManager == null)
+            return;
+
+        subscribedUnlockManager.OnBallUnlockStateChanged -=
+            HandleUnlockStateChanged;
+
+        subscribedUnlockManager = null;
+    }
+
+    private void HandleUnlockStateChanged(
+    BallType type)
+    {
+        BallUnlockManager unlockManager =
+            BallUnlockManager.Instance;
+
+        if (unlockManager == null)
+            return;
+
+        bool isLocked =
+            !unlockManager.IsUnlocked(type);
+
+        if (itemsByType.TryGetValue(
+                type,
+                out BallChoiceItemUI item) &&
+            item != null)
+        {
+            item.SetLockedState(
+                isLocked,
+                immediate: false
+            );
+        }
+
+        // A locked animal must not remain selected.
+        if (isLocked)
+        {
+            BallSelectionManager selectionManager =
+                SelectionManager;
+
+            if (selectionManager != null &&
+                selectionManager.IsSelected(type))
+            {
+                selectionManager.Deselect(type);
+            }
+        }
     }
 
     private void SubscribeToSelectionManager(
@@ -124,7 +195,19 @@ public class BallChoiceMenu : MonoBehaviour
             ? ballSet.GetProfileSprite(type)
             : null;
 
-        item.Initialize(type, profileSprite);
+        BallUnlockManager unlockManager =
+            BallUnlockManager.Instance;
+
+        bool isLocked =
+            unlockManager != null &&
+            !unlockManager.IsUnlocked(type);
+
+        item.Initialize(
+            type,
+            profileSprite,
+            isLocked
+        );
+
         item.Clicked += HandleItemClicked;
 
         itemsByType[type] = item;
@@ -190,13 +273,19 @@ public class BallChoiceMenu : MonoBehaviour
 
     public void RefreshAll()
     {
-        foreach (BallChoiceItemUI item in itemsByType.Values)
+        foreach (
+            BallChoiceItemUI item
+            in itemsByType.Values)
         {
             if (item != null)
                 item.Refresh();
         }
 
         RefreshSelectionVisuals();
+
+        // Animated transition:
+        // locked alpha 1 -> unlocked alpha 0.
+        RefreshLockedVisuals(immediate: false);
     }
 
     private void RefreshSelectionVisuals()
@@ -290,5 +379,44 @@ public class BallChoiceMenu : MonoBehaviour
 
         messageLocked = false;
         messageCooldownRoutine = null;
+    }
+
+    private void RefreshLockedVisuals(
+    bool immediate = false)
+    {
+        BallUnlockManager unlockManager =
+            BallUnlockManager.Instance;
+
+        if (unlockManager == null)
+        {
+            Debug.LogWarning(
+                "[BallChoiceMenu] BallUnlockManager.Instance is null."
+            );
+
+            return;
+        }
+
+        foreach (
+            KeyValuePair<BallType, BallChoiceItemUI> pair
+            in itemsByType)
+        {
+            BallChoiceItemUI item = pair.Value;
+
+            if (item == null)
+                continue;
+
+            bool isLocked =
+                !unlockManager.IsUnlocked(pair.Key);
+
+            item.SetLockedState(
+                isLocked,
+                immediate
+            );
+        }
+    }
+
+    public void SetClearSelectionOnBuild(bool value)
+    {
+        clearSelectionOnBuild = value;
     }
 }

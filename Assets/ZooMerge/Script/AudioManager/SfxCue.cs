@@ -30,4 +30,6 @@ public enum SfxCue
     SliderProgress_Collect = 21,
     Countdown_End = 22,
     Countdown_GameOver = 23,
+    NewCard_Reveal = 24,
+    NewCard_Intro = 25,
 }

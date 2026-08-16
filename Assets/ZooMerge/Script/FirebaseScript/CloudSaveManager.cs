@@ -14,14 +14,13 @@ public static class CloudSaveManager
     private const string PREF_TOTAL_MID_LEVELS_COMPLETED = "TotalMidLevelsCompleted";
     private const string PREF_TOTAL_ACTIVE_SECONDS = "TotalActiveSeconds";
 
-    private const string PREF_TOTAL_REWARDED_ADS_COMPLETED =
-    "TotalRewardedAdsCompleted";
+    private const string PREF_TOTAL_REWARDED_ADS_COMPLETED = "TotalRewardedAdsCompleted";
 
-    private const string PREF_TOTAL_RETRY_PURCHASES_WITH_COINS =
-        "TotalRetryPurchasesWithCoins";
+    private const string PREF_TOTAL_RETRY_PURCHASES_WITH_COINS = "TotalRetryPurchasesWithCoins";
 
-    private const string PREF_TOTAL_RETRY_COINS_SPENT =
-        "TotalRetryCoinsSpent";
+    private const string PREF_TOTAL_RETRY_COINS_SPENT = "TotalRetryCoinsSpent";
+    private const string PREF_HAS_MADE_IAP = "HasMadeIap";
+    private const string PREF_COUNTED_AS_PAYER = "CountedAsPayer";
 
     private static float lastSaveTime = -1f;
 
@@ -166,12 +165,25 @@ public static class CloudSaveManager
         int totalRewardedAdsCompleted = PlayerPrefs.GetInt(PREF_TOTAL_REWARDED_ADS_COMPLETED,0);
         int totalRetryPurchasesWithCoins = PlayerPrefs.GetInt(PREF_TOTAL_RETRY_PURCHASES_WITH_COINS,0);
         int totalRetryCoinsSpent = PlayerPrefs.GetInt(PREF_TOTAL_RETRY_COINS_SPENT,0);
+        bool hasMadeIap = PlayerPrefs.GetInt(PREF_HAS_MADE_IAP,0) == 1;
 
         // --- INVENTORY ---
         int coins = GameInventory.Instance.Get(CurrencyType.Coins);
         Dictionary<string, int> mergedBalls = new Dictionary<string, int>();
         foreach (BallType type in Enum.GetValues(typeof(BallType)))
             mergedBalls[type.ToString()] = GameInventory.Instance.Get(type);
+
+        Dictionary<string, bool> unlockedBalls =
+        new Dictionary<string, bool>();
+
+        foreach (BallType type in Enum.GetValues(typeof(BallType)))
+        {
+            bool unlocked =
+                BallUnlockManager.Instance != null &&
+                BallUnlockManager.Instance.IsUnlocked(type);
+
+            unlockedBalls[type.ToString()] = unlocked;
+        }
 
         // --- BUILD BASE PAYLOAD ---
         var accountMap = new Dictionary<string, object>
@@ -221,8 +233,8 @@ public static class CloudSaveManager
                 {
                     { "total_coins_earned", coins },
                     { "total_merged_balls", mergedBalls },
+                    { "unlocked_balls", unlockedBalls },
 
-                    // ✅ NEW: save retry hearts to cloud
                     { "retries_remaining", PlayerProgress.NewLevelRetriesRemaining },
                     { "retry_cap", PlayerProgress.GetRetryCap() },
                 }
@@ -249,7 +261,8 @@ public static class CloudSaveManager
                     {"rewarded_ads_completed",totalRewardedAdsCompleted},
                     {"has_completed_rewarded_ad", totalRewardedAdsCompleted > 0},
                     {"retry_purchases_with_coins", totalRetryPurchasesWithCoins},
-                    {"retry_coins_spent_total", totalRetryCoinsSpent}
+                    {"retry_coins_spent_total", totalRetryCoinsSpent},
+                    {"has_made_iap", hasMadeIap}
                 }
             },
         };
@@ -436,6 +449,8 @@ public static class CloudSaveManager
 
             Dictionary<string, int> cloudMergedBalls = new Dictionary<string, int>();
 
+            Dictionary<string, bool> cloudUnlockedBalls = new Dictionary<string, bool>();
+
             if (snap.TryGetValue("economy", out Dictionary<string, object> economyMap))
             {
                 if (economyMap.TryGetValue("total_coins_earned", out var cObj))
@@ -458,35 +473,110 @@ public static class CloudSaveManager
                     foreach (var kv in mbMap)
                         cloudMergedBalls[kv.Key] = System.Convert.ToInt32(kv.Value);
                 }
+
+                if (economyMap.TryGetValue("unlocked_balls", out object unlockedObject) &&
+                    unlockedObject is Dictionary<string, object> unlockedMap)
+                        {
+                            foreach (
+                                KeyValuePair<string, object> pair
+                                in unlockedMap)
+                            {
+                                cloudUnlockedBalls[pair.Key] =
+                                    Convert.ToBoolean(pair.Value);
+                            }
+                        }
             }
 
-            // Apply to LOCAL inventory + persist to PlayerPrefs
+            // Apply cloud economy to local inventory.
             GameInventory.Instance.ResetAll();
-            BallUnlockManager.Instance?.ResetUnlocks();
 
             if (cloudCoins > 0)
-                GameInventory.Instance.Add(CurrencyType.Coins, cloudCoins);
-
-            // ✅ Restore merged balls from cloud too
-            foreach (var kv in cloudMergedBalls)
             {
-                if (System.Enum.TryParse(kv.Key, out BallType ballType) && kv.Value > 0)
+                GameInventory.Instance.Add(
+                    CurrencyType.Coins,
+                    cloudCoins
+                );
+            }
+
+            // Restore merged-ball balances.
+            foreach (
+                KeyValuePair<string, int> pair
+                in cloudMergedBalls)
+            {
+                if (!Enum.TryParse(
+                        pair.Key,
+                        out BallType ballType))
                 {
-                    GameInventory.Instance.Add(ballType, kv.Value);
+                    continue;
+                }
+
+                if (pair.Value <= 0)
+                    continue;
+
+                GameInventory.Instance.Add(
+                    ballType,
+                    pair.Value
+                );
+            }
+
+            // Restore unlocked animals only when the cloud field exists.
+            // This preserves local unlocks for older cloud saves that do not
+            // yet contain the "unlocked_balls" map.
+            if (cloudUnlockedBalls.Count > 0)
+            {
+                BallUnlockManager unlockManager =
+                    BallUnlockManager.Instance;
+
+                if (unlockManager != null)
+                {
+                    unlockManager.ResetUnlocks();
+
+                    foreach (
+                        KeyValuePair<string, bool> pair
+                        in cloudUnlockedBalls)
+                    {
+                        if (!Enum.TryParse(
+                                pair.Key,
+                                out BallType ballType))
+                        {
+                            Debug.LogWarning(
+                                $"[CloudSave] Unknown cloud unlock type: {pair.Key}"
+                            );
+
+                            continue;
+                        }
+
+                        unlockManager.RestoreUnlockFromCloud(
+                            ballType,
+                            pair.Value
+                        );
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        "[CloudSave] Cannot restore unlocked balls because " +
+                        "BallUnlockManager.Instance is null."
+                    );
                 }
             }
 
             if (cloudRetriesFound)
             {
-                PlayerProgress.NewLevelRetriesRemaining = cloudRetries;
+                PlayerProgress.NewLevelRetriesRemaining =
+                    cloudRetries;
+
                 PlayerProgress.SaveNow();
                 PlayerProgress.NotifyRetriesChanged();
             }
 
             Debug.Log(
-            $"[CloudSave] Synced economy from cloud: " +
-            $"coins={cloudCoins}, balls={cloudMergedBalls.Count}, " +
-            $"retries={(cloudRetriesFound ? cloudRetries.ToString() : "local/default")}"
+                $"[CloudSave] Synced economy from cloud: " +
+                $"coins={cloudCoins}, " +
+                $"balls={cloudMergedBalls.Count}, " +
+                $"unlocks={cloudUnlockedBalls.Count}, " +
+                $"retries=" +
+                $"{(cloudRetriesFound ? cloudRetries.ToString() : "local/default")}"
             );
             onComplete?.Invoke();
         });
@@ -627,6 +717,220 @@ public static class CloudSaveManager
         // Just save a snapshot without incrementing win counters
         SaveSnapshot(incrementMidLevelCompleted: false);
     }
+
+    public static void SaveEconomyStateImmediate(
+    Action<bool> onComplete = null)
+    {
+        if (string.IsNullOrEmpty(FirebaseInitializer.UserId))
+        {
+            Debug.LogWarning(
+                "[CloudSave] SaveEconomyStateImmediate: UserId not ready."
+            );
+
+            onComplete?.Invoke(false);
+            return;
+        }
+
+        int coins =
+            GameInventory.Instance.Get(CurrencyType.Coins);
+
+        Dictionary<string, int> mergedBalls =
+            new Dictionary<string, int>();
+
+        Dictionary<string, bool> unlockedBalls =
+            new Dictionary<string, bool>();
+
+        foreach (
+            BallType type
+            in Enum.GetValues(typeof(BallType)))
+        {
+            mergedBalls[type.ToString()] =
+                GameInventory.Instance.Get(type);
+
+            bool unlocked =
+                BallUnlockManager.Instance != null &&
+                BallUnlockManager.Instance.IsUnlocked(type);
+
+            unlockedBalls[type.ToString()] =
+                unlocked;
+        }
+
+        DocumentReference docRef =
+            FirebaseFirestore.DefaultInstance
+                .Collection("players")
+                .Document(FirebaseInitializer.UserId);
+
+        Dictionary<string, object> patch =
+            new Dictionary<string, object>
+            {
+            {
+                "economy",
+                new Dictionary<string, object>
+                {
+                    {
+                        "total_coins_earned",
+                        coins
+                    },
+                    {
+                        "total_merged_balls",
+                        mergedBalls
+                    },
+                    {
+                        "unlocked_balls",
+                        unlockedBalls
+                    },
+                    {
+                        "retries_remaining",
+                        PlayerProgress.NewLevelRetriesRemaining
+                    },
+                    {
+                        "retry_cap",
+                        PlayerProgress.GetRetryCap()
+                    }
+                }
+            }
+            };
+
+        docRef.SetAsync(
+            patch,
+            SetOptions.MergeAll
+        ).ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted)
+            {
+                Debug.LogError(
+                    "[CloudSave] Immediate economy save failed: " +
+                    task.Exception
+                );
+
+                onComplete?.Invoke(false);
+                return;
+            }
+
+            Debug.Log(
+                "[CloudSave] Immediate economy state saved. " +
+                $"Coins={coins}, " +
+                $"Merges={mergedBalls.Count}, " +
+                $"Unlocks={unlockedBalls.Count}"
+            );
+
+            onComplete?.Invoke(true);
+        });
+    }
+
+    public static void RegisterIapPurchase()
+    {
+        // Always remember locally that this user has made an IAP.
+        PlayerPrefs.SetInt(
+            PREF_HAS_MADE_IAP,
+            1
+        );
+
+        PlayerPrefs.Save();
+
+        if (string.IsNullOrEmpty(
+                FirebaseInitializer.UserId))
+        {
+            Debug.LogWarning(
+                "[CloudSave] IAP registered locally, " +
+                "but UserId is not ready."
+            );
+
+            return;
+        }
+
+        FirebaseFirestore db =
+            FirebaseFirestore.DefaultInstance;
+
+        DocumentReference playerRef =
+            db.Collection("players")
+                .Document(
+                    FirebaseInitializer.UserId
+                );
+
+        DocumentReference counterRef =
+            db.Collection("metadata")
+                .Document("global_counters");
+
+        bool alreadyCounted =
+            PlayerPrefs.GetInt(
+                PREF_COUNTED_AS_PAYER,
+                0
+            ) == 1;
+
+        WriteBatch batch =
+            db.StartBatch();
+
+        // Always make sure the player's document says
+        // that this player has made an IAP.
+        batch.Set(
+            playerRef,
+            new Dictionary<string, object>
+            {
+            {
+                "monetization",
+                new Dictionary<string, object>
+                {
+                    { "has_made_iap", true }
+                }
+            }
+            },
+            SetOptions.MergeAll
+        );
+
+        // Only increment the global payer counter once
+        // on this device/install.
+        if (!alreadyCounted)
+        {
+            batch.Set(
+                counterRef,
+                new Dictionary<string, object>
+                {
+                {
+                    "total_payers",
+                    FieldValue.Increment(1)
+                }
+                },
+                SetOptions.MergeAll
+            );
+        }
+
+        batch.CommitAsync()
+            .ContinueWithOnMainThread(task =>
+            {
+                if (task.IsFaulted)
+                {
+                    Debug.LogError(
+                        "[CloudSave] Failed to register IAP payer: " +
+                        task.Exception
+                    );
+
+                    return;
+                }
+
+                if (!alreadyCounted)
+                {
+                    PlayerPrefs.SetInt(
+                        PREF_COUNTED_AS_PAYER,
+                        1
+                    );
+
+                    PlayerPrefs.Save();
+
+                    Debug.Log(
+                        "[CloudSave] Player marked as payer. " +
+                        "total_payers incremented."
+                    );
+                }
+                else
+                {
+                    Debug.Log(
+                        "[CloudSave] Player already counted as payer. " +
+                        "Player monetization flag refreshed."
+                    );
+                }
+            });
+        }
 
     public static void OnAppPaused(bool paused)
     {
