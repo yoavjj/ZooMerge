@@ -248,43 +248,26 @@ public class DebugPopup : MonoBehaviour
     [ContextMenu("Debug: Reset Selected Ball Purchase")]
     public void DebugResetSelectedBallPurchase()
     {
-        BallUnlockSave.ResetUnlock(
+        BallUnlockManager manager =
+            BallUnlockManager.Instance;
+
+        if (manager == null)
+        {
+            Debug.LogError(
+                "[DebugPopup] BallUnlockManager.Instance is null."
+            );
+
+            return;
+        }
+
+        manager.DebugResetUnlock(
             debugBallType
         );
 
-        BallChoiceMenu menu =
-            FindFirstObjectByType<BallChoiceMenu>(
-                FindObjectsInactive.Include
-            );
-
-        if (menu != null)
-            menu.RefreshAll();
-
         Debug.Log(
-            $"[DebugPopup] Locally reset purchase for " +
-            $"{debugBallType}. Saving reset to cloud..."
-        );
-
-        CloudSaveManager.SaveEconomyStateImmediate(
-            success =>
-            {
-                if (success)
-                {
-                    Debug.Log(
-                        $"[DebugPopup] Cloud reset saved for " +
-                        $"{debugBallType}. It will remain locked " +
-                        "after restarting the app."
-                    );
-                }
-                else
-                {
-                    Debug.LogError(
-                        $"[DebugPopup] Failed to save the cloud reset " +
-                        $"for {debugBallType}. The cloud may unlock it " +
-                        "again on the next startup."
-                    );
-                }
-            }
+            $"[DebugPopup] Reset {debugBallType} game ownership. " +
+            "If this was purchased through Apple IAP, Apple may still " +
+            "remember the non-consumable purchase."
         );
     }
 }

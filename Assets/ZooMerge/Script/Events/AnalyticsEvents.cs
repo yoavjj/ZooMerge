@@ -511,4 +511,38 @@ public static class AnalyticsEvents
             )
         );
     }
+
+    public static void IapPurchaseCompleted(
+    string productId,
+    BallType unlockedType)
+    {
+        FirebaseAnalytics.SetUserProperty(
+            "has_made_iap",
+            "true"
+        );
+
+        Log(
+            "iap_purchase_completed",
+
+            new Parameter(
+                "product_id",
+                productId
+            ),
+
+            new Parameter(
+                "unlock_type",
+                unlockedType.ToString()
+            ),
+
+            new Parameter(
+                "galaxy_id",
+                MergeLevelManager.CurrentGalaxyId
+            ),
+
+            new Parameter(
+                "level",
+                MergeLevelManager.CurrentLevelNumber
+            )
+        );
+    }
 }

@@ -25,22 +25,49 @@ public class BallUnlockCatalogSO : ScriptableObject
         [Tooltip("These animals are available immediately.")]
         public bool unlockedByDefault;
 
-        [Header("Unlock Price")]
+        [Header("Soft Currency Unlock")]
         [Min(0)]
         public int coinCost;
 
-        [Header("Required Lifetime Merges")]
         public List<MergeRequirement> mergeRequirements = new();
+
+        [Header("Real Money Purchase")]
+        public bool purchasableWithIap;
+
+        [Tooltip(
+            "Must exactly match the product ID configured in the store."
+        )]
+        public string iapProductId;
     }
 
     [SerializeField]
     private List<UnlockDefinition> definitions = new();
+
+    public IReadOnlyList<UnlockDefinition> Definitions =>
+    definitions;
 
     public UnlockDefinition GetDefinition(BallType type)
     {
         return definitions.Find(definition =>
             definition != null &&
             definition.type == type
+        );
+    }
+
+    public UnlockDefinition GetDefinitionByProductId(
+    string productId)
+    {
+        if (string.IsNullOrWhiteSpace(productId))
+            return null;
+
+        return definitions.Find(definition =>
+            definition != null &&
+            definition.purchasableWithIap &&
+            string.Equals(
+                definition.iapProductId,
+                productId,
+                StringComparison.Ordinal
+            )
         );
     }
 }

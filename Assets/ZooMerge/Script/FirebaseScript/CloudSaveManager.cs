@@ -14,14 +14,13 @@ public static class CloudSaveManager
     private const string PREF_TOTAL_MID_LEVELS_COMPLETED = "TotalMidLevelsCompleted";
     private const string PREF_TOTAL_ACTIVE_SECONDS = "TotalActiveSeconds";
 
-    private const string PREF_TOTAL_REWARDED_ADS_COMPLETED =
-    "TotalRewardedAdsCompleted";
+    private const string PREF_TOTAL_REWARDED_ADS_COMPLETED = "TotalRewardedAdsCompleted";
 
-    private const string PREF_TOTAL_RETRY_PURCHASES_WITH_COINS =
-        "TotalRetryPurchasesWithCoins";
+    private const string PREF_TOTAL_RETRY_PURCHASES_WITH_COINS = "TotalRetryPurchasesWithCoins";
 
-    private const string PREF_TOTAL_RETRY_COINS_SPENT =
-        "TotalRetryCoinsSpent";
+    private const string PREF_TOTAL_RETRY_COINS_SPENT = "TotalRetryCoinsSpent";
+    private const string PREF_HAS_MADE_IAP = "HasMadeIap";
+    private const string PREF_COUNTED_AS_PAYER = "CountedAsPayer";
 
     private static float lastSaveTime = -1f;
 
@@ -166,6 +165,7 @@ public static class CloudSaveManager
         int totalRewardedAdsCompleted = PlayerPrefs.GetInt(PREF_TOTAL_REWARDED_ADS_COMPLETED,0);
         int totalRetryPurchasesWithCoins = PlayerPrefs.GetInt(PREF_TOTAL_RETRY_PURCHASES_WITH_COINS,0);
         int totalRetryCoinsSpent = PlayerPrefs.GetInt(PREF_TOTAL_RETRY_COINS_SPENT,0);
+        bool hasMadeIap = PlayerPrefs.GetInt(PREF_HAS_MADE_IAP,0) == 1;
 
         // --- INVENTORY ---
         int coins = GameInventory.Instance.Get(CurrencyType.Coins);
@@ -261,7 +261,8 @@ public static class CloudSaveManager
                     {"rewarded_ads_completed",totalRewardedAdsCompleted},
                     {"has_completed_rewarded_ad", totalRewardedAdsCompleted > 0},
                     {"retry_purchases_with_coins", totalRetryPurchasesWithCoins},
-                    {"retry_coins_spent_total", totalRetryCoinsSpent}
+                    {"retry_coins_spent_total", totalRetryCoinsSpent},
+                    {"has_made_iap", hasMadeIap}
                 }
             },
         };
@@ -816,6 +817,120 @@ public static class CloudSaveManager
             onComplete?.Invoke(true);
         });
     }
+
+    public static void RegisterIapPurchase()
+    {
+        // Always remember locally that this user has made an IAP.
+        PlayerPrefs.SetInt(
+            PREF_HAS_MADE_IAP,
+            1
+        );
+
+        PlayerPrefs.Save();
+
+        if (string.IsNullOrEmpty(
+                FirebaseInitializer.UserId))
+        {
+            Debug.LogWarning(
+                "[CloudSave] IAP registered locally, " +
+                "but UserId is not ready."
+            );
+
+            return;
+        }
+
+        FirebaseFirestore db =
+            FirebaseFirestore.DefaultInstance;
+
+        DocumentReference playerRef =
+            db.Collection("players")
+                .Document(
+                    FirebaseInitializer.UserId
+                );
+
+        DocumentReference counterRef =
+            db.Collection("metadata")
+                .Document("global_counters");
+
+        bool alreadyCounted =
+            PlayerPrefs.GetInt(
+                PREF_COUNTED_AS_PAYER,
+                0
+            ) == 1;
+
+        WriteBatch batch =
+            db.StartBatch();
+
+        // Always make sure the player's document says
+        // that this player has made an IAP.
+        batch.Set(
+            playerRef,
+            new Dictionary<string, object>
+            {
+            {
+                "monetization",
+                new Dictionary<string, object>
+                {
+                    { "has_made_iap", true }
+                }
+            }
+            },
+            SetOptions.MergeAll
+        );
+
+        // Only increment the global payer counter once
+        // on this device/install.
+        if (!alreadyCounted)
+        {
+            batch.Set(
+                counterRef,
+                new Dictionary<string, object>
+                {
+                {
+                    "total_payers",
+                    FieldValue.Increment(1)
+                }
+                },
+                SetOptions.MergeAll
+            );
+        }
+
+        batch.CommitAsync()
+            .ContinueWithOnMainThread(task =>
+            {
+                if (task.IsFaulted)
+                {
+                    Debug.LogError(
+                        "[CloudSave] Failed to register IAP payer: " +
+                        task.Exception
+                    );
+
+                    return;
+                }
+
+                if (!alreadyCounted)
+                {
+                    PlayerPrefs.SetInt(
+                        PREF_COUNTED_AS_PAYER,
+                        1
+                    );
+
+                    PlayerPrefs.Save();
+
+                    Debug.Log(
+                        "[CloudSave] Player marked as payer. " +
+                        "total_payers incremented."
+                    );
+                }
+                else
+                {
+                    Debug.Log(
+                        "[CloudSave] Player already counted as payer. " +
+                        "Player monetization flag refreshed."
+                    );
+                }
+            });
+        }
 
     public static void OnAppPaused(bool paused)
     {

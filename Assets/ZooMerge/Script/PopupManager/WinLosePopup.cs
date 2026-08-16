@@ -67,6 +67,10 @@ public class WinLosePopup : SfxBehaviourTirgger
     [Header("Hero Selection Panel")]
     [SerializeField] private GameObject heroPanelHolder;
 
+    [Header("Automatic Unlock Offer")]
+    [SerializeField]
+    private BallUnlockOfferPrompt unlockOfferPrompt;
+
     private BallSelectionManager BallSelection =>
         BallSelectionManager.Instance;
 
@@ -429,25 +433,24 @@ public class WinLosePopup : SfxBehaviourTirgger
     }
 
     private void RefreshHeroPanelVisibility(
-    GameOverReason reason)
+        GameOverReason reason)
     {
         if (heroPanelHolder == null)
             return;
 
         bool shouldShow =
             reason == GameOverReason.Won &&
-            (
-                levelCompleteContext ||
-                MergeLevelManager.IsLastLevelInCurrentGalaxy
-            );
+            levelCompleteContext;
 
         heroPanelHolder.SetActive(shouldShow);
 
-        if (shouldShow)
-        {
-            ballChoiceMenu?.SetClearSelectionOnBuild(false);
-            ballChoiceMenu?.Build();
-        }
+        if (!shouldShow)
+            return;
+
+        ballChoiceMenu?.
+            SetClearSelectionOnBuild(false);
+
+        ballChoiceMenu?.Build();
     }
 
     public void SpawnWinCoins()
@@ -1030,6 +1033,23 @@ public class WinLosePopup : SfxBehaviourTirgger
         }
 
         CloudSaveManager.SaveSnapshot(currentReason == GameOverReason.Won);
+
+        // Collectibles are finished now.
+        // Only offer an unlock during a full level-complete screen.
+        if (heroPanelHolder != null &&
+            heroPanelHolder.activeSelf &&
+            unlockOfferPrompt != null &&
+            unlockOfferPrompt.TryGetAvailableUnlock(
+                out BallType availableType))
+        {
+            ShowBallUnlockPopup(
+                availableType
+            );
+
+            unlockOfferPrompt.MarkAsOffered(
+                availableType
+            );
+        }
 
         // ✅ run last cached action (only one)
         var action = deferredAction;

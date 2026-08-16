@@ -9,6 +9,7 @@ public class BallUnlockManager : MonoBehaviour
     private BallUnlockCatalogSO unlockCatalog;
 
     public event Action<BallType> OnBallUnlocked;
+    public event Action<BallType> OnBallUnlockStateChanged;
 
     private void Awake()
     {
@@ -207,6 +208,7 @@ public class BallUnlockManager : MonoBehaviour
         GameInventory.Instance.NotifyChanged();
 
         OnBallUnlocked?.Invoke(type);
+        OnBallUnlockStateChanged?.Invoke(type);
 
         reason = $"{type} unlocked.";
 
@@ -293,6 +295,8 @@ public class BallUnlockManager : MonoBehaviour
 
         OnBallUnlocked?.Invoke(type);
 
+        OnBallUnlockStateChanged?.Invoke(type);
+
         Debug.Log(
             $"[BallUnlockManager] Debug unlocked {type}. " +
             $"Stored value: " +
@@ -315,6 +319,105 @@ public class BallUnlockManager : MonoBehaviour
         return unlockCatalog.GetDefinition(type);
     }
 
+    public bool TryUnlockFromIap(
+    string productId,
+    out BallType unlockedType,
+    out string reason)
+    {
+        unlockedType = default;
+        reason = string.Empty;
+
+        if (unlockCatalog == null)
+        {
+            reason = "Unlock catalog is not assigned.";
+            return false;
+        }
+
+        BallUnlockCatalogSO.UnlockDefinition definition =
+            unlockCatalog.GetDefinitionByProductId(
+                productId
+            );
+
+        if (definition == null)
+        {
+            reason =
+                $"No animal is configured for IAP product " +
+                $"'{productId}'.";
+
+            return false;
+        }
+
+        if (!definition.purchasableWithIap)
+        {
+            reason =
+                $"{definition.type} is not configured for IAP.";
+
+            return false;
+        }
+
+        unlockedType = definition.type;
+
+        return UnlockWithoutCost(
+            definition.type,
+            out reason
+        );
+    }
+
+    public bool UnlockWithoutCost(
+    BallType type,
+    out string reason)
+    {
+        reason = string.Empty;
+
+        BallUnlockCatalogSO.UnlockDefinition definition =
+            GetDefinition(type);
+
+        if (definition == null)
+        {
+            reason =
+                $"No unlock definition exists for {type}.";
+
+            return false;
+        }
+
+        // Important for restored or redelivered purchases:
+        // already owned still counts as successfully fulfilled.
+        if (IsUnlocked(type))
+        {
+            reason =
+                $"{type} was already unlocked.";
+
+            return true;
+        }
+
+        BallUnlockSave.SetUnlocked(
+            type,
+            true
+        );
+
+        GameInventory.Instance.NotifyChanged();
+
+        OnBallUnlocked?.Invoke(
+            type
+        );
+
+        OnBallUnlockStateChanged?.Invoke(
+            type
+        );
+
+        reason =
+            $"{type} unlocked successfully.";
+
+        CloudSaveManager.SyncEconomyNow();
+
+        Debug.Log(
+            $"[BallUnlockManager] {type} unlocked " +
+            "without spending soft currency."
+        );
+
+        return true;
+    }
+
 #if UNITY_EDITOR
     [ContextMenu("Reset All Ball Unlocks")]
     private void ResetAllUnlocks()
@@ -322,4 +425,52 @@ public class BallUnlockManager : MonoBehaviour
         ResetUnlocks();
     }
 #endif
+
+    public void DebugResetUnlock(BallType type)
+    {
+        BallUnlockCatalogSO.UnlockDefinition definition =
+            GetDefinition(type);
+
+        if (definition == null)
+            return;
+
+        if (definition.unlockedByDefault)
+        {
+            Debug.LogWarning(
+                $"[BallUnlockManager] Cannot reset {type} because " +
+                "it is unlocked by default."
+            );
+
+            return;
+        }
+
+        BallUnlockSave.ResetUnlock(type);
+        OnBallUnlockStateChanged?.Invoke(type);
+
+        GameInventory.Instance.NotifyChanged();
+
+        Debug.Log(
+            $"[BallUnlockManager] Debug reset {type}. " +
+            $"Saved value: {BallUnlockSave.GetRawSavedValue(type)}"
+        );
+
+        CloudSaveManager.SaveEconomyStateImmediate(
+            success =>
+            {
+                if (success)
+                {
+                    Debug.Log(
+                        $"[BallUnlockManager] {type} reset synced to cloud."
+                    );
+                }
+                else
+                {
+                    Debug.LogError(
+                        $"[BallUnlockManager] Failed to sync " +
+                        $"{type} reset to cloud."
+                    );
+                }
+            }
+        );
+    }
 }

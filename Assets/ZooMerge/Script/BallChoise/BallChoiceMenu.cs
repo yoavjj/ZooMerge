@@ -7,6 +7,7 @@ using UnityEngine;
 public class BallChoiceMenu : MonoBehaviour
 {
     public event Action<BallType> UnlockPopupRequested;
+    private BallUnlockManager subscribedUnlockManager;
 
     [Header("Data")]
     [SerializeField] private BallSet ballSet;
@@ -43,6 +44,7 @@ public class BallChoiceMenu : MonoBehaviour
     private void OnDisable()
     {
         UnsubscribeFromSelectionManager();
+        UnsubscribeFromUnlockManager();
 
         if (messageCooldownRoutine != null)
         {
@@ -70,6 +72,7 @@ public class BallChoiceMenu : MonoBehaviour
         }
 
         SubscribeToSelectionManager(manager);
+        SubscribeToUnlockManager();
 
         if (clearSelectionOnBuild)
             manager.ClearSelection();
@@ -79,6 +82,73 @@ public class BallChoiceMenu : MonoBehaviour
 
         RefreshSelectionVisuals();
         RefreshLockedVisuals(immediate: true);
+    }
+
+    private void SubscribeToUnlockManager()
+    {
+        BallUnlockManager manager =
+            BallUnlockManager.Instance;
+
+        if (manager == null)
+            return;
+
+        if (subscribedUnlockManager == manager)
+            return;
+
+        UnsubscribeFromUnlockManager();
+
+        subscribedUnlockManager = manager;
+
+        subscribedUnlockManager.OnBallUnlockStateChanged +=
+            HandleUnlockStateChanged;
+    }
+
+    private void UnsubscribeFromUnlockManager()
+    {
+        if (subscribedUnlockManager == null)
+            return;
+
+        subscribedUnlockManager.OnBallUnlockStateChanged -=
+            HandleUnlockStateChanged;
+
+        subscribedUnlockManager = null;
+    }
+
+    private void HandleUnlockStateChanged(
+    BallType type)
+    {
+        BallUnlockManager unlockManager =
+            BallUnlockManager.Instance;
+
+        if (unlockManager == null)
+            return;
+
+        bool isLocked =
+            !unlockManager.IsUnlocked(type);
+
+        if (itemsByType.TryGetValue(
+                type,
+                out BallChoiceItemUI item) &&
+            item != null)
+        {
+            item.SetLockedState(
+                isLocked,
+                immediate: false
+            );
+        }
+
+        // A locked animal must not remain selected.
+        if (isLocked)
+        {
+            BallSelectionManager selectionManager =
+                SelectionManager;
+
+            if (selectionManager != null &&
+                selectionManager.IsSelected(type))
+            {
+                selectionManager.Deselect(type);
+            }
+        }
     }
 
     private void SubscribeToSelectionManager(

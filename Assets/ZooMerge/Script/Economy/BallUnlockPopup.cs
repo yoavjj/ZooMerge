@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BallUnlockPopup : MonoBehaviour
+public class BallUnlockPopup : SfxBehaviourTirgger
 {
     [Header("Data")]
     [SerializeField] private BallUnlockCatalogSO unlockCatalog;
@@ -28,12 +28,34 @@ public class BallUnlockPopup : MonoBehaviour
     [SerializeField] private Sprite coinIcon;
 
     [Header("UI")]
-    [SerializeField] private Button launchButton;
+    [SerializeField] private Button coinPurchaseButton;
+
+    [Header("In-App Purchase")]
+    [SerializeField] private Button iapPurchaseButton;
+    [SerializeField] private TextMeshProUGUI iapPriceText;
 
     [Header("Message Panel")]
     [SerializeField] private Animator messagePanelAnimator;
     [SerializeField] private TextMeshProUGUI messageText;
     [SerializeField] private string messageTrigger = "In";
+
+    [Header("Purchase Button Ready FX")]
+    [SerializeField] private Animator launchButtonAnimator;
+    [SerializeField] private string readyTrigger = "Ready";
+    [SerializeField] private CardSelectionVisualController coinPurchaseVisualController;
+
+    [SerializeField, TextArea] private string purchaseSuccessMessage = "Purchase successful!";
+
+    [SerializeField, Min(0f)]
+    private float purchaseSuccessDelay = 1.25f;
+
+    [SerializeField] private CanvasGroup iapLoadingGroup;
+    [SerializeField, Range(0f, 1f)] private float iapLoadingAlpha = 1f;
+    [SerializeField, Min(0.01f)] private float iapLoadingFadeDuration = 0.2f;
+
+    private Coroutine iapLoadingRoutine;
+
+    private Coroutine iapSuccessRoutine;
 
     [SerializeField, Min(0f)]
     private float messageCooldown = 0.75f;
@@ -41,6 +63,14 @@ public class BallUnlockPopup : MonoBehaviour
     [SerializeField, TextArea]
     private string insufficientResourcesMessage =
         "Not enough resources.";
+
+    [SerializeField, TextArea]
+    private string iapPurchaseFailedMessage =
+        "Purchase failed. Please try again.";
+
+    [SerializeField, TextArea]
+    private string iapPurchaseDeferredMessage =
+        "Purchase is waiting for approval.";
 
     private bool messageLocked;
     private Coroutine messageCooldownRoutine;
@@ -50,6 +80,15 @@ public class BallUnlockPopup : MonoBehaviour
     [SerializeField] private string inTrigger = "In";
     [SerializeField] private string outTrigger = "Out";
     [SerializeField] private string outRevealTrigger = "OutReveal";
+
+    [SerializeField]
+    private AnimationCurve iapLoadingFadeCurve =
+    AnimationCurve.EaseInOut(
+        0f,
+        0f,
+        1f,
+        1f
+    );
 
     public event Action Closed;
     public event Action<BallType> AnimalUnlocked;
@@ -69,15 +108,30 @@ public class BallUnlockPopup : MonoBehaviour
     private BallType targetType;
 
     public BallType TargetType => targetType;
-    
+    private bool wasReadyToUnlock;
+
 
     private void Awake()
     {
-        if (launchButton != null)
+        if (coinPurchaseButton != null)
         {
-            launchButton.onClick.AddListener(
+            coinPurchaseButton.onClick.AddListener(
                 PurchaseWithCoins
             );
+        }
+
+        if (iapPurchaseButton != null)
+        {
+            iapPurchaseButton.onClick.AddListener(
+                PurchaseWithIap
+            );
+        }
+
+        if (iapLoadingGroup != null)
+        {
+            iapLoadingGroup.alpha = 0f;
+            iapLoadingGroup.blocksRaycasts = false;
+            iapLoadingGroup.interactable = false;
         }
     }
 
@@ -85,6 +139,15 @@ public class BallUnlockPopup : MonoBehaviour
     {
         GameInventory.Instance.OnChanged +=
             HandleInventoryChanged;
+
+        if (IAPManager.Instance != null)
+        {
+            IAPManager.Instance.PurchaseCompleted +=
+                HandleIapPurchaseCompleted;
+
+            IAPManager.Instance.Ready +=
+                HandleIapReady;
+        }
     }
 
     private void OnDisable()
@@ -104,17 +167,252 @@ public class BallUnlockPopup : MonoBehaviour
             messageCooldownRoutine = null;
         }
 
+        if (IAPManager.Instance != null)
+        {
+            IAPManager.Instance.PurchaseCompleted -=
+                HandleIapPurchaseCompleted;
+
+            IAPManager.Instance.Ready -=
+                HandleIapReady;
+        }
+
+        if (iapSuccessRoutine != null)
+        {
+            StopCoroutine(iapSuccessRoutine);
+            iapSuccessRoutine = null;
+        }
+
+        if (iapLoadingRoutine != null)
+        {
+            StopCoroutine(
+                iapLoadingRoutine
+            );
+
+            iapLoadingRoutine = null;
+        }
+
+        if (iapLoadingGroup != null)
+        {
+            iapLoadingGroup.alpha = 0f;
+            iapLoadingGroup.blocksRaycasts = false;
+            iapLoadingGroup.interactable = false;
+        }
+
         messageLocked = false;
         isOpening = false;
     }
 
     private void OnDestroy()
     {
-        if (launchButton != null)
+        if (coinPurchaseButton != null)
         {
-            launchButton.onClick.RemoveListener(
+            coinPurchaseButton.onClick.RemoveListener(
                 PurchaseWithCoins
             );
+        }
+
+        if (iapPurchaseButton != null)
+        {
+            iapPurchaseButton.onClick.RemoveListener(
+                PurchaseWithIap
+            );
+        }
+    }
+
+    private void HandleIapPurchaseCompleted(
+        IAPPurchaseResult result)
+    {
+        HideIapLoading();
+
+        BallUnlockCatalogSO.UnlockDefinition definition =
+            unlockCatalog != null
+                ? unlockCatalog.GetDefinition(targetType)
+                : null;
+
+        if (definition == null)
+            return;
+
+        bool resultHasProductId =
+            !string.IsNullOrWhiteSpace(
+                result.ProductId
+            );
+
+        if (resultHasProductId &&
+            !string.Equals(
+                result.ProductId,
+                definition.iapProductId,
+                StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (!result.Success)
+        {
+            isCompletingPurchase = false;
+
+            // Allow the user to try the real-money purchase again.
+            if (iapPurchaseButton != null)
+            {
+                iapPurchaseButton.interactable =
+                    IAPManager.Instance != null &&
+                    IAPManager.Instance.IsReady;
+            }
+
+            // Coin purchasing should also return to its normal state.
+            RefreshLaunchButton();
+
+            string message =
+                result.FailureReason ==
+                IAPPurchaseFailureReason.PurchaseDeferred
+                    ? iapPurchaseDeferredMessage
+                    : iapPurchaseFailedMessage;
+
+            if (!string.IsNullOrWhiteSpace(result.Message))
+            {
+                message = result.Message;
+            }
+
+            ShowMessage(message);
+
+            Debug.LogWarning(
+                $"[BallUnlockPopup] IAP failed for {targetType}. " +
+                $"Reason={result.FailureReason}, " +
+                $"Message='{result.Message}'"
+            );
+
+            return;
+        }
+
+        CompletePurchasedUnlock(
+            result.ProductId
+        );
+    }
+
+    private void CompletePurchasedUnlock(
+        string productId)
+    {
+        BallUnlockCatalogSO.UnlockDefinition definition =
+            unlockCatalog != null
+                ? unlockCatalog.GetDefinitionByProductId(
+                    productId
+                )
+                : null;
+
+        if (definition == null)
+        {
+            isCompletingPurchase = false;
+
+            ShowMessage(
+                "Purchase completed, but the product could not be displayed."
+            );
+
+            return;
+        }
+
+        if (definition.type != targetType)
+        {
+            isCompletingPurchase = false;
+
+            Debug.LogError(
+                $"[BallUnlockPopup] Product '{productId}' belongs to " +
+                $"{definition.type}, but popup displays {targetType}."
+            );
+
+            return;
+        }
+
+        if (coinPurchaseButton != null)
+            coinPurchaseButton.interactable = false;
+
+        if (iapPurchaseButton != null)
+            iapPurchaseButton.interactable = false;
+
+        if (iapSuccessRoutine != null)
+            StopCoroutine(iapSuccessRoutine);
+
+        iapSuccessRoutine = StartCoroutine(
+            IapPurchaseSuccessRoutine(
+                definition.type
+            )
+        );
+    }
+
+    private IEnumerator IapPurchaseSuccessRoutine(
+    BallType unlockedType)
+    {
+        ShowMessage(purchaseSuccessMessage);
+        PlayUiSfx(SfxCue.CurrentWorldLevel_Woosh);
+        if (purchaseSuccessDelay > 0f)
+        {
+            yield return new WaitForSecondsRealtime(
+                purchaseSuccessDelay
+            );
+        }
+
+        AnimalUnlocked?.Invoke(
+            unlockedType
+        );
+
+        if (spawnedAnimalCard != null)
+        {
+            spawnedAnimalCard.PlayUnlockReveal();
+        }
+        else
+        {
+            Close();
+        }
+
+        iapSuccessRoutine = null;
+    }
+
+    private void HandleIapReady()
+    {
+        RefreshIapButton();
+    }
+
+    private void RefreshIapButton()
+    {
+        if (iapPurchaseButton == null)
+            return;
+
+        BallUnlockCatalogSO.UnlockDefinition definition =
+            unlockCatalog != null
+                ? unlockCatalog.GetDefinition(targetType)
+                : null;
+
+        bool hasIapOffer =
+            definition != null &&
+            definition.purchasableWithIap &&
+            !string.IsNullOrWhiteSpace(
+                definition.iapProductId
+            );
+
+        IAPManager manager =
+            IAPManager.Instance;
+
+        bool available =
+            hasIapOffer &&
+            manager != null &&
+            manager.IsReady &&
+            BallUnlockManager.Instance != null &&
+            !BallUnlockManager.Instance.IsUnlocked(
+                targetType
+            );
+
+        iapPurchaseButton.gameObject.SetActive(
+            hasIapOffer
+        );
+
+        iapPurchaseButton.interactable =
+            available &&
+            !isCompletingPurchase;
+
+        if (iapPriceText != null)
+        {
+            iapPriceText.text =
+                manager != null
+                    ? manager.GetLocalizedPrice(targetType)
+                    : string.Empty;
         }
     }
 
@@ -136,6 +434,7 @@ public class BallUnlockPopup : MonoBehaviour
         isOpening = true;
         isCompletingPurchase = false;
         targetType = type;
+        wasReadyToUnlock = false;
 
         BallUnlockCatalogSO.UnlockDefinition definition =
             unlockCatalog != null
@@ -164,6 +463,7 @@ public class BallUnlockPopup : MonoBehaviour
         BuildAnimalCard();
         BuildRequirements(definition);
         RefreshLaunchButton();
+        RefreshIapButton();
 
         int frames = Mathf.Clamp(layoutWarmupFrames, 1, 5);
 
@@ -369,27 +669,44 @@ public class BallUnlockPopup : MonoBehaviour
 
         BuildRequirements(definition);
         RefreshLaunchButton();
+        RefreshIapButton();
     }
 
     private void RefreshLaunchButton()
     {
-        if (launchButton == null)
+        if (coinPurchaseButton == null)
             return;
 
-        BallUnlockManager manager =
-            BallUnlockManager.Instance;
+        BallUnlockManager manager = BallUnlockManager.Instance;
 
         if (manager == null)
         {
-            launchButton.interactable = false;
+            coinPurchaseButton.interactable = false;
+            coinPurchaseVisualController?.SetSelectedImmediate(false);
+            wasReadyToUnlock = false;
             return;
         }
 
-        // Keep the button clickable while locked.
-        // Affordability is checked when the player presses it.
-        launchButton.interactable =
-            !manager.IsUnlocked(targetType) &&
-            !isCompletingPurchase;
+        bool isUnlocked = manager.IsUnlocked(targetType);
+
+        bool canUnlock = !isUnlocked && manager.CanUnlock(targetType, out _);
+
+        coinPurchaseButton.interactable = !isUnlocked && !isCompletingPurchase;
+
+        if (coinPurchaseVisualController != null)
+            coinPurchaseVisualController.SetSelected(canUnlock);
+
+        // Play only when changing from not-ready to ready.
+        if (canUnlock &&
+            !wasReadyToUnlock &&
+            launchButtonAnimator != null &&
+            !string.IsNullOrEmpty(readyTrigger))
+        {
+            launchButtonAnimator.ResetTrigger(readyTrigger);
+            launchButtonAnimator.SetTrigger(readyTrigger);
+        }
+
+        wasReadyToUnlock = canUnlock;
     }
 
     private void PurchaseWithCoins()
@@ -434,8 +751,8 @@ public class BallUnlockPopup : MonoBehaviour
         // the requirement sliders during the reveal.
         isCompletingPurchase = true;
 
-        if (launchButton != null)
-            launchButton.interactable = false;
+        if (coinPurchaseButton != null)
+            coinPurchaseButton.interactable = false;
 
         if (!manager.TryUnlock(
                 targetType,
@@ -443,8 +760,8 @@ public class BallUnlockPopup : MonoBehaviour
         {
             isCompletingPurchase = false;
 
-            if (launchButton != null)
-                launchButton.interactable = true;
+            if (coinPurchaseButton != null)
+                coinPurchaseButton.interactable = true;
 
             ShowMessage(
                 insufficientResourcesMessage
@@ -571,6 +888,35 @@ public class BallUnlockPopup : MonoBehaviour
         spawnedRequirements.Clear();
     }
 
+    private void PurchaseWithIap()
+    {
+        IAPManager manager =
+            IAPManager.Instance;
+
+        if (manager == null)
+        {
+            ShowMessage(
+                "Store unavailable."
+            );
+
+            return;
+        }
+
+        if (isCompletingPurchase)
+            return;
+
+        isCompletingPurchase = true;
+
+        if (iapPurchaseButton != null)
+            iapPurchaseButton.interactable = false;
+
+        ShowIapLoading();
+
+        manager.PurchaseBall(
+            targetType
+        );
+    }
+
     public void Close()
     {
         if (isOpening)
@@ -588,6 +934,7 @@ public class BallUnlockPopup : MonoBehaviour
         animator.ResetTrigger(outTrigger);
 
         animator.SetTrigger(outTrigger);
+        PlayUiSfx(SfxCue.ButtonClick);
     }
 
     private void CloseAfterReveal()
@@ -634,5 +981,85 @@ public class BallUnlockPopup : MonoBehaviour
             if (item != null)
                 item.PlayFillAnimation();
         }
+    }
+
+    private void ShowIapLoading()
+    {
+        FadeIapLoadingTo(
+            iapLoadingAlpha
+        );
+    }
+
+    private void HideIapLoading()
+    {
+        FadeIapLoadingTo(
+            0f
+        );
+    }
+
+    private void FadeIapLoadingTo(
+        float targetAlpha)
+    {
+        if (iapLoadingGroup == null)
+            return;
+
+        if (iapLoadingRoutine != null)
+        {
+            StopCoroutine(
+                iapLoadingRoutine
+            );
+        }
+
+        iapLoadingRoutine =
+            StartCoroutine(
+                FadeIapLoadingRoutine(
+                    targetAlpha
+                )
+            );
+    }
+
+    private IEnumerator FadeIapLoadingRoutine(
+        float targetAlpha)
+    {
+        float startAlpha =
+            iapLoadingGroup.alpha;
+
+        float elapsed = 0f;
+
+        while (elapsed < iapLoadingFadeDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+
+            float normalized =
+                Mathf.Clamp01(
+                    elapsed /
+                    iapLoadingFadeDuration
+                );
+
+            float t =
+                iapLoadingFadeCurve.Evaluate(
+                    normalized
+                );
+
+            iapLoadingGroup.alpha =
+                Mathf.Lerp(
+                    startAlpha,
+                    targetAlpha,
+                    t
+                );
+
+            yield return null;
+        }
+
+        iapLoadingGroup.alpha =
+            targetAlpha;
+
+        iapLoadingGroup.blocksRaycasts =
+            targetAlpha > 0f;
+
+        iapLoadingGroup.interactable =
+            targetAlpha > 0f;
+
+        iapLoadingRoutine = null;
     }
 }
