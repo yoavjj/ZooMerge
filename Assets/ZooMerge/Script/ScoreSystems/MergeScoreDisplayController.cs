@@ -15,6 +15,10 @@ public class MergeScoreDisplayController : MonoBehaviour
     [Header("Popup Prefabs By Level")]
     [SerializeField] private List<ScorePopupInstance> scorePrefabsByLevel = new();
 
+    [Header("Particle FX")]
+    [SerializeField] private Transform particleContainer;
+    [SerializeField] private ScoreParticleInstance particlePrefab;
+
     [Header("Path Randomness")]
     [SerializeField] private float controlPointXRange = 100f;
     [SerializeField] private float controlPointYMin = 100f;
@@ -88,6 +92,10 @@ public class MergeScoreDisplayController : MonoBehaviour
         if (sessionEnding) return;
         
         var popup = GetOrCreatePopup(level);
+        ScoreParticleInstance particle = Instantiate( particlePrefab, particleContainer);
+        particle.Play();
+
+        popup.SetParticleInstance(particle);
         popup.SetPoolIndex(Mathf.Clamp(level - 1, 0, scorePrefabsByLevel.Count - 1));
         popup.Text.text = $"+{score}";
 
