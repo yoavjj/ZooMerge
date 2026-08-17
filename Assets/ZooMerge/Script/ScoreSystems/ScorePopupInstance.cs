@@ -10,6 +10,9 @@ public class ScorePopupInstance : MonoBehaviour
     [Header("Timing Sync")]
     [SerializeField, Range(0.5f, 1f)] private float outTriggerAtT = 0.9f;
     [SerializeField] private float hitAtT = 1.0f;
+    [SerializeField, Range(0f, 1f)] private float particleStopAtT = 0.75f;
+
+    private bool particleStopTriggered;
 
     [Header("Center Float")]
     [SerializeField] private float centerFloatAmplitudePx = 10f;
@@ -43,6 +46,8 @@ public class ScorePopupInstance : MonoBehaviour
     private bool cancelled;
     private Vector3 targetScreen;
 
+    private ScoreParticleInstance particleInstance;
+
     private void OnEnable()
     {
         BallEventManager.OnEnemySessionEnded += HandleEnemySessionEndedGlobal;
@@ -62,7 +67,8 @@ public class ScorePopupInstance : MonoBehaviour
         hasExited = false;
         outTriggered = false;
 
-        cancelled = false; // ✅ ADDED
+        cancelled = false;
+        particleStopTriggered = false;
     }
 
     public void Init(
@@ -83,6 +89,7 @@ public class ScorePopupInstance : MonoBehaviour
         GameObject enemy
     )
     {
+        particleStopTriggered = false;
         cancelled = false;
         InUse = true;
         this.onComplete = onComplete;
@@ -95,7 +102,7 @@ public class ScorePopupInstance : MonoBehaviour
         outTriggered = false;
 
         transform.rotation = Quaternion.identity;
-        transform.position = screenStart;
+        SetPopupScreenPosition(screenStart);
 
         animator.SetTrigger("In");
         targetZRotation = Random.Range(minZRotation, maxZRotation);
@@ -148,7 +155,7 @@ public class ScorePopupInstance : MonoBehaviour
                 t += Time.deltaTime / Mathf.Max(0.0001f, toCenterDuration);
                 float k = toCenterCurve != null ? toCenterCurve.Evaluate(Mathf.Clamp01(t)) : Mathf.Clamp01(t);
 
-                transform.position = Bezier(a, c, b, k);
+                SetPopupScreenPosition(Bezier(a, c, b, k));
 
                 float currentZ = Mathf.Lerp(0f, targetZRotation * 0.35f, Mathf.Clamp01(t));
                 transform.rotation = Quaternion.Euler(0f, 0f, currentZ);
@@ -179,13 +186,13 @@ public class ScorePopupInstance : MonoBehaviour
                 float wobbleY = Mathf.Sin((Time.time + phase) * centerFloatFrequency) * centerFloatAmplitudePx;
                 float wobbleX = Mathf.Cos((Time.time * 1.35f + phase) * centerFloatFrequency) * (centerFloatAmplitudePx * 0.6f);
 
-                transform.position = baseCenterPos + new Vector3(wobbleX, wobbleY, 0f) * ramp;
+                SetPopupScreenPosition(baseCenterPos + new Vector3(wobbleX, wobbleY, 0f) * ramp);
 
                 yield return null;
             }
 
             // optional: snap back to base before phase 2 control point calc (keeps path clean)
-            transform.position = baseCenterPos;
+            SetPopupScreenPosition(baseCenterPos);
         }
 
         // --------------------
@@ -203,20 +210,30 @@ public class ScorePopupInstance : MonoBehaviour
         while (tt < 1f)
         {
             tt += Time.deltaTime / Mathf.Max(0.0001f, toTargetDuration);
-            float k = toTargetCurve != null ? toTargetCurve.Evaluate(Mathf.Clamp01(tt)) : Mathf.Clamp01(tt);
 
-            transform.position = Bezier(start, control, end, k);
+            float normalizedT = Mathf.Clamp01(tt);
+            float k = toTargetCurve != null ? toTargetCurve.Evaluate(normalizedT) : normalizedT;
 
-            float currentZ = Mathf.Lerp(targetZRotation * 0.35f, targetZRotation, Mathf.Clamp01(tt));
+            SetPopupScreenPosition(Bezier(start, control, end, k));
+
+            float currentZ = Mathf.Lerp(targetZRotation * 0.35f, targetZRotation, normalizedT);
             transform.rotation = Quaternion.Euler(0f, 0f, currentZ);
 
-            if (!outTriggered && tt >= outTriggerAtT)
+            if (!particleStopTriggered && normalizedT >= particleStopAtT)
+            {
+                particleStopTriggered = true;
+
+                if (particleInstance != null)
+                    particleInstance.StopSoft();
+            }
+
+            if (!outTriggered && normalizedT >= outTriggerAtT)
             {
                 outTriggered = true;
                 animator.SetTrigger("Out");
             }
 
-            if (!hasExited && tt >= hitAtT)
+            if (!hasExited && normalizedT >= hitAtT)
             {
                 hasExited = true;
 
@@ -243,6 +260,7 @@ public class ScorePopupInstance : MonoBehaviour
     private IEnumerator ReturnAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
+        CleanupParticle();
         InUse = false;
         onComplete?.Invoke(this);
     }
@@ -262,7 +280,6 @@ public class ScorePopupInstance : MonoBehaviour
         if (cancelled) return;
         cancelled = true;
 
-        // Prevent applying damage later
         hasExited = true;
 
         if (flyRoutine != null)
@@ -271,12 +288,13 @@ public class ScorePopupInstance : MonoBehaviour
             flyRoutine = null;
         }
 
-        // Optional: play out anim if you want it to disappear nicely
         if (animator != null)
             animator.SetTrigger("Out");
 
+        CancelParticle();
+
         InUse = false;
-        onComplete?.Invoke(this); // returns to pool (controller clears offsets + disables)
+        onComplete?.Invoke(this);
     }
 
     private void HandleEnemyDefeatImminent(ScorePopupInstance killer, BallEventManager.EnemyDefeatType type)
@@ -290,4 +308,45 @@ public class ScorePopupInstance : MonoBehaviour
         CancelAndReturn();
     }
 
+    private void SetPopupScreenPosition(Vector3 screenPosition)
+    {
+        transform.position = screenPosition;
+
+        if (particleInstance == null || cam == null)
+            return;
+
+        Vector3 particleWorldPosition = cam.ScreenToWorldPoint(
+            new Vector3(
+                screenPosition.x,
+                screenPosition.y,
+                5f
+            )
+        );
+
+        particleInstance.transform.position = particleWorldPosition;
+    }
+
+    public void SetParticleInstance(ScoreParticleInstance particle)
+    {
+        particleInstance = particle;
+    }
+
+    private void CleanupParticle()
+    {
+        if (particleInstance == null)
+            return;
+
+        Destroy(particleInstance.gameObject);
+        particleInstance = null;
+    }
+
+    private void CancelParticle()
+    {
+        if (particleInstance == null)
+            return;
+
+        particleInstance.StopSoft();
+        Destroy(particleInstance.gameObject, 1f);
+        particleInstance = null;
+    }
 }
