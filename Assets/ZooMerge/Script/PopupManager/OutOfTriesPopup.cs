@@ -8,12 +8,18 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
 {
     public static OutOfTriesPopup LastSpawned { get; private set; }
 
+    [Header("Retry IAP")]
+    [SerializeField] private Button retryIapButton;
+    [SerializeField] private TextMeshProUGUI retryIapPriceText;
+
+    private bool isPurchasingRetryIap;
+
     [Header("Buy Retries")]
     [SerializeField] private int retryRefillCostCoins = 5;
     [SerializeField] private RetryRefillPricingSO pricing;
 
     public event Action Closed;
-    public static event Action RetriesPurchased;
+    public static event Action<int> RetriesPurchased;
 
     [Header("Animation")]
     [SerializeField] private Animator animator;                 
@@ -43,11 +49,133 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
     {
         RefreshCostUI();
 
+        if (IAPManager.Instance != null)
+        {
+            IAPManager.Instance.PurchaseCompleted += HandleIapPurchaseCompleted;
+            IAPManager.Instance.Ready += HandleIapReady;
+        }
+
+        RefreshRetryIapUI();
+
         if (!hasLoggedPopupShown)
         {
             hasLoggedPopupShown = true;
             LogPopupShown();
         }
+    }
+
+    private void OnDisable()
+    {
+        if (IAPManager.Instance != null)
+        {
+            IAPManager.Instance.PurchaseCompleted -= HandleIapPurchaseCompleted;
+            IAPManager.Instance.Ready -= HandleIapReady;
+        }
+    }
+
+    public void BuyThreeRetriesWithIap()
+    {
+        if (isPurchasingRetryIap)
+            return;
+
+        if (PlayerProgress.CurrentLevelRetriesRemaining() > 0)
+        {
+            Debug.Log("[OutOfTriesPopup] Retries already available, no need to purchase.");
+
+            PlayUiSfx(SfxCue.ButtonClickNegative);
+            return;
+        }
+
+        IAPManager manager = IAPManager.Instance;
+
+        if (manager == null)
+        {
+            Debug.LogWarning("[OutOfTriesPopup] IAPManager is unavailable.");
+
+            PlayUiSfx(SfxCue.ButtonClickNegative);
+            return;
+        }
+
+        if (!manager.IsReady)
+        {
+            Debug.LogWarning("[OutOfTriesPopup] Store is not ready.");
+
+            PlayUiSfx(SfxCue.ButtonClickNegative);
+            return;
+        }
+
+        IAPProductCatalogSO.ProductDefinition definition = manager.GetRetryProduct();
+
+        if (definition == null)
+        {
+            Debug.LogError("[OutOfTriesPopup] Retry IAP product is not configured.");
+
+            PlayUiSfx(SfxCue.ButtonClickNegative);
+            return;
+        }
+
+        isPurchasingRetryIap = true;
+
+        if (retryIapButton != null)
+            retryIapButton.interactable = false;
+
+        PlayUiSfx(SfxCue.ButtonClick);
+
+        manager.PurchaseRetries();
+    }
+
+    private void HandleIapPurchaseCompleted(IAPPurchaseResult result)
+    {
+        IAPManager manager = IAPManager.Instance;
+
+        if (manager == null)
+            return;
+
+        IAPProductCatalogSO.ProductDefinition definition = manager.GetRetryProduct();
+
+        if (definition == null)
+            return;
+
+        if (!string.Equals(result.ProductId, definition.productId, StringComparison.Ordinal))
+            return;
+
+        isPurchasingRetryIap = false;
+
+        if (!result.Success)
+        {
+            RefreshRetryIapUI();
+
+            if (MessageText != null)
+            {
+                MessageText.text =
+                    !string.IsNullOrWhiteSpace(result.Message)
+                        ? result.Message
+                        : "Purchase failed. Please try again.";
+            }
+
+            Debug.LogWarning(
+                $"[OutOfTriesPopup] Retry IAP failed. " +
+                $"Reason={result.FailureReason}, " +
+                $"Message='{result.Message}'"
+            );
+
+            PlayUiSfx(SfxCue.ButtonClickNegative);
+            return;
+        }
+
+        RetriesPurchased?.Invoke(definition.rewardAmount);
+
+        if (MessageText != null)
+            MessageText.text = successMessage;
+
+        Debug.Log(
+            $"[OutOfTriesPopup] Retry IAP successful. " +
+            $"Granted {definition.rewardAmount} retries."
+        );
+
+        CloudSaveManager.SyncEconomyNow();
+
+        Close(retryTrigger);
     }
 
     private void RefreshCostUI()
@@ -124,7 +252,7 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
             );
 
             // Tell UI/game systems.
-            RetriesPurchased?.Invoke();
+            RetriesPurchased?.Invoke(1);
 
             // Existing cloud snapshot.
             CloudSaveManager.SyncEconomyNow();
@@ -154,9 +282,38 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
                     $"Rewarded failed: {reason}"
                 );
             }
-    )   ;
+        );
     }
 
+    private void HandleIapReady()
+    {
+        RefreshRetryIapUI();
+    }
+
+    private void RefreshRetryIapUI()
+    {
+        IAPManager manager = IAPManager.Instance;
+
+        bool ready =
+            manager != null &&
+            manager.IsReady &&
+            !isPurchasingRetryIap;
+
+        if (retryIapButton != null)
+            retryIapButton.interactable = ready;
+
+        if (retryIapPriceText != null)
+        {
+            string price = manager != null
+                ? manager.GetRetryLocalizedPrice()
+                : string.Empty;
+
+            retryIapPriceText.text =
+                string.IsNullOrWhiteSpace(price)
+                    ? string.Empty
+                    : $": {price}";
+        }
+    }
     public void BuyRetriesWithCoins()
     {
         // Only makes sense if truly out of tries.
@@ -261,7 +418,7 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
         );
 
         // Tell UI/game systems.
-        RetriesPurchased?.Invoke();
+        RetriesPurchased?.Invoke(1);
 
         if (MessageText != null)
         {

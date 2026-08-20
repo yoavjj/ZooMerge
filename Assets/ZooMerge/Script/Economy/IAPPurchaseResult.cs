@@ -1,3 +1,10 @@
+public enum IAPRewardType
+{
+    None,
+    Retries,
+    Coins
+}
+
 public enum IAPPurchaseFailureReason
 {
     NotInitialized,

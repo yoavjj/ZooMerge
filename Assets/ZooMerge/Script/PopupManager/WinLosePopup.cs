@@ -1088,7 +1088,7 @@ public class WinLosePopup : SfxBehaviourTirgger
         OutOfTriesPopup.LastSpawned?.SetQuitButtonVisible(true);
     }
 
-    private void HandleRetriesPurchased()
+    private void HandleRetriesPurchased(int amount)
     {
         // ✅ Important: the popup may still be animating out.
         // Clear the reference immediately so gating won't think it's still "out of tries".
@@ -1105,7 +1105,7 @@ public class WinLosePopup : SfxBehaviourTirgger
             playButtonAnimator.SetTrigger(readyTrigger);
         }
 
-        collectibleFlyController?.FlyHeartWinLose();
+        collectibleFlyController?.FlyHeartWinLose(amount);
 
         // Allow pressing again
         playPressedLocked = false;
