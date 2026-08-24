@@ -9,8 +9,8 @@ public class IAPManager : MonoBehaviour
     public static IAPManager Instance { get; private set; }
 
     [Header("Catalog")]
-    [SerializeField]
-    private BallUnlockCatalogSO unlockCatalog;
+    [SerializeField] private BallUnlockCatalogSO unlockCatalog;
+    [SerializeField] private IAPProductCatalogSO iapProductCatalog;
 
     [Header("Editor Testing")]
     [SerializeField]
@@ -138,10 +138,34 @@ $"Products: {catalog.allProducts.Count}"
             catalogProvider.FetchProducts(
                 products =>
                 {
-                    Debug.Log(
-                        $"[IAPManager] Asking store to fetch " +
-                        $"{products.Count} products."
-                    );
+                    if (iapProductCatalog != null)
+                    {
+                        foreach (IAPProductCatalogSO.ProductDefinition definition in iapProductCatalog.Products)
+                        {
+                            if (definition == null || string.IsNullOrWhiteSpace(definition.productId))
+                                continue;
+
+                            bool alreadyExists = products.Exists(product =>
+                                string.Equals(
+                                    product.id,
+                                    definition.productId,
+                                    StringComparison.Ordinal
+                                )
+                            );
+
+                            if (alreadyExists)
+                                continue;
+
+                            products.Add(
+                                new ProductDefinition(
+                                    definition.productId,
+                                    definition.productType
+                                )
+                            );
+                        }
+                    }
+
+                    Debug.Log($"[IAPManager] Asking store to fetch {products.Count} products.");
 
                     foreach (ProductDefinition product in products)
                     {
@@ -153,9 +177,7 @@ $"Products: {catalog.allProducts.Count}"
                         );
                     }
 
-                    storeController.FetchProducts(
-                        products
-                    );
+                    storeController.FetchProducts(products);
                 }
             );
         }
@@ -435,6 +457,49 @@ $"Products: {catalog.allProducts.Count}"
         );
     }
 
+    public void PurchaseRetries()
+    {
+        if (!IsReady)
+        {
+            PurchaseCompleted?.Invoke(
+                IAPPurchaseResult.Failed(
+                    string.Empty,
+                    IAPPurchaseFailureReason.NotInitialized,
+                    "The store is not ready."
+                )
+            );
+
+            return;
+        }
+
+        IAPProductCatalogSO.ProductDefinition definition = GetRetryProduct();
+
+        if (definition == null || string.IsNullOrWhiteSpace(definition.productId))
+        {
+            PurchaseCompleted?.Invoke(
+                IAPPurchaseResult.Failed(
+                    string.Empty,
+                    IAPPurchaseFailureReason.ProductNotFound,
+                    "No retry IAP product is configured."
+                )
+            );
+
+            return;
+        }
+
+        BeginStorePurchase(definition.productId);
+    }
+
+    public string GetRetryLocalizedPrice()
+    {
+        IAPProductCatalogSO.ProductDefinition definition = GetRetryProduct();
+
+        if (definition == null || string.IsNullOrWhiteSpace(definition.productId))
+            return string.Empty;
+
+        return GetStoreLocalizedPrice(definition.productId);
+    }
+
     private void BeginStorePurchase(
         string productId)
     {
@@ -568,8 +633,7 @@ $"Products: {catalog.allProducts.Count}"
         }
     }
 
-    private void HandlePurchasePending(
-        PendingOrder order)
+    private void HandlePurchasePending(PendingOrder order)
     {
         if (order == null)
             return;
@@ -581,26 +645,85 @@ $"Products: {catalog.allProducts.Count}"
 
         if (purchasedProduct == null)
         {
-            Debug.LogError(
-                "[IAPManager] Pending order has no product."
+            Debug.LogError("[IAPManager] Pending order has no product.");
+            return;
+        }
+
+        string productId = purchasedProduct.definition.id;
+
+        StopPurchaseTimeout(productId);
+
+        Debug.Log($"[IAPManager] Purchase pending: {productId}");
+
+        // 1. Generic IAP products: retries, coins, packs, etc.
+        IAPProductCatalogSO.ProductDefinition genericDefinition = GetIapDefinition(productId);
+
+        if (genericDefinition != null)
+        {
+            FulfillGenericPurchase(order, genericDefinition);
+            return;
+        }
+
+        // 2. Permanent animal unlock products.
+        BallUnlockCatalogSO.UnlockDefinition unlockDefinition =
+            unlockCatalog != null
+                ? unlockCatalog.GetDefinitionByProductId(productId)
+                : null;
+
+        if (unlockDefinition != null)
+        {
+            FulfillBallUnlockPurchase(order, productId);
+            return;
+        }
+
+        Debug.LogError($"[IAPManager] No fulfillment definition found for product '{productId}'.");
+
+        PurchaseCompleted?.Invoke(
+            IAPPurchaseResult.Failed(
+                productId,
+                IAPPurchaseFailureReason.ProductNotFound,
+                $"No fulfillment definition exists for '{productId}'."
+            )
+        );
+    }
+
+    private void FulfillGenericPurchase(
+    PendingOrder order,
+    IAPProductCatalogSO.ProductDefinition definition)
+    {
+        string productId = definition.productId;
+
+        bool granted = TryFulfillGenericIap(definition, out string reason);
+
+        if (!granted)
+        {
+            Debug.LogError($"[IAPManager] Could not fulfill {productId}: {reason}");
+
+            PurchaseCompleted?.Invoke(
+                IAPPurchaseResult.Failed(
+                    productId,
+                    IAPPurchaseFailureReason.FulfillmentFailed,
+                    reason
+                )
             );
 
             return;
         }
 
-        string productId =
-            purchasedProduct.definition.id;
+        CloudSaveManager.RegisterIapPurchase();
 
-        StopPurchaseTimeout(
-            productId
-        );
+        Debug.Log($"[IAPManager] {reason} Confirming purchase.");
 
-        Debug.Log(
-            $"[IAPManager] Purchase pending: {productId}"
-        );
+        storeController.ConfirmPurchase(order);
 
-        BallUnlockManager unlockManager =
-            BallUnlockManager.Instance;
+        PurchaseCompleted?.Invoke(IAPPurchaseResult.Succeeded(productId));
+    }
+
+    private void FulfillBallUnlockPurchase(
+    PendingOrder order,
+    string productId)
+    {
+        BallUnlockManager unlockManager = BallUnlockManager.Instance;
 
         if (unlockManager == null)
         {
@@ -615,19 +738,15 @@ $"Products: {catalog.allProducts.Count}"
             return;
         }
 
-        bool granted =
-            unlockManager.TryUnlockFromIap(
-                productId,
-                out BallType unlockedType,
-                out string reason
-            );
+        bool granted = unlockManager.TryUnlockFromIap(
+            productId,
+            out BallType unlockedType,
+            out string reason
+        );
 
         if (!granted)
         {
-            Debug.LogError(
-                $"[IAPManager] Could not fulfill " +
-                $"{productId}: {reason}"
-            );
+            Debug.LogError($"[IAPManager] Could not fulfill {productId}: {reason}");
 
             PurchaseCompleted?.Invoke(
                 IAPPurchaseResult.Failed(
@@ -640,25 +759,43 @@ $"Products: {catalog.allProducts.Count}"
             return;
         }
 
-        // Real-money purchase successfully granted.
         CloudSaveManager.RegisterIapPurchase();
 
-        AnalyticsEvents.IapPurchaseCompleted(productId,unlockedType);
+        AnalyticsEvents.IapPurchaseCompleted(productId, unlockedType);
 
-        Debug.Log(
-            $"[IAPManager] Granted {unlockedType}. " +
-            "Confirming purchase."
-        );
+        Debug.Log($"[IAPManager] Granted {unlockedType}. Confirming purchase.");
 
-        storeController.ConfirmPurchase(
-            order
-        );
+        storeController.ConfirmPurchase(order);
 
-        PurchaseCompleted?.Invoke(
-            IAPPurchaseResult.Succeeded(
-                productId
-            )
-        );
+        PurchaseCompleted?.Invoke(IAPPurchaseResult.Succeeded(productId));
+    }
+
+    private bool TryFulfillGenericIap(
+        IAPProductCatalogSO.ProductDefinition definition,
+        out string reason)
+    {
+        if (definition == null)
+        {
+            reason = "IAP definition is missing.";
+            return false;
+        }
+
+        if (definition.rewardAmount <= 0)
+        {
+            reason = "IAP reward amount is invalid.";
+            return false;
+        }
+
+        switch (definition.rewardType)
+        {
+            case IAPRewardType.Retries:
+                reason = $"Retry purchase validated for {definition.rewardAmount} retries.";
+                return true;
+
+            default:
+                reason = $"Unsupported IAP reward type: {definition.rewardType}.";
+                return false;
+        }
     }
 
     public string GetLocalizedPrice(
@@ -702,15 +839,10 @@ $"Products: {catalog.allProducts.Count}"
         return string.Empty;
     }
 
-    private IEnumerator SimulatePurchaseRoutine(
-        string productId)
+    private IEnumerator SimulatePurchaseRoutine(string productId)
     {
         if (simulatedPurchaseDelay > 0f)
-        {
-            yield return new WaitForSecondsRealtime(
-                simulatedPurchaseDelay
-            );
-        }
+            yield return new WaitForSecondsRealtime(simulatedPurchaseDelay);
 
         if (simulatedPurchaseShouldFail)
         {
@@ -725,51 +857,100 @@ $"Products: {catalog.allProducts.Count}"
             yield break;
         }
 
-        BallUnlockManager unlockManager =
-            BallUnlockManager.Instance;
+        IAPProductCatalogSO.ProductDefinition genericDefinition = GetIapDefinition(productId);
 
-        if (unlockManager == null)
+        if (genericDefinition != null)
         {
-            PurchaseCompleted?.Invoke(
-                IAPPurchaseResult.Failed(
-                    productId,
-                    IAPPurchaseFailureReason.FulfillmentFailed,
-                    "Unlock manager is unavailable."
-                )
-            );
+            bool granted = TryFulfillGenericIap(genericDefinition, out string reason);
 
+            if (!granted)
+            {
+                PurchaseCompleted?.Invoke(
+                    IAPPurchaseResult.Failed(
+                        productId,
+                        IAPPurchaseFailureReason.FulfillmentFailed,
+                        reason
+                    )
+                );
+
+                yield break;
+            }
+
+            Debug.Log($"[IAPManager] Simulated generic purchase: {reason}");
+
+            PurchaseCompleted?.Invoke(IAPPurchaseResult.Succeeded(productId));
             yield break;
         }
 
-        bool granted =
-            unlockManager.TryUnlockFromIap(
+        BallUnlockCatalogSO.UnlockDefinition unlockDefinition =
+            unlockCatalog != null
+                ? unlockCatalog.GetDefinitionByProductId(productId)
+                : null;
+
+        if (unlockDefinition != null)
+        {
+            BallUnlockManager unlockManager = BallUnlockManager.Instance;
+
+            if (unlockManager == null)
+            {
+                PurchaseCompleted?.Invoke(
+                    IAPPurchaseResult.Failed(
+                        productId,
+                        IAPPurchaseFailureReason.FulfillmentFailed,
+                        "Unlock manager is unavailable."
+                    )
+                );
+
+                yield break;
+            }
+
+            bool granted = unlockManager.TryUnlockFromIap(
                 productId,
                 out BallType unlockedType,
                 out string reason
             );
 
-        if (!granted)
-        {
-            PurchaseCompleted?.Invoke(
-                IAPPurchaseResult.Failed(
-                    productId,
-                    IAPPurchaseFailureReason.FulfillmentFailed,
-                    reason
-                )
-            );
+            if (!granted)
+            {
+                PurchaseCompleted?.Invoke(
+                    IAPPurchaseResult.Failed(
+                        productId,
+                        IAPPurchaseFailureReason.FulfillmentFailed,
+                        reason
+                    )
+                );
 
+                yield break;
+            }
+
+            Debug.Log($"[IAPManager] Simulated purchase granted {unlockedType}.");
+
+            PurchaseCompleted?.Invoke(IAPPurchaseResult.Succeeded(productId));
             yield break;
         }
 
-        Debug.Log(
-            $"[IAPManager] Simulated purchase granted " +
-            $"{unlockedType}."
-        );
-
         PurchaseCompleted?.Invoke(
-            IAPPurchaseResult.Succeeded(
-                productId
+            IAPPurchaseResult.Failed(
+                productId,
+                IAPPurchaseFailureReason.ProductNotFound,
+                $"No fulfillment definition exists for '{productId}'."
             )
         );
+    }
+
+    public IAPProductCatalogSO.ProductDefinition GetIapDefinition(string productId)
+    {
+        if (iapProductCatalog == null)
+            return null;
+
+        return iapProductCatalog.GetDefinition(productId);
+    }
+
+    public IAPProductCatalogSO.ProductDefinition GetRetryProduct()
+    {
+        if (iapProductCatalog == null)
+            return null;
+
+        return iapProductCatalog.GetDefinition(IAPRewardType.Retries);
     }
 }

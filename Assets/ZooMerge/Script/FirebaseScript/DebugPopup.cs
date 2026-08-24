@@ -270,4 +270,21 @@ public class DebugPopup : MonoBehaviour
             "remember the non-consumable purchase."
         );
     }
+
+    public void Debug_SetRetriesToZero()
+    {
+        PlayerProgress.NewLevelRetriesRemaining = 0;
+        PlayerProgress.SaveNow();
+        PlayerProgress.NotifyRetriesChanged();
+
+        CloudSaveManager.SaveEconomyStateImmediate(
+            success =>
+            {
+                if (success)
+                    Debug.Log("[DebugPopup] Retries reset to 0 and saved to cloud.");
+                else
+                    Debug.LogError("[DebugPopup] Retries reset locally, but cloud save failed.");
+            }
+        );
+    }
 }

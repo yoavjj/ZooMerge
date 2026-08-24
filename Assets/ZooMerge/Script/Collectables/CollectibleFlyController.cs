@@ -61,7 +61,6 @@ public class CollectibleFlyController : SfxBehaviourTirgger
     [Header("Optional Fly Target Overrides")]
     [SerializeField] private CollectibleFlyTarget heartFlyTarget; // target on your UI (tries/heart icon)
     [SerializeField] private string heartWinLoseEntryId = "Heart_winlose";
-    [SerializeField] private int heartWinLoseAmount = 1;
 
     [Header("UI references")]
     [SerializeField] private LevelProgressBarSlider progressBar;
@@ -389,7 +388,7 @@ public class CollectibleFlyController : SfxBehaviourTirgger
         coinPrefabContainer.anchoredPosition = target.anchoredPosition;
     }
 
-    public void FlyHeartWinLose()
+    public void FlyHeartWinLose(int amount)
     {
         if (CollectibleFlyService.Instance == null)
         {
@@ -403,10 +402,8 @@ public class CollectibleFlyController : SfxBehaviourTirgger
             return;
         }
 
-        // Use default spawn container (pass null)
-        CollectibleFlyService.Instance.Fly(heartWinLoseEntryId, heartWinLoseAmount, heartFlyTarget, null);
+        CollectibleFlyService.Instance.Fly(heartWinLoseEntryId, amount, heartFlyTarget, null);
     }
-
 
 #if UNITY_EDITOR
     /* ---------------------------------------------------

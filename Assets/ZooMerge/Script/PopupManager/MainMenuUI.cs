@@ -55,7 +55,6 @@ public class MainMenuUI : SfxBehaviourTirgger
 
     [SerializeField] private CollectibleFlyTarget heartFlyTarget; // target on your UI (tries/heart icon)
     [SerializeField] private string heartMenuEntryId = "Heart_menu"; // collectible fly entry for retry reward (optional)
-    [SerializeField] private int heartMenuAmount = 1;
 
     private void Awake()
     {
@@ -134,7 +133,7 @@ public class MainMenuUI : SfxBehaviourTirgger
         }
     }
 
-    private void HandleRetriesPurchasedFromPopup()
+    private void HandleRetriesPurchasedFromPopup(int amount)
     {
         // The popup is closing, so allow another popup later if needed
         outOfTriesInstance = null;
@@ -142,7 +141,7 @@ public class MainMenuUI : SfxBehaviourTirgger
         // Start the heart reward fly.
         // The retry will be added when the heart reaches the target
         // and your existing animation event calls AE_AddArriveAmountToText().
-        FlyHeartMenu();
+        FlyHeartMenu(amount);
 
         // Allow pressing Play again
         playLocked = false;
@@ -318,7 +317,7 @@ public class MainMenuUI : SfxBehaviourTirgger
         CacheSessionStartData();
     }
 
-    public void FlyHeartMenu()
+    public void FlyHeartMenu(int amount)
     {
         if (CollectibleFlyService.Instance == null)
         {
@@ -332,8 +331,7 @@ public class MainMenuUI : SfxBehaviourTirgger
             return;
         }
 
-        // Use default spawn container (pass null)
-        CollectibleFlyService.Instance.Fly(heartMenuEntryId, heartMenuAmount, heartFlyTarget, null);
+        CollectibleFlyService.Instance.Fly(heartMenuEntryId, amount, heartFlyTarget, null);
     }
 
     public void ShowGalaxyRoadmap()
