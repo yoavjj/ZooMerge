@@ -23,6 +23,7 @@ public class PopupManager : SfxBehaviourTirgger
 
     [SerializeField] private BallSpawner ballSpawner;
     [SerializeField] LevelProgressBarSlider levelProgressBarSlider;
+    [SerializeField] private LevelProgressDisplay sessionProgressDisplay;
 
     [SerializeField] private GameObject ensureActivePanelOnStart;
 
@@ -365,15 +366,21 @@ public class PopupManager : SfxBehaviourTirgger
 
     public void InitializeProgressBarNow()
     {
-        if (levelProgressBarSlider == null)
-        {
-            Debug.LogError("⚠️ PopupManager: LevelProgressBarSlider reference is missing.");
-            return;
-        }
+        // if (levelProgressBarSlider == null)
+        // {
+        //     Debug.LogError("⚠️ PopupManager: LevelProgressBarSlider reference is missing.");
+        //     return;
+        // }
 
-        levelProgressBarSlider.InitializeCurrentLevel();
-        // Grey-out all enemies already defeated (up to CurrentEnemyIndex - 1)
-        levelProgressBarSlider.SyncIconsToCurrentProgress(includeCurrent: false);
+        // levelProgressBarSlider.InitializeCurrentLevel();
+        // // Grey-out all enemies already defeated (up to CurrentEnemyIndex - 1)
+        // levelProgressBarSlider.SyncIconsToCurrentProgress(includeCurrent: false);
+
+
+        if (sessionProgressDisplay != null)
+        {
+            sessionProgressDisplay.InitializeCurrentLevel();
+        }
     }
 
     private void HandleSessionStarted()

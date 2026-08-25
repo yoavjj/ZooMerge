@@ -311,7 +311,7 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
             retryIapPriceText.text =
                 string.IsNullOrWhiteSpace(price)
                     ? string.Empty
-                    : $": {price}";
+                    : $":  {price}";
         }
     }
     public void BuyRetriesWithCoins()
