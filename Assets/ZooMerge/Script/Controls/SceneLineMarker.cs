@@ -26,8 +26,43 @@ public class SceneLineMarker : MonoBehaviour
     public Vector2 bufferZoneOffset = new Vector2(0f, -6f);
     public Color bufferZoneColor = new Color(0f, 0.4f, 1f, 0.3f);
 
-    public float MinX => transform.position.x - Mathf.Max(0f, halfExtent);
-    public float MaxX => transform.position.x + Mathf.Max(0f, halfExtent);
+    [Header("Screen Edge Bounds")]
+    [SerializeField] private bool useCameraScreenEdges = true;
+    [SerializeField] private float screenEdgePadding = 0f;
+
+    public float MinX
+    {
+        get
+        {
+            if (useCameraScreenEdges && Camera.main != null)
+            {
+                float left = Camera.main.ViewportToWorldPoint(
+                    new Vector3(0f, 0.5f, Mathf.Abs(Camera.main.transform.position.z))
+                ).x;
+
+                return left + screenEdgePadding;
+            }
+
+            return transform.position.x - Mathf.Max(0f, halfExtent);
+        }
+    }
+
+    public float MaxX
+    {
+        get
+        {
+            if (useCameraScreenEdges && Camera.main != null)
+            {
+                float right = Camera.main.ViewportToWorldPoint(
+                    new Vector3(1f, 0.5f, Mathf.Abs(Camera.main.transform.position.z))
+                ).x;
+
+                return right - screenEdgePadding;
+            }
+
+            return transform.position.x + Mathf.Max(0f, halfExtent);
+        }
+    }
     public float GameOverY => transform.position.y + gameOverYOffset;
 
     private void OnValidate()

@@ -60,7 +60,7 @@ public class LevelProgressBarSlider : MonoBehaviour
         sliderAnimator = new SliderAnimator(slider, this);
     }
 
-    public void InitializeCurrentLevel(bool skipSliderSet = false)
+    public virtual void InitializeCurrentLevel(bool skipSliderSet = false)
     {
         if (slider == null) slider = GetComponent<Slider>();
         if (widthTarget == null) widthTarget = GetComponent<RectTransform>();
