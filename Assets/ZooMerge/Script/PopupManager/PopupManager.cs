@@ -276,7 +276,7 @@ public class PopupManager : SfxBehaviourTirgger
 
         if (isNewLevel)
         {
-            TryGrantHeartRewardForCompletedLevel();
+            TryGrantCompletedLevelReward();
         }
 
         // ✅ wait 1 more frame before the expensive Addressables spawn
@@ -459,14 +459,44 @@ public class PopupManager : SfxBehaviourTirgger
         ClearPausePopupReference();
     }
 
-    private void TryGrantHeartRewardForCompletedLevel()
+    private void TryGrantCompletedLevelReward()
     {
-        bool remoteConfigGrant = MergeLevelManager.PreviousCompletedLevelGrantsHeartOnComplete;
+        LevelCompletionReward reward = MergeLevelManager.PreviousCompletedLevelReward;
 
-        if (!remoteConfigGrant)
+        bool hasReward =
+            reward != null &&
+            reward.rewardType != LevelRewardType.None;
+
+        if (!hasReward)
             return;
 
-        CollectibleFlyService.Instance?.Fly("Heart_Session", 1, heartFlyTarget, null);
+        if ((reward.rewardType & LevelRewardType.Heart) != 0)
+        {
+            int amount = Mathf.Max(1, reward.amount);
+
+            CollectibleFlyService.Instance?.Fly("Heart_Session", amount, heartFlyTarget, null);
+
+            Debug.Log($"[PopupManager] Granting completed-level reward: {amount} Heart(s).");
+        }
+
+        if ((reward.rewardType & LevelRewardType.SpaceshipSkin) != 0)
+        {
+            if (string.IsNullOrWhiteSpace(reward.spaceshipSkinId))
+            {
+                Debug.LogWarning("[PopupManager] Spaceship skin reward has no skin ID.");
+            }
+            else if (SpaceshipSkinController.Instance != null)
+            {
+                bool applied = SpaceshipSkinController.Instance.UnlockAndApplySkin(reward.spaceshipSkinId);
+
+                if (applied)
+                    Debug.Log($"[PopupManager] Granted spaceship skin: {reward.spaceshipSkinId}");
+            }
+            else
+            {
+                Debug.LogWarning("[PopupManager] SpaceshipSkinController is missing.");
+            }
+        }
     }
 
     public RectTransform GetOrCreateNavigationPopup(string prefabId)

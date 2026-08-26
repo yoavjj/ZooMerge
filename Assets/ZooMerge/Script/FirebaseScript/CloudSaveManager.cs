@@ -265,6 +265,16 @@ public static class CloudSaveManager
                     {"has_made_iap", hasMadeIap}
                 }
             },
+            { "cosmetics", new Dictionary<string, object>
+                {
+                { "spaceship", new Dictionary<string, object>
+                    {
+                        { "current_skin", SpaceshipSkinProgress.CurrentSkinId },
+                        { "unlocked_skins", SpaceshipSkinProgress.GetUnlockedSkins() }
+                    }
+                }
+                }
+            },
         };
 
         // --- DECISION POINT: NEW VS RETURNING USER ---
@@ -423,7 +433,7 @@ public static class CloudSaveManager
             return;
         }
 
-        var db = Firebase.Firestore.FirebaseFirestore.DefaultInstance;
+        var db = FirebaseFirestore.DefaultInstance;
         var docRef = db.Collection("players").Document(FirebaseInitializer.UserId);
 
         docRef.GetSnapshotAsync().ContinueWithOnMainThread(task =>
@@ -436,6 +446,7 @@ public static class CloudSaveManager
             }
 
             var snap = task.Result;
+
             if (!snap.Exists)
             {
                 Debug.Log("[CloudSave] No cloud doc yet, using local economy.");
@@ -443,23 +454,58 @@ public static class CloudSaveManager
                 return;
             }
 
+            // --------------------------------------------------
+            // ECONOMY DATA
+            // --------------------------------------------------
+
             int cloudCoins = 0;
-            int cloudRetries = PlayerProgress.NewLevelRetriesRemaining;
+
+            int cloudRetries =
+                PlayerProgress.NewLevelRetriesRemaining;
+
             bool cloudRetriesFound = false;
 
-            Dictionary<string, int> cloudMergedBalls = new Dictionary<string, int>();
+            Dictionary<string, int> cloudMergedBalls =
+                new Dictionary<string, int>();
 
-            Dictionary<string, bool> cloudUnlockedBalls = new Dictionary<string, bool>();
+            Dictionary<string, bool> cloudUnlockedBalls =
+                new Dictionary<string, bool>();
 
-            if (snap.TryGetValue("economy", out Dictionary<string, object> economyMap))
+
+            // --------------------------------------------------
+            // SPACESHIP COSMETICS
+            // --------------------------------------------------
+
+            string cloudSpaceshipSkin = null;
+
+            Dictionary<string, bool> cloudUnlockedSpaceshipSkins =
+                new Dictionary<string, bool>();
+
+            bool cloudSpaceshipDataFound = false;
+
+
+            // --------------------------------------------------
+            // READ ECONOMY
+            // --------------------------------------------------
+
+            if (snap.TryGetValue(
+                    "economy",
+                    out Dictionary<string, object> economyMap))
             {
-                if (economyMap.TryGetValue("total_coins_earned", out var cObj))
-                    cloudCoins = System.Convert.ToInt32(cObj);
+                if (economyMap.TryGetValue(
+                        "total_coins_earned",
+                        out object cObj))
+                {
+                    cloudCoins =
+                        Convert.ToInt32(cObj);
+                }
 
-                if (economyMap.TryGetValue("retries_remaining", out var rObj))
+                if (economyMap.TryGetValue(
+                        "retries_remaining",
+                        out object rObj))
                 {
                     cloudRetries = Mathf.Clamp(
-                        System.Convert.ToInt32(rObj),
+                        Convert.ToInt32(rObj),
                         0,
                         PlayerProgress.GetRetryCap()
                     );
@@ -467,27 +513,82 @@ public static class CloudSaveManager
                     cloudRetriesFound = true;
                 }
 
-                if (economyMap.TryGetValue("total_merged_balls", out var mbObj) &&
+                if (economyMap.TryGetValue(
+                        "total_merged_balls",
+                        out object mbObj) &&
                     mbObj is Dictionary<string, object> mbMap)
                 {
-                    foreach (var kv in mbMap)
-                        cloudMergedBalls[kv.Key] = System.Convert.ToInt32(kv.Value);
+                    foreach (
+                        KeyValuePair<string, object> pair
+                        in mbMap)
+                    {
+                        cloudMergedBalls[pair.Key] =
+                            Convert.ToInt32(pair.Value);
+                    }
                 }
 
-                if (economyMap.TryGetValue("unlocked_balls", out object unlockedObject) &&
+                if (economyMap.TryGetValue(
+                        "unlocked_balls",
+                        out object unlockedObject) &&
                     unlockedObject is Dictionary<string, object> unlockedMap)
-                        {
-                            foreach (
-                                KeyValuePair<string, object> pair
-                                in unlockedMap)
-                            {
-                                cloudUnlockedBalls[pair.Key] =
-                                    Convert.ToBoolean(pair.Value);
-                            }
-                        }
+                {
+                    foreach (
+                        KeyValuePair<string, object> pair
+                        in unlockedMap)
+                    {
+                        cloudUnlockedBalls[pair.Key] =
+                            Convert.ToBoolean(pair.Value);
+                    }
+                }
             }
 
-            // Apply cloud economy to local inventory.
+
+            // --------------------------------------------------
+            // READ COSMETICS
+            // --------------------------------------------------
+
+            if (snap.TryGetValue(
+                    "cosmetics",
+                    out Dictionary<string, object> cosmeticsMap))
+            {
+                if (cosmeticsMap.TryGetValue(
+                        "spaceship",
+                        out object spaceshipObject) &&
+                    spaceshipObject is Dictionary<string, object> spaceshipMap)
+                {
+                    if (spaceshipMap.TryGetValue(
+                            "current_skin",
+                            out object currentSkinObject))
+                    {
+                        cloudSpaceshipSkin =
+                            currentSkinObject?.ToString();
+
+                        cloudSpaceshipDataFound = true;
+                    }
+
+                    if (spaceshipMap.TryGetValue(
+                            "unlocked_skins",
+                            out object unlockedSkinsObject) &&
+                        unlockedSkinsObject is Dictionary<string, object> unlockedSkinsMap)
+                    {
+                        foreach (
+                            KeyValuePair<string, object> pair
+                            in unlockedSkinsMap)
+                        {
+                            cloudUnlockedSpaceshipSkins[pair.Key] =
+                                Convert.ToBoolean(pair.Value);
+                        }
+
+                        cloudSpaceshipDataFound = true;
+                    }
+                }
+            }
+
+
+            // --------------------------------------------------
+            // RESTORE INVENTORY
+            // --------------------------------------------------
+
             GameInventory.Instance.ResetAll();
 
             if (cloudCoins > 0)
@@ -498,7 +599,8 @@ public static class CloudSaveManager
                 );
             }
 
-            // Restore merged-ball balances.
+
+            // Restore merged balls.
             foreach (
                 KeyValuePair<string, int> pair
                 in cloudMergedBalls)
@@ -519,9 +621,11 @@ public static class CloudSaveManager
                 );
             }
 
-            // Restore unlocked animals only when the cloud field exists.
-            // This preserves local unlocks for older cloud saves that do not
-            // yet contain the "unlocked_balls" map.
+
+            // --------------------------------------------------
+            // RESTORE BALL UNLOCKS
+            // --------------------------------------------------
+
             if (cloudUnlockedBalls.Count > 0)
             {
                 BallUnlockManager unlockManager =
@@ -561,6 +665,11 @@ public static class CloudSaveManager
                 }
             }
 
+
+            // --------------------------------------------------
+            // RESTORE RETRIES
+            // --------------------------------------------------
+
             if (cloudRetriesFound)
             {
                 PlayerProgress.NewLevelRetriesRemaining =
@@ -570,14 +679,43 @@ public static class CloudSaveManager
                 PlayerProgress.NotifyRetriesChanged();
             }
 
+
+            // --------------------------------------------------
+            // RESTORE SPACESHIP COSMETICS
+            // --------------------------------------------------
+
+            if (cloudSpaceshipDataFound)
+            {
+                SpaceshipSkinProgress.RestoreFromCloud(
+                    cloudSpaceshipSkin,
+                    cloudUnlockedSpaceshipSkins
+                );
+
+                Debug.Log(
+                    $"[CloudSave] Restored spaceship skin: " +
+                    $"{SpaceshipSkinProgress.CurrentSkinId}"
+                );
+
+                // Important for EditorMainBootstrap:
+                // the spaceship may already exist in the scene.
+                if (SpaceshipSkinController.Instance != null)
+                {
+                    SpaceshipSkinController.Instance.ApplySavedSkin();
+                }
+            }
+
+
             Debug.Log(
                 $"[CloudSave] Synced economy from cloud: " +
                 $"coins={cloudCoins}, " +
                 $"balls={cloudMergedBalls.Count}, " +
                 $"unlocks={cloudUnlockedBalls.Count}, " +
                 $"retries=" +
-                $"{(cloudRetriesFound ? cloudRetries.ToString() : "local/default")}"
+                $"{(cloudRetriesFound ? cloudRetries.ToString() : "local/default")}, " +
+                $"spaceship=" +
+                $"{(cloudSpaceshipDataFound ? SpaceshipSkinProgress.CurrentSkinId : "local/default")}"
             );
+
             onComplete?.Invoke();
         });
     }
@@ -931,6 +1069,51 @@ public static class CloudSaveManager
                 }
             });
         }
+
+    public static void SaveSpaceshipSkinsOnly(Action<bool> onComplete = null)
+    {
+        if (string.IsNullOrEmpty(FirebaseInitializer.UserId))
+        {
+            Debug.LogWarning("[CloudSave] SaveSpaceshipSkinsOnly: UserId not ready.");
+            onComplete?.Invoke(false);
+            return;
+        }
+
+            DocumentReference docRef = FirebaseFirestore.DefaultInstance
+                .Collection("players")
+                .Document(FirebaseInitializer.UserId);
+
+            Dictionary<string, object> patch = new Dictionary<string, object>
+        {
+            {
+                "cosmetics",
+                new Dictionary<string, object>
+                {
+                    {
+                        "spaceship",
+                        new Dictionary<string, object>
+                        {
+                            { "current_skin", SpaceshipSkinProgress.CurrentSkinId },
+                            { "unlocked_skins", SpaceshipSkinProgress.GetUnlockedSkins() }
+                        }
+                    }
+                }
+            }
+        };
+
+        docRef.SetAsync(patch, SetOptions.MergeAll).ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted)
+            {
+                Debug.LogError($"[CloudSave] Failed to save spaceship skins: {task.Exception}");
+                onComplete?.Invoke(false);
+                return;
+            }
+
+            Debug.Log($"[CloudSave] Spaceship skin saved immediately: {SpaceshipSkinProgress.CurrentSkinId}");
+            onComplete?.Invoke(true);
+        });
+    }
 
     public static void OnAppPaused(bool paused)
     {

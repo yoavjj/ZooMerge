@@ -30,8 +30,7 @@ public class MergeLevel
     public int index;
     public int stageId;
 
-    // true = grant a Heart_Session when this level is completed
-    public bool grantHeartOnComplete;
+    public LevelCompletionReward completionReward = new();
 
     public List<EnemyData> enemy_data;
     public List<MergeScoreEntry> scores;
