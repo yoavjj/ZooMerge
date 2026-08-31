@@ -10,6 +10,9 @@ public class SpaceshipSkinController : MonoBehaviour
     [Header("Target")]
     [SerializeField] private SpriteRenderer spaceshipRenderer;
 
+    [Header("Reveal")]
+    [SerializeField] private SpaceshipSkinRevealAnimator skinRevealAnimator;
+
     private string currentSkinId;
 
     private void Awake()
@@ -62,6 +65,79 @@ public class SpaceshipSkinController : MonoBehaviour
         Debug.Log($"[SpaceshipSkinController] Unlocked and selected skin: {skinId}");
 
         return true;
+    }
+
+    public void UnlockAndRevealSkin(string skinId, System.Action<bool> onComplete = null)
+    {
+        if (skinCatalog == null)
+        {
+            Debug.LogError("[SpaceshipSkinController] Skin catalog is missing.");
+            onComplete?.Invoke(false);
+            return;
+        }
+
+        if (spaceshipRenderer == null)
+        {
+            Debug.LogError("[SpaceshipSkinController] SpriteRenderer reference is missing.");
+            onComplete?.Invoke(false);
+            return;
+        }
+
+        SpaceshipSkinCatalogSO.SkinDefinition definition = skinCatalog.GetDefinition(skinId);
+
+        if (definition == null)
+        {
+            Debug.LogWarning($"[SpaceshipSkinController] Skin not found: {skinId}");
+            onComplete?.Invoke(false);
+            return;
+        }
+
+        if (definition.spaceshipSprite == null)
+        {
+            Debug.LogWarning($"[SpaceshipSkinController] Skin '{skinId}' has no sprite.");
+            onComplete?.Invoke(false);
+            return;
+        }
+
+        Sprite oldSprite = spaceshipRenderer.sprite;
+        Sprite newSprite = definition.spaceshipSprite;
+
+        bool wasAlreadyUnlocked = SpaceshipSkinProgress.IsUnlocked(skinId);
+
+        // Save ownership immediately. Do not wait for the visual animation.
+        SpaceshipSkinProgress.UnlockAndSelect(skinId);
+
+        if (!wasAlreadyUnlocked)
+            AnalyticsEvents.SpaceshipSkinUnlocked(skinId);
+
+        CloudSaveManager.SaveSpaceshipSkinsOnly(
+            success =>
+            {
+                if (success)
+                    Debug.Log($"[SpaceshipSkinController] Skin '{skinId}' saved to cloud.");
+                else
+                    Debug.LogWarning($"[SpaceshipSkinController] Skin '{skinId}' saved locally, but cloud save failed.");
+            }
+        );
+
+        currentSkinId = skinId;
+
+        if (skinRevealAnimator == null || oldSprite == null || oldSprite == newSprite)
+        {
+            spaceshipRenderer.sprite = newSprite;
+            onComplete?.Invoke(true);
+            return;
+        }
+
+        skinRevealAnimator.PlayReveal(
+            oldSprite,
+            newSprite,
+            () =>
+            {
+                Debug.Log($"[SpaceshipSkinController] Reveal finished: {skinId}");
+                onComplete?.Invoke(true);
+            }
+        );
     }
 
     public bool ApplySkin(string skinId)

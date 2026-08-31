@@ -45,7 +45,7 @@ public class CollectibleFlyService : MonoBehaviour
             : null;
     }
 
-    public void Fly(string id, int amount, IFlyTargetUI targetUI, RectTransform overrideSpawnContainer = null)
+    public void Fly(string id, int amount, IFlyTargetUI targetUI, RectTransform overrideSpawnContainer = null, System.Action onComplete = null)
     {
         if (amount <= 0 || targetUI == null)
         {
@@ -88,29 +88,15 @@ public class CollectibleFlyService : MonoBehaviour
             return;
         }
 
-        Vector2 targetScreen = targetUI.GetFlyTargetScreenPoint();
-
-        Camera conversionCam = GetCameraForSpawnContainer(
-            spawnContainer,
-            entry.useSpawnContainerCanvasCamera
-        );
-
-        bool ok = RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            spawnContainer,
-            targetScreen,
-            conversionCam,
-            out Vector2 targetLocal
-        );
-
         StartCoroutine(FlyRoutine(
             amount,
             entry,
             spawnContainer,
             icon,
-            targetLocal,
             targetUI,
             entry.preSpawnDelay,
-            entry.useUnscaledTime
+            entry.useUnscaledTime,
+            onComplete
         ));
     }
 
@@ -125,10 +111,10 @@ public class CollectibleFlyService : MonoBehaviour
         CollectibleFlyDatabaseSO.FlyEntry entry,
         RectTransform spawnContainer,
         Sprite icon,
-        Vector2 targetLocal,
         IFlyTargetUI targetUI,
         float preSpawnDelay,
-        bool useUnscaledTime)
+        bool useUnscaledTime,
+        System.Action onComplete)
     {
         if (entry.prefabRoot == null)
         {
@@ -170,10 +156,44 @@ public class CollectibleFlyService : MonoBehaviour
         if (s.holdDuration > 0f)
             yield return new WaitForSecondsRealtime(s.holdDuration);
 
+        // Get the target's CURRENT animated screen position.
+        // We intentionally calculate this right before launch,
+        // not when Fly() was originally called.
+        Vector2 targetScreen =
+            targetUI.GetFlyTargetScreenPoint();
+
+        Camera conversionCam =
+            GetCameraForSpawnContainer(
+                spawnContainer,
+                entry.useSpawnContainerCanvasCamera
+            );
+
+        bool targetFound =
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                spawnContainer,
+                targetScreen,
+                conversionCam,
+                out Vector2 targetLocal
+            );
+
+        if (!targetFound)
+        {
+            Debug.LogWarning(
+                "[CollectibleFlyService] Could not calculate current fly target position."
+            );
+
+            Destroy(instanceRoot.gameObject);
+            yield break;
+        }
+
         collectible.LaunchToLocalPoint(
             targetLocalPosition: targetLocal,
             totalDuration: s.shortFlyDuration,
-            onArrive: () => targetUI.OnArrive(amount),
+            onArrive: () =>
+            {
+                targetUI.OnArrive(amount);
+                onComplete?.Invoke();
+            },
             delay: 0f,
             arcHeight: s.arcHeight,
             holdDuration: 0f,

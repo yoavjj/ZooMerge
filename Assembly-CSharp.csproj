@@ -91,9 +91,9 @@
     <Compile Include="Assets/ZooMerge/Script/Collectables/Inventory.cs" />
     <Compile Include="Assets/ZooMerge/Script/SpaceshipSkinController/SpaceshipSkinController.cs" />
     <Compile Include="Assets/ZooMerge/Script/AudioManager/SfxPlayerPool.cs" />
+    <Compile Include="Assets/ZooMerge/Script/Economy/BallUnlockOfferPrompt.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMP_ExampleScript_01.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/TMPro_InstructionOverlay.cs" />
-    <Compile Include="Assets/ZooMerge/Script/Economy/BallUnlockOfferPrompt.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexShakeB.cs" />
     <Compile Include="Assets/ZooMerge/Script/BallScript/BallSet.cs" />
     <Compile Include="Assets/ZooMerge/Script/PlayerProgress/RetriesTextBinder.cs" />
@@ -139,6 +139,7 @@
     <Compile Include="Assets/ZooMerge/Script/BallChoise/BallCardRevealAnimator.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/TopBarMergeItemUI.cs" />
     <Compile Include="Assets/TextMesh Pro/Examples &amp; Extras/Scripts/VertexShakeA.cs" />
+    <Compile Include="Assets/ZooMerge/Script/SpaceshipSkinController/SpaceshipSkinRevealAnimator.cs" />
     <Compile Include="Assets/ZooMerge/Script/PopupMessageCenter/PopupMessageCenter.cs" />
     <Compile Include="Assets/ZooMerge/Script/EffectCore/ParticleEffectPooler.cs" />
     <Compile Include="Assets/ZooMerge/Script/Collectables/WinLoseAnimationEvents.cs" />
@@ -318,6 +319,7 @@
     <None Include="Assets/TextMesh Pro/Shaders/TMP_Bitmap-Mobile.shader" />
     <None Include="Assets/Firebase/Plugins/Google.MiniJson.dll" />
     <None Include="Assets/ZooMerge/Textures/Shader/BehindBlur_URP.shader" />
+    <None Include="Assets/ZooMerge/Shaders/SpaceshipSkinReveal.shader" />
     <None Include="Assets/TextMesh Pro/Fonts/LiberationSans - OFL.txt" />
     <None Include="Assets/TextMesh Pro/Shaders/TMP_SDF-Mobile.shader" />
     <None Include="Assets/Firebase/Plugins/iOS/Firebase.App.dll" />
@@ -1679,16 +1681,16 @@
       <HintPath>Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.Mathematics">
-      <HintPath>Library/ScriptAssemblies/Unity.Mathematics.dll</HintPath>
+    <Reference Include="Unity.Purchasing.SecurityCore">
+      <HintPath>Library/ScriptAssemblies/Unity.Purchasing.SecurityCore.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Advertisement.IosSupport.Editor">
       <HintPath>Library/ScriptAssemblies/Unity.Advertisement.IosSupport.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.Purchasing.SecurityCore">
-      <HintPath>Library/ScriptAssemblies/Unity.Purchasing.SecurityCore.dll</HintPath>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>Library/ScriptAssemblies/Unity.Mathematics.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Multiplayer.Center.Common">

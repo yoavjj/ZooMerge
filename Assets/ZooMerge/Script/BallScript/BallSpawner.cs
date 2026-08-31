@@ -353,4 +353,10 @@ public class BallSpawner : MonoBehaviour
         }
         return true;
     }
+
+    public void SetPreviewVisible(bool visible)
+    {
+        if (previewContainer != null)
+            previewContainer.gameObject.SetActive(visible);
+    }
 }
