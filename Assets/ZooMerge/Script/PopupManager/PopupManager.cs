@@ -260,38 +260,77 @@ public class PopupManager : SfxBehaviourTirgger
         beginSessionRoutine = StartCoroutine(BeginSessionDeferredRoutine(isNewLevel, restartmidlevel, warmupFrames));
     }
 
-    private IEnumerator BeginSessionDeferredRoutine(bool isNewLevel, bool restartmidlevel, int warmupFrames)
+    private IEnumerator BeginSessionDeferredRoutine(
+        bool isNewLevel,
+        bool restartmidlevel,
+        int warmupFrames)
     {
-        int frames = Mathf.Clamp(warmupFrames, 1, 5);
+        int frames =
+            Mathf.Clamp(
+                warmupFrames,
+                1,
+                5
+            );
+
         for (int i = 0; i < frames; i++)
             yield return null;
 
-        // Light setup first (cheap)
         CircleDragInput.Instance?.DisableInput();
         AdManager.Instance?.LoadBanner();
+
         EnemySpawner.Instance?.ClearEnemy();
+
         CircleDragInput.Instance?.ClearSpawnContainer();
-        ballSpawner?.BeginSession();
-        BallEventManager.RaiseSessionStarted();
+
+        // Hide any warmed-up preview while rewards play.
+        ballSpawner?.SetPreviewVisible(false);
+
+        // --------------------------------
+        // COMPLETED LEVEL REWARDS
+        // --------------------------------
 
         if (isNewLevel)
         {
-            TryGrantHeartRewardForCompletedLevel();
+            yield return StartCoroutine(
+                TryGrantCompletedLevelReward()
+            );
         }
 
-        // ✅ wait 1 more frame before the expensive Addressables spawn
+        // --------------------------------
+        // REWARDS FINISHED
+        // --------------------------------
+
+        ballSpawner?.SetPreviewVisible(true);
+
+        // Only now promote/create the active ball.
+        ballSpawner?.BeginSession();
+
+        BallEventManager.RaiseSessionStarted();
+
+        // Wait one frame before enemy Addressables.
         yield return null;
 
-        int nextEnemyId = MergeLevelManager.GetCurrentEnemyId();
-        EnemySpawner.Instance?.SpawnEnemy(nextEnemyId, delayEnter: true);
+        int nextEnemyId =
+            MergeLevelManager.GetCurrentEnemyId();
+
+        EnemySpawner.Instance?.SpawnEnemy(
+            nextEnemyId,
+            delayEnter: true
+        );
 
         if (!isNewLevel)
             BallEventManager.RaiseEnemyAdvanced();
 
-        BallStateSaver.Instance.SaveState(BallRegistry.ActiveBalls.ToArray());
+        BallStateSaver.Instance.SaveState(
+            BallRegistry.ActiveBalls.ToArray()
+        );
+
         BallEventManager.ResetMidLevelLossFlag();
 
-        StartCoroutine(PromoteNextFrame());
+        StartCoroutine(
+            PromoteNextFrame()
+        );
+
         InitializeProgressBarNow();
 
         beginSessionRoutine = null;
@@ -459,14 +498,84 @@ public class PopupManager : SfxBehaviourTirgger
         ClearPausePopupReference();
     }
 
-    private void TryGrantHeartRewardForCompletedLevel()
+    private IEnumerator TryGrantCompletedLevelReward()
     {
-        bool remoteConfigGrant = MergeLevelManager.PreviousCompletedLevelGrantsHeartOnComplete;
+        LevelCompletionReward reward = MergeLevelManager.PreviousCompletedLevelReward;
 
-        if (!remoteConfigGrant)
-            return;
+        bool hasReward =
+            reward != null &&
+            reward.rewardType != LevelRewardType.None;
 
-        CollectibleFlyService.Instance?.Fly("Heart_Session", 1, heartFlyTarget, null);
+        if (!hasReward)
+            yield break;
+
+        // --------------------------------
+        // HEART FIRST
+        // --------------------------------
+
+        if ((reward.rewardType & LevelRewardType.Heart) != 0)
+        {
+            int amount = Mathf.Max(1, reward.amount);
+
+            // Bring ONLY the bottom UI in early,
+            // because the heart reward flies toward it.
+            SessionManager.Instance?.PrepareBottomUIForReward();
+
+            bool heartFinished = false;
+
+            if (CollectibleFlyService.Instance != null && heartFlyTarget != null)
+            {
+                CollectibleFlyService.Instance.Fly(
+                    "Heart_Session",
+                    amount,
+                    heartFlyTarget,
+                    null,
+                    () => heartFinished = true
+                );
+
+                Debug.Log(
+                    $"[PopupManager] Granting completed-level reward: {amount} Heart(s)."
+                );
+
+                while (!heartFinished)
+                    yield return null;
+            }
+        }
+
+        // --------------------------------
+        // SPACESHIP SKIN SECOND
+        // --------------------------------
+
+        if ((reward.rewardType & LevelRewardType.SpaceshipSkin) != 0)
+        {
+            if (string.IsNullOrWhiteSpace(reward.spaceshipSkinId))
+            {
+                Debug.LogWarning("[PopupManager] Spaceship skin reward has no skin ID.");
+                yield break;
+            }
+
+            if (SpaceshipSkinController.Instance == null)
+            {
+                Debug.LogWarning("[PopupManager] SpaceshipSkinController is missing.");
+                yield break;
+            }
+
+            bool skinFinished = false;
+
+            SpaceshipSkinController.Instance.UnlockAndRevealSkin(
+                reward.spaceshipSkinId,
+                success =>
+                {
+                    skinFinished = true;
+
+                    if (success)
+                        Debug.Log($"[PopupManager] Granted spaceship skin: {reward.spaceshipSkinId}");
+                }
+            );
+
+            while (!skinFinished)
+                yield return null;
+        }
     }
 
     public RectTransform GetOrCreateNavigationPopup(string prefabId)

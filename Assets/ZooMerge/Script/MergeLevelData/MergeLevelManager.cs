@@ -288,22 +288,6 @@ public static class MergeLevelManager
         }
     }
 
-    public static bool CurrentLevelGrantsHeartOnComplete
-    {
-        get
-        {
-            try
-            {
-                var level = GetCurrentLevel();
-                return level != null && level.grantHeartOnComplete;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-    }
-
     public static int GetGalaxyIdAtOffset(int offset)
     {
         if (data == null || data.galaxies == null || data.galaxies.Count == 0)
@@ -338,12 +322,36 @@ public static class MergeLevelManager
         }
     }
 
-    public static bool PreviousCompletedLevelGrantsHeartOnComplete
+    public static LevelCompletionReward CurrentLevelCompletionReward
+    {
+        get
+        {
+            try
+            {
+                MergeLevel level = GetCurrentLevel();
+
+                if (level == null)
+                    return null;
+
+                return level.completionReward;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+    }
+
+    public static LevelCompletionReward PreviousCompletedLevelReward
     {
         get
         {
             MergeLevel previousLevel = GetPreviousCompletedLevel();
-            return previousLevel != null && previousLevel.grantHeartOnComplete;
+
+            if (previousLevel == null)
+                return null;
+
+            return previousLevel.completionReward;
         }
     }
 

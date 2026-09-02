@@ -240,64 +240,43 @@ public class WinLosePopup : SfxBehaviourTirgger
         ShowBallUnlockPopup(type);
     }
 
-    private void ShowBallUnlockPopup(
-    BallType type)
+    private bool ShowBallUnlockPopup(BallType type)
     {
         if (prefabLibrary == null)
         {
-            Debug.LogWarning(
-                "[WinLosePopup] PrefabLibrary is not assigned."
-            );
-
-            return;
+            Debug.LogWarning("[WinLosePopup] PrefabLibrary is not assigned.");
+            return false;
         }
 
         if (outOfTriesContainer == null)
         {
-            Debug.LogWarning(
-                "[WinLosePopup] Popup container is not assigned."
-            );
-
-            return;
+            Debug.LogWarning("[WinLosePopup] Popup container is not assigned.");
+            return false;
         }
 
-        // Reuse the existing popup when one is already alive.
         if (ballUnlockPopupInstance != null)
         {
             ballUnlockPopupInstance.Open(type);
-            return;
+            return true;
         }
 
-        BallUnlockPopup popupPrefab =
-            prefabLibrary.GetBallUnlockPopup(
-                BALL_UNLOCK_POPUP
-            );
+        BallUnlockPopup popupPrefab = prefabLibrary.GetBallUnlockPopup(BALL_UNLOCK_POPUP);
 
         if (popupPrefab == null)
         {
-            Debug.LogWarning(
-                "[WinLosePopup] BallUnlockPopup prefab not found."
-            );
-
-            return;
+            Debug.LogWarning("[WinLosePopup] BallUnlockPopup prefab not found.");
+            return false;
         }
 
-        ballUnlockPopupInstance = Instantiate(
-            popupPrefab,
-            outOfTriesContainer
-        );
+        ballUnlockPopupInstance = Instantiate(popupPrefab, outOfTriesContainer);
 
-        ResetRectTransform(
-            ballUnlockPopupInstance.transform
-        );
+        ResetRectTransform(ballUnlockPopupInstance.transform);
 
-        ballUnlockPopupInstance.Closed +=
-            HandleBallUnlockPopupClosed;
-
-        ballUnlockPopupInstance.AnimalUnlocked +=
-            HandleAnimalUnlocked;
+        ballUnlockPopupInstance.Closed += HandleBallUnlockPopupClosed;
+        ballUnlockPopupInstance.AnimalUnlocked += HandleAnimalUnlocked;
 
         ballUnlockPopupInstance.Open(type);
+        return true;
     }
 
     private void HandleBallUnlockPopupClosed()
@@ -1039,16 +1018,21 @@ public class WinLosePopup : SfxBehaviourTirgger
         if (heroPanelHolder != null &&
             heroPanelHolder.activeSelf &&
             unlockOfferPrompt != null &&
-            unlockOfferPrompt.TryGetAvailableUnlock(
-                out BallType availableType))
+            unlockOfferPrompt.TryGetAvailableUnlock(out BallType availableType))
         {
-            ShowBallUnlockPopup(
-                availableType
-            );
+            bool popupOpened = ShowBallUnlockPopup(availableType);
 
-            unlockOfferPrompt.MarkAsOffered(
-                availableType
-            );
+            if (popupOpened)
+            {
+                unlockOfferPrompt.MarkAsOffered(availableType);
+
+                // The unlock popup now owns the player's attention.
+                // Cancel any Play press that was queued while collectibles were flying.
+                deferredAction = DeferredAction.None;
+                deferredRoadmapFromLevelFlow = false;
+
+                return;
+            }
         }
 
         // ✅ run last cached action (only one)

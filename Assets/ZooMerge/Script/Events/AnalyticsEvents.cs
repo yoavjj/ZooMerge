@@ -545,4 +545,31 @@ public static class AnalyticsEvents
             )
         );
     }
+
+    public static void SpaceshipSkinUnlocked(string skinId)
+    {
+        Log(
+            "spaceship_skin_unlocked",
+
+            new Parameter(
+                "skin_id",
+                skinId
+            ),
+
+            new Parameter(
+                "galaxy_id",
+                MergeLevelManager.CurrentGalaxyId
+            ),
+
+            new Parameter(
+                "level_in_galaxy",
+                MergeLevelManager.CurrentLevelInGalaxy
+            ),
+
+            new Parameter(
+                "level",
+                MergeLevelManager.CurrentLevelNumber
+            )
+        );
+    }
 }

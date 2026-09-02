@@ -3,7 +3,6 @@ using UnityEditor;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
 
 public class RemoteConfigEditor : EditorWindow
 {
@@ -63,33 +62,83 @@ public class RemoteConfigEditor : EditorWindow
         EditorGUILayout.EndScrollView();
     }
 
-    private void DrawGalaxy(GalaxyData galaxy, int gIndex)
+    private void DrawGalaxy(
+        GalaxyData galaxy,
+        int gIndex)
     {
         EditorGUILayout.BeginVertical("helpbox");
         EditorGUILayout.BeginHorizontal();
 
         bool open = GetFoldout(galaxy);
-        SetFoldout(galaxy, EditorGUILayout.Foldout(open, $"Galaxy {galaxy.galaxyId}: {galaxy.name}", true));
+
+        SetFoldout(
+            galaxy,
+            EditorGUILayout.Foldout(
+                open,
+                $"Galaxy {galaxy.galaxyId}: {galaxy.name}",
+                true
+            )
+        );
 
         GUILayout.FlexibleSpace();
-        GUILayout.Label("ID:");
-        galaxy.galaxyId = EditorGUILayout.IntField(galaxy.galaxyId, GUILayout.Width(60));
-        galaxy.name = EditorGUILayout.TextField(galaxy.name, GUILayout.Width(150));
 
-        if (GUILayout.Button("X", GUILayout.Width(25))) { levelData.galaxies.Remove(galaxy); return; }
+        GUILayout.Label("ID:");
+
+        galaxy.galaxyId =
+            EditorGUILayout.IntField(
+                galaxy.galaxyId,
+                GUILayout.Width(60)
+            );
+
+        galaxy.name =
+            EditorGUILayout.TextField(
+                galaxy.name,
+                GUILayout.Width(150)
+            );
+
+        bool deleteGalaxy =
+            GUILayout.Button(
+                "X",
+                GUILayout.Width(25)
+            );
+
         EditorGUILayout.EndHorizontal();
+
+        if (deleteGalaxy)
+        {
+            levelData.galaxies.Remove(galaxy);
+            EditorGUILayout.EndVertical();
+            return;
+        }
 
         if (GetFoldout(galaxy))
         {
             EditorGUI.indentLevel++;
+
             for (int j = 0; j < galaxy.levels.Count; j++)
             {
-                DrawLevel(galaxy.levels[j], j, gIndex, galaxy);
+                DrawLevel(
+                    galaxy.levels[j],
+                    j,
+                    gIndex,
+                    galaxy
+                );
             }
+
             if (GUILayout.Button("+ Add Level"))
-                galaxy.levels.Add(new MergeLevel { index = galaxy.levels.Count + 1 });
+            {
+                galaxy.levels.Add(
+                    new MergeLevel
+                    {
+                        index =
+                            galaxy.levels.Count + 1
+                    }
+                );
+            }
+
             EditorGUI.indentLevel--;
         }
+
         EditorGUILayout.EndVertical();
     }
 
@@ -113,27 +162,67 @@ public class RemoteConfigEditor : EditorWindow
 
         GUILayout.Space(10);
 
-        level.grantHeartOnComplete = EditorGUILayout.ToggleLeft(
-            "Grant Heart",
-            level.grantHeartOnComplete,
-            GUILayout.Width(110)
-        );
+        if (level.completionReward == null)
+            level.completionReward = new LevelCompletionReward();
 
-        if (GUILayout.Button("X", GUILayout.Width(25))) { galaxy.levels.Remove(level); return; }
+        level.completionReward.rewardType =
+            (LevelRewardType)EditorGUILayout.EnumFlagsField(
+                level.completionReward.rewardType,
+                GUILayout.Width(180)
+            );
+
+        bool deleteLevel =
+            GUILayout.Button(
+                "X",
+                GUILayout.Width(25)
+            );
+
         EditorGUILayout.EndHorizontal();
+
+        if (deleteLevel)
+        {
+            galaxy.levels.Remove(level);
+            EditorGUILayout.EndVertical();
+            return;
+        }
 
         if (GetFoldout(level))
         {
             EditorGUI.indentLevel++;
 
+            DrawCompletionReward(level);
+
             // --- Enemies ---
+            if (level.enemy_data == null)
+                level.enemy_data = new List<EnemyData>();
+
+            EditorGUILayout.Space();
+
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Enemy Data", EditorStyles.boldLabel);
-            if (GUILayout.Button("+ Add Enemy", GUILayout.Width(100)))
-                level.enemy_data.Add(new EnemyData { id = 1, health = 2, coins = 5 });
+
+            EditorGUILayout.LabelField(
+                "Enemy Data",
+                EditorStyles.boldLabel
+            );
+
+            GUILayout.FlexibleSpace();
+
+            if (GUILayout.Button(
+                    "+ Add Enemy",
+                    GUILayout.Width(100)))
+            {
+                level.enemy_data.Add(
+                    new EnemyData
+                    {
+                        id = 1,
+                        health = 2,
+                        coins = 5
+                    }
+                );
+            }
+
             EditorGUILayout.EndHorizontal();
 
-            if (level.enemy_data == null) level.enemy_data = new List<EnemyData>();
             for (int k = 0; k < level.enemy_data.Count; k++)
             {
                 var enemy = level.enemy_data[k];
@@ -193,7 +282,49 @@ public class RemoteConfigEditor : EditorWindow
         EditorGUILayout.EndVertical();
     }
 
-    // --- CASCADING LOGIC ---
+    private void DrawCompletionReward(MergeLevel level)
+    {
+        if (level.completionReward == null)
+            level.completionReward = new LevelCompletionReward();
+
+        LevelCompletionReward reward = level.completionReward;
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Completion Reward", EditorStyles.boldLabel);
+
+        if (reward.rewardType == LevelRewardType.None)
+            return;
+
+        if ((reward.rewardType & LevelRewardType.Heart) != 0)
+        {
+            reward.amount = Mathf.Max(
+                1,
+                EditorGUILayout.IntField(
+                    "Heart Amount",
+                    reward.amount
+                )
+            );
+        }
+
+        if ((reward.rewardType & LevelRewardType.BallUnlock) != 0)
+        {
+            reward.ballType =
+                (BallType)EditorGUILayout.EnumPopup(
+                    "Ball Type",
+                    reward.ballType
+                );
+        }
+
+        if ((reward.rewardType & LevelRewardType.SpaceshipSkin) != 0)
+        {
+            reward.spaceshipSkinId =
+                EditorGUILayout.TextField(
+                    "Skin ID",
+                    reward.spaceshipSkinId
+                );
+        }
+    }
+
     // --- CASCADING LOGIC ---
     private void ApplyCascade(int startG, int startL, int targetScoreIndex, int delta)
     {

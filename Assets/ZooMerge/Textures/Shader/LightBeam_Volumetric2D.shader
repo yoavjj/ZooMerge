@@ -23,12 +23,22 @@ Shader "VFX/LightBeam_Volumetric2D"
         _TopFade ("Top Fade", Range(0,1)) = 0.15
         _BottomFade ("Bottom Fade", Range(0,1)) = 0.10
 
+        [Header(Reveal)]
+        _Reveal ("Reveal", Range(0,1)) = 0
+        _RevealSoftness ("Reveal Softness", Range(0.001,0.25)) = 0.04
+
         _Opacity ("Opacity", Range(0,1)) = 1
     }
 
     SubShader
     {
-        Tags { "Queue"="Transparent" "RenderType"="Transparent" "IgnoreProjector"="True" }
+        Tags
+        {
+            "Queue"="Transparent"
+            "RenderType"="Transparent"
+            "IgnoreProjector"="True"
+        }
+
         Cull Off
         ZWrite Off
         Blend One One
@@ -36,21 +46,23 @@ Shader "VFX/LightBeam_Volumetric2D"
         Pass
         {
             CGPROGRAM
+
             #pragma vertex vert
             #pragma fragment frag
+
             #include "UnityCG.cginc"
 
             struct appdata
             {
                 float4 vertex : POSITION;
-                float2 uv     : TEXCOORD0;
-                float4 color  : COLOR;
+                float2 uv : TEXCOORD0;
+                float4 color : COLOR;
             };
 
             struct v2f
             {
-                float4 pos   : SV_POSITION;
-                float2 uv    : TEXCOORD0;
+                float4 pos : SV_POSITION;
+                float2 uv : TEXCOORD0;
                 float4 color : COLOR;
             };
 
@@ -74,57 +86,202 @@ Shader "VFX/LightBeam_Volumetric2D"
             float _TopFade;
             float _BottomFade;
 
+            float _Reveal;
+            float _RevealSoftness;
+
             float _Opacity;
 
             v2f vert(appdata v)
             {
                 v2f o;
+
                 o.pos = UnityObjectToClipPos(v.vertex);
                 o.uv = v.uv;
                 o.color = v.color;
+
                 return o;
             }
 
             float hash21(float2 p)
             {
-                p = frac(p * float2(123.34, 345.45));
-                p += dot(p, p + 34.345);
-                return frac(p.x * p.y);
+                p = frac(
+                    p * float2(
+                        123.34,
+                        345.45
+                    )
+                );
+
+                p += dot(
+                    p,
+                    p + 34.345
+                );
+
+                return frac(
+                    p.x * p.y
+                );
             }
 
             fixed4 frag(v2f i) : SV_Target
             {
-                fixed4 sprite = tex2D(_MainTex, i.uv);
-                float mask = sprite.a * i.color.a;
+                fixed4 sprite =
+                    tex2D(
+                        _MainTex,
+                        i.uv
+                    );
 
-                // Across-beam distance from center (vertical beam => width across X)
-                float across = abs(i.uv.x - 0.5);
+                float mask =
+                    sprite.a *
+                    i.color.a;
 
-                float core = 1.0 - smoothstep(_CoreWidth, _CoreWidth * 1.5, across);
-                float edge = 1.0 - smoothstep(_EdgeWidth, _EdgeWidth * 1.5, across);
+                // --------------------------------
+                // BEAM WIDTH
+                // --------------------------------
 
-                float v = i.uv.y;
-                float t = _Time.y;
+                float across =
+                    abs(
+                        i.uv.x - 0.5
+                    );
 
-                float band = sin((v * _BandFrequency) + (t * _ScrollSpeed)) * 0.5 + 0.5;
-                float bandMul = 1.0 + (band - 0.5) * 2.0 * _BandStrength;
+                float core =
+                    1.0 -
+                    smoothstep(
+                        _CoreWidth,
+                        _CoreWidth * 1.5,
+                        across
+                    );
 
-                float n = hash21(float2(v * 30.0, t * _FlickerSpeed));
-                float flickerMul = 1.0 + (n - 0.5) * 2.0 * _FlickerAmount;
+                float edge =
+                    1.0 -
+                    smoothstep(
+                        _EdgeWidth,
+                        _EdgeWidth * 1.5,
+                        across
+                    );
 
-                float topFade = smoothstep(1.0 - _TopFade, 1.0, v);
-                float bottomFade = 1.0 - smoothstep(0.0, _BottomFade, v);
-                float heightMask = (1.0 - topFade) * bottomFade;
+                float v =
+                    i.uv.y;
 
-                float coreAmt = core * _CoreIntensity * bandMul * flickerMul;
-                float glowAmt = edge * _GlowIntensity * flickerMul;
+                float t =
+                    _Time.y;
 
-                float3 col = _BeamColor.rgb * coreAmt + _GlowColor.rgb * glowAmt;
+                // --------------------------------
+                // MOVING BANDS
+                // --------------------------------
 
-                float finalMask = mask * heightMask * _Opacity;
+                float band =
+                    sin(
+                        (v * _BandFrequency) +
+                        (t * _ScrollSpeed)
+                    ) *
+                    0.5 +
+                    0.5;
 
-                return fixed4(col * finalMask, finalMask);
+                float bandMul =
+                    1.0 +
+                    (band - 0.5) *
+                    2.0 *
+                    _BandStrength;
+
+                // --------------------------------
+                // FLICKER
+                // --------------------------------
+
+                float n =
+                    hash21(
+                        float2(
+                            v * 30.0,
+                            t * _FlickerSpeed
+                        )
+                    );
+
+                float flickerMul =
+                    1.0 +
+                    (n - 0.5) *
+                    2.0 *
+                    _FlickerAmount;
+
+                // --------------------------------
+                // HEIGHT FADES
+                // --------------------------------
+
+                float topFade =
+                    smoothstep(
+                        1.0 - _TopFade,
+                        1.0,
+                        v
+                    );
+
+                float bottomFade =
+                    1.0 -
+                    smoothstep(
+                        0.0,
+                        _BottomFade,
+                        v
+                    );
+
+                float heightMask =
+                    (1.0 - topFade) *
+                    bottomFade;
+
+                // --------------------------------
+                // TOP -> BOTTOM REVEAL
+                // --------------------------------
+
+                float revealThreshold =
+                    1.0 - _Reveal;
+
+                float revealMask =
+                    smoothstep(
+                        revealThreshold -
+                        _RevealSoftness,
+
+                        revealThreshold +
+                        _RevealSoftness,
+
+                        v
+                    );
+
+                // Perfect endpoints.
+                if (_Reveal <= 0.001)
+                    revealMask = 0.0;
+
+                if (_Reveal >= 0.999)
+                    revealMask = 1.0;
+
+                // --------------------------------
+                // FINAL BEAM
+                // --------------------------------
+
+                float coreAmt =
+                    core *
+                    _CoreIntensity *
+                    bandMul *
+                    flickerMul;
+
+                float glowAmt =
+                    edge *
+                    _GlowIntensity *
+                    flickerMul;
+
+                float3 col =
+                    _BeamColor.rgb *
+                    coreAmt +
+
+                    _GlowColor.rgb *
+                    glowAmt;
+
+                float finalMask =
+                    mask *
+                    heightMask *
+                    revealMask *
+                    _Opacity;
+
+                return fixed4(
+                    col * finalMask,
+                    finalMask
+                );
             }
+
             ENDCG
         }
     }

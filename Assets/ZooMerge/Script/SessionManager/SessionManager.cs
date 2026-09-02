@@ -34,6 +34,7 @@ public class SessionManager : MonoBehaviour
     [SerializeField] private string menuOutTriggerName = "Menu_Out";
 
     private bool isSessionUIActive = false;
+    private bool bottomUIStartedEarlyForReward = false;
     private bool dieFxTriggeredThisEnemy = false;
 
     private void Awake()
@@ -204,6 +205,8 @@ public class SessionManager : MonoBehaviour
         if (!isSessionUIActive) return;
         isSessionUIActive = false;
 
+        bottomUIStartedEarlyForReward = false;
+
         AudioManager.Instance?.StopSessionMusic();
 
         if (enemyDieAnimator != null && !string.IsNullOrEmpty(enemyEndTriggerName))
@@ -229,14 +232,18 @@ public class SessionManager : MonoBehaviour
 
         AudioManager.Instance?.PlaySessionMusic();
 
-        // New enemy/session -> allow die FX again
         dieFxTriggeredThisEnemy = false;
 
-        topUIAnimator?.ResetTrigger("Session_End");
-        bottomUIAnimator?.ResetTrigger("Session_End");
+        topUIAnimator?.ResetTrigger(TR_SessionEnd);
+        topUIAnimator?.SetTrigger(TR_SessionStart);
 
-        topUIAnimator?.SetTrigger("Session_Start");
-        bottomUIAnimator?.SetTrigger("Session_Start");
+        if (!bottomUIStartedEarlyForReward)
+        {
+            bottomUIAnimator?.ResetTrigger(TR_SessionEnd);
+            bottomUIAnimator?.SetTrigger(TR_SessionStart);
+        }
+
+        bottomUIStartedEarlyForReward = false;
 
         if (overlayRaycaster != null)
             overlayRaycaster.enabled = true;
@@ -308,5 +315,16 @@ public class SessionManager : MonoBehaviour
     {
         AnalyticsEvents.OnAppQuit();
         CloudSaveManager.OnAppQuit();
+    }
+
+    public void PrepareBottomUIForReward()
+    {
+        if (bottomUIAnimator == null)
+            return;
+
+        bottomUIStartedEarlyForReward = true;
+
+        bottomUIAnimator.ResetTrigger(TR_SessionEnd);
+        bottomUIAnimator.SetTrigger(TR_SessionStart);
     }
 }
