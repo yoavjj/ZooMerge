@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_HeroCardLightSweep
-  m_Shader: {fileID: 4800000, guid: f1307ee747de34225987b2c63e3cf97c, type: 3}
+  m_Name: Custom_UIGlassBlurFade
+  m_Shader: {fileID: 4800000, guid: d74e113be47674957a8b9ababba8de95, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -23,25 +23,28 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _BackgroundTex:
+        m_Texture: {fileID: 2800000, guid: 5f7b9c07e3fc946c5b03ecc705f79266, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Angle: 92
-    - _EdgeGlowIntensity: 2.83
-    - _EdgeInnerBoost: 1.56
-    - _EdgeThickness: 0.5
-    - _GlowIntensity: 0.52
-    - _OuterEdgeAmount: 0.301
-    - _Sweep: 0
-    - _Sweep01: 0.4785772
-    - _SweepIntensity: 0.64
-    - _SweepWidth: 0.25
+    - _BackgroundStrength: 0.538
+    - _BlurFade: 0.659
+    - _BlurStrength: 0
+    - _ColorMask: 15
+    - _GlassFade: 1
+    - _GlassStrength: 1.3
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
+    - _StencilWriteMask: 255
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EdgeGlowColor: {r: 1, g: 1, b: 1, a: 1}
-    - _SweepColor: {r: 0.26254895, g: 0.84613234, b: 0.9433962, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

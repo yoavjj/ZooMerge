@@ -4,19 +4,15 @@ using TMPro;
 using UnityEngine;
 using static BallEventManager;
 
-public interface IWinLoseContent
-{
-    Animator Animator { get; }
-    void OnShown();
-}
-
 public class WinLosePopup : SfxBehaviourTirgger
 {
     public static WinLosePopup Instance { get; private set; }
 
-    [Header("Content Variants")]
-    [SerializeField] private Transform contentRoot;
+    [Header("Prefab Library")]
     [SerializeField] private PrefabLibrary prefabLibrary;
+
+    [Header("Content Animator")]
+    [SerializeField] private WinLosePopupContent popupContent;
 
     [Header("Out Of Tries Popup (Spawned)")]
     [SerializeField] private Transform outOfTriesContainer; // e.g. PopupsRoot / same container you use for roadmap/reveal
@@ -25,16 +21,11 @@ public class WinLosePopup : SfxBehaviourTirgger
 
 
     private const string OUT_OF_TRIES_POPUP = "OutOfTriesPopup";
-    private const string WIN = "WinContent";
-    private const string LOSE = "LoseContent";
-    private const string LEVEL_COMPLETE = "LevelCompleteContent";
     private const string LEVEL_REVEAL = "LevelReveal";
     private const string GALAXY_ROADMAP = "GalaxyRoadmapPopup";
 
     [Header("Merge Summary")]
     [SerializeField] private MergeSummaryPanel mergeSummaryPanel;
-
-    private IWinLoseContent activeContent;
 
     [Header("UI Refs")]
     [SerializeField] private TextMeshProUGUI messageText;
@@ -330,8 +321,6 @@ public class WinLosePopup : SfxBehaviourTirgger
             mergeSummaryPanel.Build(snapshot);
         }
 
-        BuildContent(reason);
-
         if (animator != null)
         {
             animator.SetTrigger(
@@ -447,44 +436,12 @@ public class WinLosePopup : SfxBehaviourTirgger
         collectibleFlyController.PositionCoinContainerToIndex(index);
     }
 
-    private void BuildContent(GameOverReason reason)
-    {
-        ClearContent();
-
-        var prefab = GetContentPrefab(reason);
-        if (prefab == null) return;
-
-        activeContent = Instantiate(prefab, contentRoot);
-        activeContent.OnShown();
-    }
-
     public void ShowContinueOption()
     {
         SetMessage("Try Again?");
         SetContinueMessageAfterFailure();
 
         isContinue = true;
-    }
-
-    private void ClearContent()
-    {
-        for (int i = contentRoot.childCount - 1; i >= 0; i--)
-            Destroy(contentRoot.GetChild(i).gameObject);
-    }
-
-    private WinLoseContentBase GetContentPrefab(GameOverReason reason)
-    {
-        if (prefabLibrary == null)
-        {
-            Debug.LogError("[WinLosePopup] PrefabLibrary is not assigned.");
-            return null;
-        }
-
-        string id = (reason == GameOverReason.Lost)
-            ? LOSE
-            : (levelCompleteContext ? LEVEL_COMPLETE : WIN);
-
-        return prefabLibrary.GetWinLose(id);
     }
 
     public void OnMainMenuButtonPressed()
@@ -502,8 +459,7 @@ public class WinLosePopup : SfxBehaviourTirgger
 
         PopupManager.Instance?.ConfirmReturnToMainMenu();
 
-        animator.SetTrigger("Out");
-        PlayContentOut();
+        PlayPopupOut("Out");
         Destroy(gameObject, 1f);
     }
 
@@ -748,8 +704,7 @@ public class WinLosePopup : SfxBehaviourTirgger
         roadmapOpenOrSpawning = false;
         roadmapInstance = null;
 
-        PlayContentOut();
-        animator?.SetTrigger("Out");
+        PlayPopupOut("Out");
         Destroy(gameObject, 2.5f);
     }
 
@@ -819,7 +774,6 @@ public class WinLosePopup : SfxBehaviourTirgger
             yield return new WaitForSeconds(delay);
 
         animator.SetTrigger("Out");
-        PlayContentOut();
 
         // ✅ Keep reveal visible for the remaining time
         float remaining = Mathf.Max(0f, levelRevealDuration - delay);
@@ -840,18 +794,6 @@ public class WinLosePopup : SfxBehaviourTirgger
 
         Destroy(gameObject, 6f);
         playPressedRoutine = null;
-    }
-
-    public void PlayContentOut()
-    {
-        if (activeContent == null)
-            return;
-
-        var anim = activeContent.Animator;
-        if (anim != null)
-        {
-            anim.SetTrigger("Out");
-        }
     }
 
     public void SetTemporaryMessage()
@@ -1098,5 +1040,19 @@ public class WinLosePopup : SfxBehaviourTirgger
     public static void SetSuppressSessionStartFromReveal(bool value)
     {
         SuppressSessionStartFromReveal = value;
+    }
+
+    private void PlayPopupOut(string triggerName)
+    {
+        popupContent?.PlayOut();
+
+        if (animator == null ||
+            string.IsNullOrEmpty(triggerName))
+        {
+            return;
+        }
+
+        animator.ResetTrigger(triggerName);
+        animator.SetTrigger(triggerName);
     }
 }

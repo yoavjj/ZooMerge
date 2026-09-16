@@ -355,7 +355,7 @@ public class BallUnlockPopup : SfxBehaviourTirgger
 
         if (spawnedAnimalCard != null)
         {
-            spawnedAnimalCard.PlayUnlockReveal();
+            StartOutReveal();
         }
         else
         {
@@ -779,17 +779,32 @@ public class BallUnlockPopup : SfxBehaviourTirgger
         Debug.Log(
             $"[BallUnlockPopup] {result}"
         );
+        AnimalUnlocked?.Invoke(targetType);
 
         if (spawnedAnimalCard != null)
         {
-            spawnedAnimalCard.PlayUnlockReveal();
+            StartOutReveal();
         }
         else
         {
             Close();
         }
+    }
 
-        AnimalUnlocked?.Invoke(targetType);
+    private void StartOutReveal()
+    {
+        if (animator == null ||
+            string.IsNullOrEmpty(outRevealTrigger))
+        {
+            AE_StartAnimalReveal();
+            return;
+        }
+
+        animator.ResetTrigger(inTrigger);
+        animator.ResetTrigger(outTrigger);
+        animator.ResetTrigger(outRevealTrigger);
+
+        animator.SetTrigger(outRevealTrigger);
     }
 
     private void ShowMessage(string message)
@@ -959,6 +974,20 @@ public class BallUnlockPopup : SfxBehaviourTirgger
     public void AE_FinishClose(float delay = 0f)
     {
         FinishClose(delay);
+    }
+
+    public void AE_StartAnimalReveal()
+    {
+        if (spawnedAnimalCard == null)
+        {
+            Debug.LogWarning(
+                "[BallUnlockPopup] Cannot start animal reveal because the card is missing."
+            );
+
+            return;
+        }
+
+        spawnedAnimalCard.PlayUnlockReveal();
     }
 
     private void FinishClose(float delay = 0f)

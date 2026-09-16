@@ -15,7 +15,9 @@ public class PopupManager : SfxBehaviourTirgger
     [SerializeField] private CollectibleFlyTarget heartFlyTarget;
 
     private const string MAIN_MENU = "MainMenuPopup";
-    private const string WIN_LOSE = "WinLosePopup";
+    private const string WIN_POPUP = "WinPopup";
+    private const string WIN_COMPLETE_POPUP = "WinCompletePopup";
+    private const string LOSE_POPUP = "LosePopup";
     private const string PAUSE = "PauseRestartPopup";
 
     private PauseRestartPopup pausePopup;
@@ -175,50 +177,95 @@ public class PopupManager : SfxBehaviourTirgger
             winLosePopupRoutine = null;
         }
 
-        // Ensure popup exists
         if (gameUIPopupInstance == null)
         {
-            var prefab = prefabLibrary.GetRaw(WIN_LOSE);
-            if (prefab != null)
-                gameUIPopupInstance = Instantiate(prefab, transform);
+            string popupId =
+                reason == GameOverReason.Won
+                    ? WIN_COMPLETE_POPUP
+                    : LOSE_POPUP;
+
+            gameUIPopupInstance = SpawnEndPopup(popupId);
         }
 
-        // Tell popup context
-        if (WinLosePopup.Instance != null)
-            WinLosePopup.Instance.SetLevelCompleteContext(reason == GameOverReason.Won);
+        if (WinLosePopup.Instance == null)
+        {
+            Debug.LogError(
+                "[PopupManager] Spawned end popup has no WinLosePopup component."
+            );
 
-        PopupMessageCenter.ShowEndPopupMessage(WinLosePopup.Instance, reason);
+            return;
+        }
+
+        WinLosePopup.Instance.SetLevelCompleteContext(
+            reason == GameOverReason.Won
+        );
+
+        PopupMessageCenter.ShowEndPopupMessage(
+            WinLosePopup.Instance,
+            reason
+        );
     }
 
     public void ShowEnemyDefeatedMessage()
     {
         ForceClosePausePopup();
         if (winLosePopupRoutine != null) StopCoroutine(winLosePopupRoutine);
-        winLosePopupRoutine = StartCoroutine(ShowWinLosePopupAfterDelay(winLosePopupDelay, () =>
-        {
-            // 🆕 Ensure it knows this is NOT the end of the level
-            if (WinLosePopup.Instance != null)
-            {
-                WinLosePopup.Instance.SetLevelCompleteContext(false);
-            }
-            PopupMessageCenter.ShowEnemyDefeated(WinLosePopup.Instance);
-        }));
+        winLosePopupRoutine = StartCoroutine(
+            ShowWinLosePopupAfterDelay(
+                winLosePopupDelay,
+                WIN_POPUP,
+                () =>
+                {
+                    if (WinLosePopup.Instance != null)
+                        WinLosePopup.Instance.SetLevelCompleteContext(false);
+
+                    PopupMessageCenter.ShowEnemyDefeated(
+                        WinLosePopup.Instance
+                    );
+                }
+            )
+        );
     }
 
-    private IEnumerator ShowWinLosePopupAfterDelay(float delay, System.Action showBody)
+    private GameObject SpawnEndPopup(string prefabId)
+    {
+        if (prefabLibrary == null)
+        {
+            Debug.LogError("[PopupManager] PrefabLibrary is missing.");
+            return null;
+        }
+
+        GameObject prefab = prefabLibrary.GetRaw(prefabId);
+
+        if (prefab == null)
+        {
+            Debug.LogError($"[PopupManager] Popup prefab not found: {prefabId}");
+            return null;
+        }
+
+        GameObject instance = Instantiate(prefab, transform);
+
+        if (instance.transform is RectTransform rect)
+            StretchToParent(rect);
+
+        return instance;
+    }
+
+    private IEnumerator ShowWinLosePopupAfterDelay(
+        float delay,
+        string prefabId,
+        Action showBody)
     {
         isSessionActive = false;
 
-        if (delay > 0f) yield return new WaitForSeconds(delay);
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
 
         if (gameUIPopupInstance == null)
-        {
-            var prefab = prefabLibrary.GetRaw(WIN_LOSE);
-            if (prefab != null)
-                gameUIPopupInstance = Instantiate(prefab, transform);
-        }
+            gameUIPopupInstance = SpawnEndPopup(prefabId);
 
         showBody?.Invoke();
+
         winLosePopupRoutine = null;
     }
 
