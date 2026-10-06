@@ -1740,57 +1740,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EditorMainBootstrap
   adManagerPrefab: {fileID: 3841042218978993158, guid: 50f22729201e64804bb882f9f1d2d795, type: 3}
   audioManagerPrefab: {fileID: 6031237433555088198, guid: f737f6dce20ff4fb4bccf1ec9e2ab4c1, type: 3}
---- !u!21 &374263571
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_SpaceshipSkinReveal (Runtime)
-  m_Shader: {fileID: 4800000, guid: 5e291bf0d7a7e4e24a31ecb0d628375a, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _NextTex:
-        m_Texture: {fileID: 2800000, guid: 547c418003ba74e40a061552cae4bdf7, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _Blend: 0
-    - _EdgeGlow: 0.21
-    - _EdgeWidth: 0.115
-    - _NoiseScale: 10
-    - _NoiseStrength: 0.222
-    - _RevealGlowStrength: 2.01
-    - _RevealWidth: 0.134
-    - _SpriteEdgeStrength: 0.95
-    - _SpriteEdgeWidth: 0.5
-    - _StarDensity: 25.7
-    - _StarIntensity: 1.27
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _GlowColorA: {r: 0.7075472, g: 0.6655204, b: 0.13683695, a: 1}
-    - _GlowColorB: {r: 0.14655013, g: 0.49056602, b: 0.039337847, a: 1}
-    - _SpriteEdgeColor: {r: 0.1, g: 0.85, b: 1, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &374391626
 GameObject:
   m_ObjectHideFlags: 0
@@ -7792,6 +7741,57 @@ Transform:
   m_Children: []
   m_Father: {fileID: 609905845}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!21 &680403514
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Custom_SpaceshipSkinReveal (Runtime)
+  m_Shader: {fileID: 4800000, guid: 5e291bf0d7a7e4e24a31ecb0d628375a, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NextTex:
+        m_Texture: {fileID: 2800000, guid: 547c418003ba74e40a061552cae4bdf7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Blend: 0
+    - _EdgeGlow: 0.21
+    - _EdgeWidth: 0.115
+    - _NoiseScale: 10
+    - _NoiseStrength: 0.222
+    - _RevealGlowStrength: 2.01
+    - _RevealWidth: 0.134
+    - _SpriteEdgeStrength: 0.95
+    - _SpriteEdgeWidth: 0.5
+    - _StarDensity: 25.7
+    - _StarIntensity: 1.27
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _GlowColorA: {r: 0.7075472, g: 0.6655204, b: 0.13683695, a: 1}
+    - _GlowColorB: {r: 0.14655013, g: 0.49056602, b: 0.039337847, a: 1}
+    - _SpriteEdgeColor: {r: 0.1, g: 0.85, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!224 &684697304 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8181016159872195225, guid: aa06d722dbb4147efb4aff57306b1c2c, type: 3}
@@ -8461,6 +8461,54 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5721489113432181048, guid: 124939752bd6c43eaad0d18d14cb23c4, type: 3}
   m_PrefabInstance: {fileID: 7573402540565851701}
   m_PrefabAsset: {fileID: 0}
+--- !u!21 &861599270
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: VFX_LightBeam_Volumetric2D (Beam Runtime)
+  m_Shader: {fileID: 4800000, guid: dffa2b9984ad84b928e073fba83f37c5, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BandFrequency: 17.9
+    - _BandStrength: 0.15
+    - _BottomFade: 0.791
+    - _CoreIntensity: 3.8
+    - _CoreWidth: 0.371
+    - _EdgeWidth: 0.081
+    - _FlickerAmount: 0
+    - _FlickerSpeed: 37
+    - _GlowIntensity: 1.58
+    - _Opacity: 0.433
+    - _Reveal: 1
+    - _RevealSoftness: 0.195
+    - _ScrollSpeed: -5
+    - _TopFade: 0.217
+    m_Colors:
+    - _BeamColor: {r: 0.35, g: 0.8, b: 1, a: 1}
+    - _GlowColor: {r: 0.81687105, g: 0.9150943, b: 0.11654504, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!4 &871229306 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6441224187193272835, guid: edd9ce6eb59374b63bf8b0e101406696, type: 3}
@@ -9120,7 +9168,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 4
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2118258202}
+  - {fileID: 861599270}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -10373,7 +10421,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 0.8}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -10625,7 +10673,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 374263571}
+  - {fileID: 680403514}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -12287,54 +12335,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2103162805}
   m_CullTransparentMesh: 1
---- !u!21 &2118258202
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: VFX_LightBeam_Volumetric2D (Beam Runtime)
-  m_Shader: {fileID: 4800000, guid: dffa2b9984ad84b928e073fba83f37c5, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _BandFrequency: 17.9
-    - _BandStrength: 0.15
-    - _BottomFade: 0.791
-    - _CoreIntensity: 3.8
-    - _CoreWidth: 0.371
-    - _EdgeWidth: 0.081
-    - _FlickerAmount: 0
-    - _FlickerSpeed: 37
-    - _GlowIntensity: 1.58
-    - _Opacity: 0.433
-    - _Reveal: 1
-    - _RevealSoftness: 0.195
-    - _ScrollSpeed: -5
-    - _TopFade: 0.217
-    m_Colors:
-    - _BeamColor: {r: 0.35, g: 0.8, b: 1, a: 1}
-    - _GlowColor: {r: 0.81687105, g: 0.9150943, b: 0.11654504, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!224 &2127330047 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7590377801749166249, guid: 02418cc0a2d114286882ce28bec327cc, type: 3}
