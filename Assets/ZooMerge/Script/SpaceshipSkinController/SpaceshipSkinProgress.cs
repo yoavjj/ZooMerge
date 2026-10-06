@@ -6,8 +6,8 @@ public static class SpaceshipSkinProgress
     private const string KEY_CURRENT_SKIN = "SHIP_CURRENT_SKIN";
     private const string KEY_UNLOCK_PREFIX = "SHIP_UNLOCKED_";
     private const string KEY_UNLOCKED_IDS = "SHIP_UNLOCKED_IDS";
-
     public const string DefaultSkinId = "spaceship_01";
+    private const string KEY_PENDING_SKIN_REWARD = "SHIP_PENDING_SKIN_REWARD";
 
     public static string CurrentSkinId
     {
@@ -154,6 +154,27 @@ public static class SpaceshipSkinProgress
         if (!string.IsNullOrWhiteSpace(currentSkinId))
             CurrentSkinId = currentSkinId;
 
+        PlayerPrefs.Save();
+    }
+
+    public static string PendingSkinRewardId =>
+    PlayerPrefs.GetString(KEY_PENDING_SKIN_REWARD, string.Empty);
+
+    public static bool HasPendingSkinReward =>
+        !string.IsNullOrWhiteSpace(PendingSkinRewardId);
+
+    public static void SetPendingSkinReward(string skinId)
+    {
+        if (string.IsNullOrWhiteSpace(skinId))
+            return;
+
+        PlayerPrefs.SetString(KEY_PENDING_SKIN_REWARD, skinId);
+        PlayerPrefs.Save();
+    }
+
+    public static void ClearPendingSkinReward()
+    {
+        PlayerPrefs.DeleteKey(KEY_PENDING_SKIN_REWARD);
         PlayerPrefs.Save();
     }
 }

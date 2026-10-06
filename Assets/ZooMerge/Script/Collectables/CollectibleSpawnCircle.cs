@@ -7,8 +7,14 @@ public class CollectibleSpawnCircle : MonoBehaviour
     [Header("Spawn Circle")]
     public float radius = 100f;
     public int spawnPointCount = 5;
+    [Range(0f, 360f)]
+    public float spawnAngleOffset = 0f;
     public Color gizmoColor = new Color(0f, 1f, 0f, 0.5f);
     public bool previewInScene = true;
+
+    [Header("Spawn Point Layout")]
+    [Range(0.1f, 1f)]
+    public float spawnPointSpacing = 1f;
 
     private List<Vector2> fixedPoints = new();
 
@@ -19,11 +25,12 @@ public class CollectibleSpawnCircle : MonoBehaviour
     {
         fixedPoints.Clear();
 
-        float angleStep = 360f / spawnPointCount;
+        float angleStep = (360f / spawnPointCount) * spawnPointSpacing;
 
         for (int i = 0; i < spawnPointCount; i++)
         {
-            float angleRad = Mathf.Deg2Rad * (i * angleStep);
+            float angleRad = Mathf.Deg2Rad * (i * angleStep + spawnAngleOffset);
+
             Vector2 point = new Vector2(
                 Mathf.Cos(angleRad),
                 Mathf.Sin(angleRad)

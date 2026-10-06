@@ -91,6 +91,9 @@ public static class CloudSaveManager
         // Consume retry for the level that was just lost
         PlayerProgress.OnLoss(MergeLevelManager.CurrentGalaxyId, MergeLevelManager.CurrentLevelInGalaxy);
 
+        // Save the consumed retry immediately
+        SaveRetriesOnly();
+
         Debug.Log($"[Retries] Loss. New-level retries remaining: {PlayerProgress.NewLevelRetriesRemaining}");
 
         SaveSnapshot(incrementMidLevelCompleted: false); // ✅ don't increment mid levels on loss

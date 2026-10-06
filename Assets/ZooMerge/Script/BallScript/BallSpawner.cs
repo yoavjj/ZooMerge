@@ -21,13 +21,160 @@ public class BallSpawner : MonoBehaviour
 
     private bool warmedUp = false;
 
+    private SpawnedBall standbyBall;
+    private GameObject standbyGo;
+    private BallSet.Entry standbyEntry;
+
+    public bool IsSessionWarm =>
+    IsPrepared(previewBall, queuedEntry) &&
+    IsPrepared(standbyBall, standbyEntry); 
+
     public void WarmupPreview()
     {
-        if (warmedUp) return;
         warmedUp = true;
 
-        // Generate the first preview while you're still on the main menu.
-        PrepareNextPreview();
+        // Make sure the visible preview matches
+        // the player's CURRENT selection.
+        if (!IsPrepared(previewBall, queuedEntry))
+        {
+            ClearPreview();
+            PrepareNextPreview();
+        }
+
+        // Also create the next preview now,
+        // while the Main Menu is still open.
+        if (!IsPrepared(standbyBall, standbyEntry))
+        {
+            ClearStandbyPreview();
+            PrepareStandbyPreview();
+        }
+    }
+
+    public void EnsureSessionWarm()
+    {
+        WarmupPreview();
+    }
+
+    private void PrepareStandbyPreview()
+    {
+        if (IsPrepared(standbyBall, standbyEntry))
+            return;
+
+        ClearStandbyPreview();
+
+        if (picker == null ||
+            previewContainer == null ||
+            BallFactoryAddressables.Instance == null)
+        {
+            return;
+        }
+
+        if (!picker.TryPickRandomEntry(
+            out BallSet.Entry entry,
+            out string why))
+        {
+            Debug.LogWarning(
+                $"[BallSpawner] Could not prepare standby preview: {why}"
+            );
+
+            return;
+        }
+
+        standbyEntry = entry;
+
+        standbyBall =
+            BallFactoryAddressables.Instance.SpawnEntryWithRefs(
+                standbyEntry,
+                previewContainer.position,
+                previewContainer
+            );
+
+        standbyGo = standbyBall.root;
+
+        if (!standbyBall.IsValid ||
+            standbyGo == null)
+        {
+            Debug.LogWarning(
+                "[BallSpawner] Standby preview spawn failed."
+            );
+
+            ClearStandbyPreview();
+            return;
+        }
+
+        SetPreviewMode(
+            standbyBall,
+            true
+        );
+
+        standbyGo.transform.localScale =
+            Vector3.one * previewScale;
+
+        // Keep it instantiated so Spine data/materials/etc.
+        // stay warm, but don't render it yet.
+        standbyGo.SetActive(false);
+
+        Debug.Log(
+            $"[BallSpawner] Standby preview warmed: " +
+            $"{standbyEntry.type} L{standbyEntry.level}"
+        );
+    }
+
+    private void ClearStandbyPreview()
+    {
+        if (standbyGo != null &&
+            BallFactoryAddressables.Instance != null)
+        {
+            BallFactoryAddressables.Instance.Despawn(
+                standbyGo
+            );
+        }
+
+        standbyGo = null;
+        standbyBall = default;
+        standbyEntry = null;
+    }
+
+    private bool PromoteStandbyToPreview()
+    {
+        if (!IsPrepared(
+            standbyBall,
+            standbyEntry))
+        {
+            return false;
+        }
+
+        previewBall = standbyBall;
+        previewGo = standbyGo;
+        queuedEntry = standbyEntry;
+
+        standbyBall = default;
+        standbyGo = null;
+        standbyEntry = null;
+
+        previewGo.transform.SetParent(
+            previewContainer,
+            worldPositionStays: true
+        );
+
+        previewGo.transform.position =
+            previewContainer.position;
+
+        previewGo.transform.localScale =
+            Vector3.one * previewScale;
+
+        previewGo.SetActive(true);
+
+        SetPreviewMode(
+            previewBall,
+            true
+        );
+
+        previewBall.animator?.SetTrigger(
+            "New"
+        );
+
+        return true;
     }
 
     public void BeginSession()
@@ -57,8 +204,19 @@ public class BallSpawner : MonoBehaviour
 
         bool promoted = PromotePreviewToActive(null);
 
-        if (promoted)
+        if (!promoted)
+            return;
+
+        // Use the ball we already warmed instead of spawning another one.
+        if (!PromoteStandbyToPreview())
+        {
+            Debug.LogWarning(
+                "[BallSpawner] No warmed standby available at session start. " +
+                "Creating fallback preview."
+            );
+
             PrepareNextPreview();
+        }
     }
 
     private void ClearPreview()
@@ -153,10 +311,25 @@ public class BallSpawner : MonoBehaviour
 
     private void PromotePreviewAndQueueNext(float? overrideX)
     {
-        bool promoted = PromotePreviewToActive(overrideX);
+        bool promoted =
+            PromotePreviewToActive(overrideX);
 
-        if (promoted)
+        if (!promoted)
+            return;
+
+        // Move the already-warmed standby into the visible preview slot.
+        if (!PromoteStandbyToPreview())
+        {
+            Debug.LogWarning(
+                "[BallSpawner] No warmed standby available. " +
+                "Creating fallback preview."
+            );
+
             PrepareNextPreview();
+        }
+
+        // Prepare the NEXT standby so the chain never runs dry.
+        PrepareStandbyPreview();
     }
 
     private bool PromotePreviewToActive(float? overrideX)
@@ -358,5 +531,16 @@ public class BallSpawner : MonoBehaviour
     {
         if (previewContainer != null)
             previewContainer.gameObject.SetActive(visible);
+    }
+
+    private bool IsPrepared(
+    SpawnedBall ball,
+    BallSet.Entry entry)
+    {
+        return
+            ball.IsValid &&
+            entry != null &&
+            picker != null &&
+            picker.IsEntryAllowed(entry);
     }
 }

@@ -69,6 +69,13 @@ public class SpaceshipSkinController : MonoBehaviour
 
     public void UnlockAndRevealSkin(string skinId, System.Action<bool> onComplete = null)
     {
+        Debug.Log(
+            $"[Skin DEBUG] Reveal requested. " +
+            $"Current={SpaceshipSkinProgress.CurrentSkinId}, " +
+            $"Pending={SpaceshipSkinProgress.PendingSkinRewardId}, " +
+            $"Requested={skinId}, " +
+            $"Renderer={spaceshipRenderer.sprite?.name}"
+        );
         if (skinCatalog == null)
         {
             Debug.LogError("[SpaceshipSkinController] Skin catalog is missing.");

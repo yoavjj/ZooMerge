@@ -17,9 +17,8 @@ public class GalaxyProgressSlider : SfxBehaviourTirgger
     [SerializeField] private AnimationCurve curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
     [Header("Fill Mapping")]
-    [Tooltip("If true: 1/10 -> 0.1 fill. If false: Level 1 -> 0 fill, Level N -> 1 fill.")]
-    [SerializeField] private bool useLevelOverTotal = true;
-    [SerializeField] private bool treatCurrentAsCompleted = true;
+
+    [SerializeField, Range(0f, 1f)] private float minimumVisualFill = 0.3f;
 
     [Header("Callback Timing")]
     [SerializeField, Range(0f, 1f)] private float triggerPoint = 1f;
@@ -87,6 +86,16 @@ public class GalaxyProgressSlider : SfxBehaviourTirgger
 
         float normalized =
             (float)completed / total;
+
+        // Keep 0 completely empty.
+        // Any actual progress gets at least the minimum visual fill.
+        if (normalized > 0f)
+        {
+            normalized = Mathf.Max(
+                normalized,
+                minimumVisualFill
+            );
+        }
 
         bool isFinalProgress =
             completed >= total;

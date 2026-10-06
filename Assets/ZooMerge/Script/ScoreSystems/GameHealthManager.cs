@@ -121,8 +121,13 @@ public class GameHealthManager : MonoBehaviour
 
                         PlayerProgress.CaptureFromManagers();
 
-                        // ✅ If a loss already happened, don't continue the win flow
-                        if (BallEventManager.IsGameOver) return;
+                        // Don't create reward entitlement if another game-over already won.
+                        if (BallEventManager.IsGameOver)
+                            return;
+
+                        // Save collectible entitlements immediately.
+                        SavePendingHeartReward();
+                        SavePendingSpaceshipSkinReward();
 
                         // ✅ Reset retry refill price ladder on a successful level completion
                         RetryRefillPricingRuntime.ResetPurchaseCount();
@@ -168,6 +173,35 @@ public class GameHealthManager : MonoBehaviour
             BallRegistry.Unregister(ball);
             Destroy(ball.gameObject);
         }
+    }
+
+    private void SavePendingHeartReward()
+    {
+        LevelCompletionReward reward =
+            MergeLevelManager.CurrentLevelCompletionReward;
+
+        if (reward == null)
+            return;
+
+        if ((reward.rewardType & LevelRewardType.Heart) == 0)
+            return;
+
+        int amount = Mathf.Max(1, reward.amount);
+
+        bool cameFromUnlimitedTutorial =
+        PlayerProgress.IsTutorialUnlimited(
+            MergeLevelManager.CurrentGalaxyId,
+            MergeLevelManager.CurrentLevelInGalaxy
+        );
+
+        PlayerProgress.SetPendingHeartReward(
+            amount,
+            cameFromUnlimitedTutorial
+        );
+
+        Debug.Log(
+            $"[GameHealthManager] Pending heart reward saved: {amount}"
+        );
     }
 
     private void ShowEnemyTransitionMessage()
@@ -245,6 +279,27 @@ public class GameHealthManager : MonoBehaviour
         );
 
         Debug.Log($"🔄 Health reset for Galaxy {MergeLevelManager.CurrentGalaxyId} Level {MergeLevelManager.CurrentLevelInGalaxy} ({currentHealth} HP)");
+    }
+
+    private void SavePendingSpaceshipSkinReward()
+    {
+        LevelCompletionReward reward =
+            MergeLevelManager.CurrentLevelCompletionReward;
+
+        if (reward == null)
+            return;
+
+        if ((reward.rewardType & LevelRewardType.SpaceshipSkin) == 0)
+            return;
+
+        if (string.IsNullOrWhiteSpace(reward.spaceshipSkinId))
+            return;
+
+        SpaceshipSkinProgress.SetPendingSkinReward(reward.spaceshipSkinId);
+
+        Debug.Log(
+            $"[GameHealthManager] Pending spaceship skin saved: {reward.spaceshipSkinId}"
+        );
     }
 
     private float NormalizeHealthToSlider(int health)

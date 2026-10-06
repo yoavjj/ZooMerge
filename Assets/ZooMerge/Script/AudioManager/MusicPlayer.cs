@@ -18,6 +18,68 @@ public class MusicPlayer
     private bool muted;
     public bool IsEnabled => !muted;
 
+    private AudioClip prewarmedClip;
+    private AudioSource prewarmedSource;
+
+    public IEnumerator PrewarmClip(AudioClip clip)
+    {
+        if (clip == null)
+            yield break;
+
+        // Ask Unity to load the audio data before gameplay.
+        if (clip.loadState == AudioDataLoadState.Unloaded)
+            clip.LoadAudioData();
+
+        while (clip.loadState == AudioDataLoadState.Loading)
+            yield return null;
+
+        if (clip.loadState != AudioDataLoadState.Loaded)
+        {
+            Debug.LogWarning(
+                $"[MusicPlayer] Failed to preload audio clip '{clip.name}'."
+            );
+
+            yield break;
+        }
+
+        // sourceA is currently playing the intro music.
+        // sourceB / inactiveSource is free, so use it to force FMOD
+        // to create/open the sound NOW, while still on Splash.
+        AudioSource source = inactiveSource;
+
+        source.clip = clip;
+        source.loop = true;
+        source.volume = 0f;
+        source.mute = true;
+        source.time = 0f;
+
+        Debug.Log(
+            $"[MusicPlayer] Priming audio clip: {clip.name}"
+        );
+
+        // This is currently the expensive call.
+        // We intentionally make it happen during Splash.
+        source.Play();
+
+        // Give Unity/FMOD one update with the sound initialized.
+        yield return null;
+
+        // Keep the initialized source around instead of Stop(),
+        // so session start can simply resume it.
+        source.Pause();
+
+        source.timeSamples = 0;
+        source.mute = false;
+        source.volume = 0f;
+
+        prewarmedClip = clip;
+        prewarmedSource = source;
+
+        Debug.Log(
+            $"[MusicPlayer] Audio clip prewarmed: {clip.name}"
+        );
+    }
+
     public MusicPlayer(
         GameObject owner,
         AudioSource sourceA,
@@ -97,25 +159,62 @@ public class MusicPlayer
         if (activeSource.clip == clip && activeSource.isPlaying)
             yield break;
 
-        this.volumeMultiplier = Mathf.Clamp01(volumeMultiplier);
+        this.volumeMultiplier =
+            Mathf.Clamp01(volumeMultiplier);
 
-        inactiveSource.clip = clip;
-        inactiveSource.loop = loop;
-        inactiveSource.volume = 0f;
-        inactiveSource.Play();
+        bool usePrewarmedSource =
+            prewarmedClip == clip &&
+            prewarmedSource == inactiveSource;
 
-        float fromStartVolume = activeSource.volume;
-        float toTargetVolume = CurrentTargetVolume();
+        if (usePrewarmedSource)
+        {
+            inactiveSource.loop = loop;
+            inactiveSource.volume = 0f;
+            inactiveSource.mute = false;
+
+            inactiveSource.UnPause();
+
+            prewarmedClip = null;
+            prewarmedSource = null;
+        }
+        else
+        {
+            inactiveSource.clip = clip;
+            inactiveSource.loop = loop;
+            inactiveSource.volume = 0f;
+
+            inactiveSource.Play();
+        }
+
+        float fromStartVolume =
+            activeSource.volume;
+
+        float toTargetVolume =
+            CurrentTargetVolume();
 
         float t = 0f;
 
         while (t < duration)
         {
             t += Time.unscaledDeltaTime;
-            float p = duration <= 0f ? 1f : Mathf.Clamp01(t / duration);
 
-            activeSource.volume = Mathf.Lerp(fromStartVolume, 0f, p);
-            inactiveSource.volume = Mathf.Lerp(0f, toTargetVolume, p);
+            float p = duration <= 0f
+                ? 1f
+                : Mathf.Clamp01(t / duration);
+
+            activeSource.volume =
+                Mathf.Lerp(
+                    fromStartVolume,
+                    0f,
+                    p
+                );
+
+            inactiveSource.volume =
+                Mathf.Lerp(
+                    0f,
+                    toTargetVolume,
+                    p
+                );
 
             yield return null;
         }
@@ -123,7 +222,8 @@ public class MusicPlayer
         activeSource.Stop();
         activeSource.volume = 0f;
 
-        inactiveSource.volume = toTargetVolume;
+        inactiveSource.volume =
+            toTargetVolume;
 
         SwapSources();
     }

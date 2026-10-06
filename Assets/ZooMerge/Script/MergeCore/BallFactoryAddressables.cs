@@ -214,4 +214,74 @@ public class BallFactoryAddressables : MonoBehaviour, IBallFactory
         result.animator = anim;
         return result;
     }
+
+    public IEnumerator PrewarmEnemy(
+    int enemyId,
+    Transform parentOverride,
+    Action<SpawnedEnemy> onReady)
+    {
+        SpawnedEnemy result =
+            default;
+
+        string idString =
+            enemyId.ToString();
+
+        var enemyRef =
+            ballSet.enemyPrefabs.Find(
+                e => e.id == idString
+            );
+
+        if (enemyRef == null ||
+            enemyRef.prefab == null)
+        {
+            Debug.LogError(
+                $"[BallFactory] Enemy prefab not found " +
+                $"for ID: {enemyId}"
+            );
+
+            onReady?.Invoke(result);
+            yield break;
+        }
+
+        yield return instantiator.PrewarmAssetAsync(
+            enemyRef.prefab,
+            Vector3.zero,
+            parentOverride,
+            go =>
+            {
+                if (go == null)
+                    return;
+
+                var unit =
+                    go.GetComponent<EnemyUnit>();
+
+                var spine =
+                    go.GetComponentInChildren<
+                        Spine.Unity.SkeletonGraphic
+                    >(true);
+
+                var animator =
+                    go.GetComponentInChildren<
+                        Animator
+                    >(true);
+
+                if (unit == null)
+                {
+                    Debug.LogError(
+                        "[BallFactory] EnemyUnit missing " +
+                        "on prewarmed enemy."
+                    );
+
+                    return;
+                }
+
+                result.root = go;
+                result.unit = unit;
+                result.spineGraphic = spine;
+                result.animator = animator;
+            }
+        );
+
+        onReady?.Invoke(result);
+    }
 }

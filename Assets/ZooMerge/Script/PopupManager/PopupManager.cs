@@ -20,7 +20,6 @@ public class PopupManager : SfxBehaviourTirgger
     private const string LOSE_POPUP = "LosePopup";
     private const string PAUSE = "PauseRestartPopup";
 
-    private PauseRestartPopup pausePopup;
     public static event Action OnForceClosePausePopup;
 
     [SerializeField] private BallSpawner ballSpawner;
@@ -31,8 +30,10 @@ public class PopupManager : SfxBehaviourTirgger
 
     [Header("Timing")]
     [SerializeField, Min(0f)] private float winLosePopupDelay = 0.5f;
+    [SerializeField, Min(0f)] private float losePopupDelay = 0.65f;
 
     private Coroutine winLosePopupRoutine;
+    private Coroutine losePopupRoutine;
 
     private Coroutine beginSessionRoutine;
 
@@ -98,6 +99,12 @@ public class PopupManager : SfxBehaviourTirgger
         BallEventManager.OnGameOver -= HandleSessionOver;
 
         if (winLosePopupRoutine != null) { StopCoroutine(winLosePopupRoutine); winLosePopupRoutine = null; }
+
+        if (losePopupRoutine != null)
+        {
+            StopCoroutine(losePopupRoutine);
+            losePopupRoutine = null;
+        }
     }
 
     private void UnlockEndPopup()
@@ -113,37 +120,69 @@ public class PopupManager : SfxBehaviourTirgger
     {
         isSessionActive = false;
 
-        // ✅ consume retry BEFORE popup reads retry count
+        // Apply the loss immediately.
+        // The popup will read the already-updated retry count.
         CloudSaveManager.AddLoss(GameOverReason.Lost);
 
-        // ✅ analytics: level ended by losing
         AnalyticsEvents.LevelEnd("lost");
-        
-        ShowEndLvlPopup(GameOverReason.Lost); // or whatever reason you want for this unique case
+
+        // Only delay the visual popup.
+        if (losePopupRoutine != null)
+            StopCoroutine(losePopupRoutine);
+
+        losePopupRoutine =
+            StartCoroutine(ShowLosePopupAfterDelay());
+    }
+
+    private IEnumerator ShowLosePopupAfterDelay()
+    {
+        if (losePopupDelay > 0f)
+            yield return new WaitForSecondsRealtime(losePopupDelay);
+
+        losePopupRoutine = null;
+
+        ShowEndLvlPopup(GameOverReason.Lost);
     }
 
     public void ShowPauseRestartPopup()
     {
+        // Already open -> same pause button acts like Resume.
+        if (pauseRestartPopupInstance != null)
+        {
+            BallEventManager.RaiseSessionResumed();
+
+            SessionManager.Instance?.HidePauseButtonArt();
+
+            PlayUiSfx(SfxCue.ButtonClick);
+
+            OnForceClosePausePopup?.Invoke();
+            ClearPausePopupReference();
+
+            return;
+        }
+
+        // From here down, we're trying to OPEN the pause popup.
         if (BallEventManager.PauseBlocked) return;
 
         if (BallEventManager.IsGameOverCountdownActive) return;
-        
+
         if (MergeScoreDisplayController.Instance != null &&
             MergeScoreDisplayController.Instance.HasActiveScorePopups)
             return;
 
-        if (pauseRestartPopupInstance == null)
-        {
-            var prefab = prefabLibrary.GetRaw(PAUSE);
-            if (prefab != null)
-                pauseRestartPopupInstance = Instantiate(prefab, transform);
-        }
+        GameObject prefab = prefabLibrary.GetRaw(PAUSE);
 
+        if (prefab == null)
+            return;
+
+        pauseRestartPopupInstance = Instantiate(prefab, transform);
         pauseRestartPopupInstance.SetActive(true);
+
+        SessionManager.Instance?.ShowPauseButtonArt();
 
         PlayUiSfx(SfxCue.ButtonClick);
 
-        BallEventManager.RaiseSessionPaused(); // 🆕 Trigger pause animation/UI logic
+        BallEventManager.RaiseSessionPaused();
     }
 
     public void ClearPausePopupReference()
@@ -155,16 +194,13 @@ public class PopupManager : SfxBehaviourTirgger
     {
         isSessionActive = false;
 
-        ForceClosePausePopup(); // Ensure any open pause popup is closed immediately
+        ForceClosePausePopup();
 
-        // ✅ If an end popup is already showing/locked, ignore any other attempt.
         if (endPopupLocked)
         {
-            // Optional: allow same-reason refresh, but block different reason.
             if (lockedEndReason.HasValue && lockedEndReason.Value != reason)
                 return;
 
-            // If same reason, you can either return or let it refresh the text.
             return;
         }
 
@@ -187,41 +223,55 @@ public class PopupManager : SfxBehaviourTirgger
             gameUIPopupInstance = SpawnEndPopup(popupId);
         }
 
-        if (WinLosePopup.Instance == null)
-        {
-            Debug.LogError(
-                "[PopupManager] Spawned end popup has no WinLosePopup component."
-            );
+        if (gameUIPopupInstance == null)
+            return;
 
+        WinLosePopup popup = gameUIPopupInstance.GetComponent<WinLosePopup>();
+
+        if (popup == null)
+        {
+            Debug.LogError("[PopupManager] Spawned end popup has no WinLosePopup component.");
             return;
         }
 
-        WinLosePopup.Instance.SetLevelCompleteContext(
+        popup.PrepareBeforeShow(
+            reason,
             reason == GameOverReason.Won
         );
 
+        gameUIPopupInstance.SetActive(true);
+
         PopupMessageCenter.ShowEndPopupMessage(
-            WinLosePopup.Instance,
+            popup,
             reason
         );
+
+        popup.PlayPopupIn();
     }
 
     public void ShowEnemyDefeatedMessage()
     {
         ForceClosePausePopup();
-        if (winLosePopupRoutine != null) StopCoroutine(winLosePopupRoutine);
+
+        if (winLosePopupRoutine != null)
+            StopCoroutine(winLosePopupRoutine);
+
         winLosePopupRoutine = StartCoroutine(
             ShowWinLosePopupAfterDelay(
                 winLosePopupDelay,
                 WIN_POPUP,
                 () =>
                 {
-                    if (WinLosePopup.Instance != null)
-                        WinLosePopup.Instance.SetLevelCompleteContext(false);
+                    if (WinLosePopup.Instance == null)
+                        return;
+
+                    WinLosePopup.Instance.SetLevelCompleteContext(false);
 
                     PopupMessageCenter.ShowEnemyDefeated(
                         WinLosePopup.Instance
                     );
+
+                    WinLosePopup.Instance.PlayPopupIn();
                 }
             )
         );
@@ -244,6 +294,7 @@ public class PopupManager : SfxBehaviourTirgger
         }
 
         GameObject instance = Instantiate(prefab, transform);
+        instance.SetActive(false);
 
         if (instance.transform is RectTransform rect)
             StretchToParent(rect);
@@ -263,6 +314,14 @@ public class PopupManager : SfxBehaviourTirgger
 
         if (gameUIPopupInstance == null)
             gameUIPopupInstance = SpawnEndPopup(prefabId);
+
+        if (gameUIPopupInstance == null)
+        {
+            winLosePopupRoutine = null;
+            yield break;
+        }
+
+        gameUIPopupInstance.SetActive(true);
 
         showBody?.Invoke();
 
@@ -299,64 +358,90 @@ public class PopupManager : SfxBehaviourTirgger
         rect.localScale = Vector3.one;
     }
 
-    public void BeginSessionDeferred(bool isNewLevel, bool restartmidlevel = false, int warmupFrames = 2)
+    public void BeginSessionDeferred(
+        bool isNewLevel,
+        bool restartmidlevel = false,
+        int warmupFrames = 2,
+        bool pendingRewardsOnly = false)
     {
         if (beginSessionRoutine != null)
             StopCoroutine(beginSessionRoutine);
 
-        beginSessionRoutine = StartCoroutine(BeginSessionDeferredRoutine(isNewLevel, restartmidlevel, warmupFrames));
+        beginSessionRoutine = StartCoroutine(
+            BeginSessionDeferredRoutine(
+                isNewLevel,
+                restartmidlevel,
+                warmupFrames,
+                pendingRewardsOnly
+            )
+        );
     }
 
     private IEnumerator BeginSessionDeferredRoutine(
         bool isNewLevel,
         bool restartmidlevel,
-        int warmupFrames)
+        int warmupFrames,
+        bool pendingRewardsOnly)
     {
-        int frames =
-            Mathf.Clamp(
-                warmupFrames,
-                1,
-                5
-            );
+        int frames = Mathf.Clamp(
+            warmupFrames,
+            1,
+            5
+        );
 
         for (int i = 0; i < frames; i++)
             yield return null;
 
+        // FRAME A
         CircleDragInput.Instance?.DisableInput();
-        AdManager.Instance?.LoadBanner();
 
-        EnemySpawner.Instance?.ClearEnemy();
-
-        CircleDragInput.Instance?.ClearSpawnContainer();
-
-        // Hide any warmed-up preview while rewards play.
         ballSpawner?.SetPreviewVisible(false);
 
-        // --------------------------------
-        // COMPLETED LEVEL REWARDS
-        // --------------------------------
+        yield return null;
 
-        if (isNewLevel)
+        // FRAME B
+        EnemySpawner.Instance?.ClearEnemy();
+
+        if (!restartmidlevel)
+            CircleDragInput.Instance?.ClearSpawnContainer();
+
+        yield return null;
+
+        // FRAME C+
+        // Reward animations happen only after setup work is out of the way.
+        if (pendingRewardsOnly)
+        {
+            yield return StartCoroutine(
+                TryGrantPendingHeartReward()
+            );
+
+            yield return StartCoroutine(
+                TryGrantPendingSpaceshipSkinReward()
+            );
+        }
+        else if (isNewLevel)
         {
             yield return StartCoroutine(
                 TryGrantCompletedLevelReward()
             );
         }
 
-        // --------------------------------
-        // REWARDS FINISHED
-        // --------------------------------
+        // Give reward completion one clean rendered frame.
+        yield return null;
 
         ballSpawner?.SetPreviewVisible(true);
 
-        // Only now promote/create the active ball.
+        // Start ball.
         ballSpawner?.BeginSession();
 
-        BallEventManager.RaiseSessionStarted();
-
-        // Wait one frame before enemy Addressables.
         yield return null;
 
+        // Fire session listeners separately from ball creation.
+        BallEventManager.RaiseSessionStarted();
+
+        yield return null;
+
+        // Enemy work gets its own frame.
         int nextEnemyId =
             MergeLevelManager.GetCurrentEnemyId();
 
@@ -364,6 +449,8 @@ public class PopupManager : SfxBehaviourTirgger
             nextEnemyId,
             delayEnter: true
         );
+
+        yield return null;
 
         if (!isNewLevel)
             BallEventManager.RaiseEnemyAdvanced();
@@ -374,9 +461,7 @@ public class PopupManager : SfxBehaviourTirgger
 
         BallEventManager.ResetMidLevelLossFlag();
 
-        StartCoroutine(
-            PromoteNextFrame()
-        );
+        StartCoroutine(PromoteNextFrame());
 
         InitializeProgressBarNow();
 
@@ -528,7 +613,19 @@ public class PopupManager : SfxBehaviourTirgger
 
     public void WarmupSession()
     {
+        // Pre-create first ball.
         ballSpawner?.WarmupPreview();
+
+        // Pre-create first enemy.
+        if (EnemySpawner.Instance != null)
+        {
+            int enemyId =
+                MergeLevelManager.GetCurrentEnemyId();
+
+            EnemySpawner.Instance.WarmupEnemy(
+                enemyId
+            );
+        }
     }
 
     private void AnalyticsEvents_OnSessionStarted()
@@ -547,82 +644,110 @@ public class PopupManager : SfxBehaviourTirgger
 
     private IEnumerator TryGrantCompletedLevelReward()
     {
-        LevelCompletionReward reward = MergeLevelManager.PreviousCompletedLevelReward;
+        // HEART FIRST
+        yield return StartCoroutine(
+            TryGrantPendingHeartReward()
+        );
 
-        bool hasReward =
-            reward != null &&
-            reward.rewardType != LevelRewardType.None;
+        // SPACESHIP SKIN SECOND
+        yield return StartCoroutine(
+            TryGrantPendingSpaceshipSkinReward()
+        );
+    }
 
-        if (!hasReward)
+    private IEnumerator TryGrantPendingSpaceshipSkinReward()
+    {
+        string pendingSkinId =
+            SpaceshipSkinProgress.PendingSkinRewardId;
+
+        if (string.IsNullOrWhiteSpace(pendingSkinId))
             yield break;
 
-        // --------------------------------
-        // HEART FIRST
-        // --------------------------------
-
-        if ((reward.rewardType & LevelRewardType.Heart) != 0)
+        if (SpaceshipSkinController.Instance == null)
         {
-            int amount = Mathf.Max(1, reward.amount);
-
-            // Bring ONLY the bottom UI in early,
-            // because the heart reward flies toward it.
-            SessionManager.Instance?.PrepareBottomUIForReward();
-
-            bool heartFinished = false;
-
-            if (CollectibleFlyService.Instance != null && heartFlyTarget != null)
-            {
-                CollectibleFlyService.Instance.Fly(
-                    "Heart_Session",
-                    amount,
-                    heartFlyTarget,
-                    null,
-                    () => heartFinished = true
-                );
-
-                Debug.Log(
-                    $"[PopupManager] Granting completed-level reward: {amount} Heart(s)."
-                );
-
-                while (!heartFinished)
-                    yield return null;
-            }
-        }
-
-        // --------------------------------
-        // SPACESHIP SKIN SECOND
-        // --------------------------------
-
-        if ((reward.rewardType & LevelRewardType.SpaceshipSkin) != 0)
-        {
-            if (string.IsNullOrWhiteSpace(reward.spaceshipSkinId))
-            {
-                Debug.LogWarning("[PopupManager] Spaceship skin reward has no skin ID.");
-                yield break;
-            }
-
-            if (SpaceshipSkinController.Instance == null)
-            {
-                Debug.LogWarning("[PopupManager] SpaceshipSkinController is missing.");
-                yield break;
-            }
-
-            bool skinFinished = false;
-
-            SpaceshipSkinController.Instance.UnlockAndRevealSkin(
-                reward.spaceshipSkinId,
-                success =>
-                {
-                    skinFinished = true;
-
-                    if (success)
-                        Debug.Log($"[PopupManager] Granted spaceship skin: {reward.spaceshipSkinId}");
-                }
+            Debug.LogWarning(
+                "[PopupManager] SpaceshipSkinController is missing."
             );
 
-            while (!skinFinished)
-                yield return null;
+            yield break;
         }
+
+        bool skinFinished = false;
+        bool skinSuccess = false;
+
+        SpaceshipSkinController.Instance.UnlockAndRevealSkin(
+            pendingSkinId,
+            success =>
+            {
+                skinSuccess = success;
+                skinFinished = true;
+            }
+        );
+
+        while (!skinFinished)
+            yield return null;
+
+        if (!skinSuccess)
+            yield break;
+
+        SpaceshipSkinProgress.ClearPendingSkinReward();
+
+        Debug.Log(
+            $"[PopupManager] Granted pending spaceship skin: {pendingSkinId}"
+        );
+    }
+
+    private IEnumerator TryGrantPendingHeartReward()
+    {
+        int amount =
+            PlayerProgress.PendingHeartRewardAmount;
+
+        if (amount <= 0)
+            yield break;
+
+        if (CollectibleFlyService.Instance == null)
+        {
+            Debug.LogWarning(
+                "[PopupManager] CollectibleFlyService is missing."
+            );
+
+            yield break;
+        }
+
+        if (heartFlyTarget == null)
+        {
+            Debug.LogWarning(
+                "[PopupManager] Heart fly target is missing."
+            );
+
+            yield break;
+        }
+
+        SessionManager.Instance?.PrepareBottomUIForReward();
+
+        bool heartFinished = false;
+
+        CollectibleFlyService.Instance.Fly(
+            "Heart_Session",
+            amount,
+            heartFlyTarget,
+            null,
+            () => heartFinished = true
+        );
+
+        Debug.Log(
+            $"[PopupManager] Granting pending heart reward: {amount}"
+        );
+
+        while (!heartFinished)
+            yield return null;
+
+        // The collectible completed successfully.
+        PlayerProgress.ClearPendingHeartReward();
+
+        Debug.Log(
+            $"[PopupManager] Pending heart reward granted and cleared: {amount}"
+        );
     }
 
     public RectTransform GetOrCreateNavigationPopup(string prefabId)

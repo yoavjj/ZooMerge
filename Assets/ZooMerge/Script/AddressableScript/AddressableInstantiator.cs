@@ -1,4 +1,5 @@
 using System.Collections;
+using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -19,6 +20,122 @@ public class AddressableInstantiator : MonoBehaviour
     public AssetReferenceGameObject DefaultBallPrefab => _ballPrefab;
 
     // Spawn any addressable prefab (keeps this class generic)
+
+    public IEnumerator PrewarmAssetAsync(
+    AssetReferenceGameObject prefabRef,
+    Vector3 worldPosition,
+    Transform parentOverride,
+    Action<GameObject> onReady)
+    {
+        if (prefabRef == null)
+        {
+            onReady?.Invoke(null);
+            yield break;
+        }
+
+        // --------------------------------
+        // DOWNLOAD DEPENDENCIES
+        // --------------------------------
+
+        var sizeHandle =
+            Addressables.GetDownloadSizeAsync(prefabRef);
+
+        yield return sizeHandle;
+
+        if (sizeHandle.Status !=
+            AsyncOperationStatus.Succeeded)
+        {
+            Debug.LogError(
+                "[AddressableInstantiator] " +
+                "Failed to get download size."
+            );
+
+            Addressables.Release(sizeHandle);
+            onReady?.Invoke(null);
+            yield break;
+        }
+
+        long downloadSize =
+            sizeHandle.Result;
+
+        Addressables.Release(sizeHandle);
+
+        if (downloadSize > 0)
+        {
+            var downloadHandle =
+                Addressables.DownloadDependenciesAsync(
+                    prefabRef
+                );
+
+            yield return downloadHandle;
+
+            if (downloadHandle.Status !=
+                AsyncOperationStatus.Succeeded)
+            {
+                Debug.LogError(
+                    "[AddressableInstantiator] " +
+                    "Failed to download dependencies."
+                );
+
+                Addressables.Release(downloadHandle);
+                onReady?.Invoke(null);
+                yield break;
+            }
+
+            Addressables.Release(downloadHandle);
+        }
+
+        // --------------------------------
+        // PRE-INSTANTIATE
+        // --------------------------------
+
+        Transform parent =
+            parentOverride != null
+                ? parentOverride
+                : _container;
+
+        var spawnHandle =
+            prefabRef.InstantiateAsync(
+                worldPosition,
+                Quaternion.identity,
+                parent
+            );
+
+        yield return spawnHandle;
+
+        if (spawnHandle.Status !=
+            AsyncOperationStatus.Succeeded)
+        {
+            Debug.LogError(
+                "[AddressableInstantiator] " +
+                "Prewarm instantiate failed."
+            );
+
+            Addressables.Release(spawnHandle);
+            onReady?.Invoke(null);
+            yield break;
+        }
+
+        GameObject go =
+            spawnHandle.Result;
+
+        var release =
+            go.GetComponent<ReleaseOnDestroy>();
+
+        if (release == null)
+            release =
+                go.AddComponent<ReleaseOnDestroy>();
+
+        release.handle = spawnHandle;
+
+        // Important:
+        // all expensive Awake/OnEnable/Spine initialization
+        // has already happened before gameplay transition.
+        go.SetActive(false);
+
+        onReady?.Invoke(go);
+    }
+    
     public void SpawnAssetAtAsync(AssetReferenceGameObject prefabRef, Vector3 worldPosition)
     {
         if (_isSpawning || prefabRef == null) return;

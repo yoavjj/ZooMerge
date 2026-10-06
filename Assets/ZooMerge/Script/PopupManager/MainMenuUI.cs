@@ -18,14 +18,9 @@ public class MainMenuUI : SfxBehaviourTirgger
 
     [SerializeField] Animator mainMenuAnimator;
 
-    [Header("seesion start Reveal")]
-    [SerializeField, Min(0f)] private float playPressedDelay = 0.25f;
-    private Coroutine playPressedRoutine;
 
     [SerializeField] private LevelArtController levelArtController;
 
-    [Header("Out Animation Warmup")]
-    [SerializeField, Range(1, 100)] private int outWarmupFrames = 2;
     private bool playLocked = false;
 
     private int cachedLevelNumber;
@@ -37,6 +32,10 @@ public class MainMenuUI : SfxBehaviourTirgger
     [SerializeField] private Transform outOfTriesContainer;
     private GameObject outOfTriesInstance;
     private const string OUT_OF_TRIES_POPUP = "OutOfTriesPopup";
+
+    [Header("Settings Popup")]
+    private GameObject settingsPopupInstance;
+    private const string SETTINGS_POPUP = "SettingsPopup";
 
     [Header("Galaxy Roadmap Popup")]
     [SerializeField] private Transform roadmapContainer;
@@ -52,6 +51,12 @@ public class MainMenuUI : SfxBehaviourTirgger
 
 
     private bool IsOutOfTriesPopupOpen => outOfTriesInstance != null;
+
+    private Coroutine resumeAfterRetriesRoutine; 
+
+    private Coroutine waitForWarmupRoutine;
+
+    private Coroutine waitForBallWarmupRoutine;
 
     [SerializeField] private CollectibleFlyTarget heartFlyTarget; // target on your UI (tries/heart icon)
     [SerializeField] private string heartMenuEntryId = "Heart_menu"; // collectible fly entry for retry reward (optional)
@@ -131,23 +136,56 @@ public class MainMenuUI : SfxBehaviourTirgger
 
             Destroy(roadmapInstance.gameObject);
         }
+
+        if (settingsPopupInstance != null)
+            Destroy(settingsPopupInstance);
     }
 
     private void HandleRetriesPurchasedFromPopup(int amount)
     {
-        // The popup is closing, so allow another popup later if needed
-        outOfTriesInstance = null;
-
-        // Start the heart reward fly.
-        // The retry will be added when the heart reaches the target
-        // and your existing animation event calls AE_AddArriveAmountToText().
         FlyHeartMenu(amount);
 
-        // Allow pressing Play again
+        // Keep Play locked until:
+        // 1. the heart actually credits the retry
+        // 2. the Out Of Tries popup has finished closing
+        playLocked = true;
+
+        if (playButton != null)
+            playButton.interactable = false;
+
+        if (resumeAfterRetriesRoutine != null)
+            StopCoroutine(resumeAfterRetriesRoutine);
+
+        resumeAfterRetriesRoutine =
+            StartCoroutine(UnlockPlayAfterRetries());
+    }
+
+    private IEnumerator UnlockPlayAfterRetries()
+    {
+        // Wait until the flying heart actually adds the retry.
+        yield return new WaitUntil(() =>
+            PlayerProgress.CurrentLevelRetriesRemaining() > 0
+        );
+
+        // Wait until OutOfTriesPopup has finished its closing animation
+        // and Unity has destroyed it.
+        yield return new WaitUntil(() =>
+            outOfTriesInstance == null
+        );
+
+        Debug.Log(
+            "[MainMenuUI] Retry received. Player can press Play again."
+        );
+
+        outOfTriesInstance = null;
+        resumeAfterRetriesRoutine = null;
+
         playLocked = false;
 
         if (playButton != null)
             playButton.interactable = true;
+
+        RefreshPlayButtonState();
     }
 
     private void HandleBallSelectionChanged()
@@ -193,8 +231,8 @@ public class MainMenuUI : SfxBehaviourTirgger
 
         levelArtController?.Refresh();
 
-        yield return new WaitForSeconds(1f);
-
+        // Do the first expensive ball creation while the player
+        // is still looking at the Main Menu.
         PopupManager.Instance?.WarmupSession();
     }
 
@@ -213,12 +251,16 @@ public class MainMenuUI : SfxBehaviourTirgger
         if (playLocked)
             return;
 
+        ContinuePlayPressed();
+    }
+
+    private void ContinuePlayPressed()
+    {
         BallSelectionManager manager = BallSelection;
 
         if (manager == null || !manager.HasRequiredSelection)
         {
             PlayUiSfx(SfxCue.ButtonClickNegative);
-
             ballChoiceMenu?.ShowIncompleteSelectionMessage();
 
             Debug.LogWarning(
@@ -228,15 +270,134 @@ public class MainMenuUI : SfxBehaviourTirgger
             return;
         }
 
+        // --------------------------------
+        // CHECK RETRIES FIRST
+        // --------------------------------
+
         if (!IsOutOfTriesPopupOpen &&
+            !PlayerProgress.HasPendingHeartReward &&
             PlayerProgress.HasRetryLimitForCurrentLevel() &&
             PlayerProgress.CurrentLevelRetriesRemaining() <= 0)
         {
             PlayUiSfx(SfxCue.ButtonClickNegative);
+
             ShowOutOfTriesPopupFromMainMenu();
             return;
         }
 
+        // From this point onward the Play request is accepted.
+        // Keep the button locked while any required warmup finishes.
+        playLocked = true;
+
+        if (playButton != null)
+            playButton.interactable = false;
+
+        // --------------------------------
+        // MAKE SURE BALLS ARE WARM
+        // --------------------------------
+
+        BallSpawner ballSpawner =
+            CircleDragInput.Instance?.spawner;
+
+        if (ballSpawner != null &&
+            !ballSpawner.IsSessionWarm)
+        {
+            Debug.Log(
+                "[MainMenuUI] Warming ball session before Play."
+            );
+
+            ballSpawner.EnsureSessionWarm();
+
+            // Safety check.
+            if (!ballSpawner.IsSessionWarm)
+            {
+                Debug.LogWarning(
+                    "[MainMenuUI] Ball session warmup failed."
+                );
+
+                playLocked = false;
+
+                if (playButton != null)
+                    playButton.interactable = true;
+
+                RefreshPlayButtonState();
+                return;
+            }
+
+            Debug.Log(
+                "[MainMenuUI] Ball session warmup complete."
+            );
+        }
+
+        // --------------------------------
+        // MAKE SURE ENEMY IS WARM
+        // --------------------------------
+
+        int enemyId =
+            MergeLevelManager.GetCurrentEnemyId();
+
+        if (EnemySpawner.Instance != null &&
+            !EnemySpawner.Instance.IsEnemyWarm(enemyId))
+        {
+            Debug.Log(
+                $"[MainMenuUI] Warming enemy {enemyId} before Play."
+            );
+
+            EnemySpawner.Instance.WarmupEnemy(enemyId);
+
+            if (waitForWarmupRoutine != null)
+                StopCoroutine(waitForWarmupRoutine);
+
+            waitForWarmupRoutine =
+                StartCoroutine(
+                    WaitForEnemyWarmupThenPlay(
+                        enemyId
+                    )
+                );
+
+            return;
+        }
+
+        // --------------------------------
+        // EVERYTHING IS READY
+        // --------------------------------
+
+        StartMainMenuOut();
+    }
+
+    private IEnumerator WaitForEnemyWarmupThenPlay(int enemyId)
+    {
+        while (
+            EnemySpawner.Instance != null &&
+            EnemySpawner.Instance.IsWarmingEnemy(enemyId)
+        )
+        {
+            yield return null;
+        }
+
+        waitForWarmupRoutine = null;
+
+        if (EnemySpawner.Instance != null &&
+            !EnemySpawner.Instance.IsEnemyWarm(enemyId))
+        {
+            Debug.LogWarning(
+                $"[MainMenuUI] Enemy {enemyId} warmup failed."
+            );
+
+            playLocked = false;
+
+            if (playButton != null)
+                playButton.interactable = true;
+
+            RefreshPlayButtonState();
+            yield break;
+        }
+
+        StartMainMenuOut();
+    }
+
+    private void StartMainMenuOut()
+    {
         PlayUiSfx(SfxCue.ButtonClick);
 
         playLocked = true;
@@ -246,19 +407,11 @@ public class MainMenuUI : SfxBehaviourTirgger
 
         CloudSaveManager.StartPlayTimer();
 
-        BallEventManager.RaiseMainMenuPopupClosed();
-        PopupNavigationSlider.Instance?.DestroyOtherTabPopups();
+        AnalyticsEvents.MainMenuExit(
+            "play_pressed"
+        );
 
         mainMenuAnimator.SetTrigger("Out");
-
-        if (playPressedRoutine != null)
-            StopCoroutine(playPressedRoutine);
-
-        AnalyticsEvents.MainMenuExit("play_pressed");
-
-        playPressedRoutine = StartCoroutine(
-            PlayPressedRoutine()
-        );
     }
 
     private void ShowOutOfTriesPopupFromMainMenu()
@@ -282,30 +435,28 @@ public class MainMenuUI : SfxBehaviourTirgger
         OutOfTriesPopup.LastSpawned?.SetQuitButtonVisible(false);
     }
 
-    private IEnumerator PlayPressedRoutine()
+    public void ShowSettingsPopup()
     {
-        // ✅ Let the Out animation actually start rendering before heavy work
-        int frames = Mathf.Clamp(outWarmupFrames, 1, 5);
-        for (int i = 0; i < frames; i++)
-            yield return null;
+        if (settingsPopupInstance != null)
+            return;
 
-        // (Optional) tiny real-time slice helps on some devices
-        // yield return new WaitForSecondsRealtime(0.02f);
+        PlayUiSfx(SfxCue.ButtonClick);
 
-        // ✅ Ensure cache is ready (cheap)
-        if (!cacheReady)
-            CacheSessionStartData();
+        if (prefabLibrary == null || outOfTriesContainer == null)
+        {
+            Debug.LogWarning("[MainMenuUI] Missing PrefabLibrary or popup container.");
+            return;
+        }
 
-        // ✅ Do the heavy stuff AFTER animation has started
-        MergeLevelManager.SetLevel(cachedLevelNumber);
+        GameObject prefab = prefabLibrary.GetRaw(SETTINGS_POPUP);
 
-        // ✅ checkpoint/retry state for this level start
-        PlayerProgress.OnLevelStarted(MergeLevelManager.CurrentGalaxyId, MergeLevelManager.CurrentLevelInGalaxy);
+        if (prefab == null)
+        {
+            Debug.LogWarning("[MainMenuUI] SettingsPopup prefab not found.");
+            return;
+        }
 
-        PopupManager.Instance?.BeginSession(cachedIsNewLevel);
-        PopupManager.Instance?.InitializeProgressBarNow();
-
-        Destroy(gameObject, 0.65f);
+        settingsPopupInstance = Instantiate(prefab, outOfTriesContainer);
     }
 
     public void ForceRefreshProgressUIAndCache()
@@ -494,5 +645,31 @@ public class MainMenuUI : SfxBehaviourTirgger
         }
 
         ballUnlockPopupInstance = null;
+    }
+
+    public void AE_MainMenuOutFinished()
+    {
+        if (!cacheReady)
+            CacheSessionStartData();
+
+        MergeLevelManager.SetLevel(cachedLevelNumber);
+
+        PlayerProgress.OnLevelStarted(
+            MergeLevelManager.CurrentGalaxyId,
+            MergeLevelManager.CurrentLevelInGalaxy
+        );
+
+        BallEventManager.RaiseMainMenuPopupClosed();
+
+        // Safe now: the visible Main Menu Out animation is finished.
+        PopupNavigationSlider.Instance?.DestroyOtherTabPopups();
+
+        PopupManager.Instance?.BeginSessionDeferred(
+            cachedIsNewLevel,
+            warmupFrames: 2,
+            pendingRewardsOnly: true
+        );
+
+        Destroy(gameObject, 0.5f);
     }
 }

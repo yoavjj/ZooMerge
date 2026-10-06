@@ -40,7 +40,7 @@ public static class CoinCooldown
         if (r <= TimeSpan.Zero) return "00:00";
 
         int totalMinutes = (int)r.TotalMinutes;
-        return $": {totalMinutes:00}:{r.Seconds:00}";
+        return $"{totalMinutes:00}:{r.Seconds:00}";
     }
 
     public static void RestartCooldown()

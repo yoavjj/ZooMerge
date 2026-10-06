@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -5,6 +6,13 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 public class EnemySpawner : MonoBehaviour
 {
     public static EnemySpawner Instance { get; private set; } // 🔹 Singleton reference
+
+    private BallFactoryAddressables.SpawnedEnemy warmedEnemy;
+
+    private int warmedEnemyId = -1;
+    private int warmingEnemyId = -1;
+
+    private Coroutine warmupRoutine;
 
     private Coroutine delayedEnterRoutine;
 
@@ -52,10 +60,52 @@ public class EnemySpawner : MonoBehaviour
 
     public void SpawnEnemy(int enemyId, bool delayEnter = false)
     {
-        currentEnemy = BallFactoryAddressables.Instance
-            .SpawnEnemyWithRefs(enemyId,
-                spawnPoint != null ? spawnPoint.position : transform.position,
-                enemyContainer != null ? enemyContainer : transform);
+        if (IsEnemyWarm(enemyId))
+        {
+            currentEnemy = warmedEnemy;
+
+            warmedEnemy = default;
+            warmedEnemyId = -1;
+
+            Transform t =
+                currentEnemy.root.transform;
+
+            Transform parent =
+                enemyContainer != null
+                    ? enemyContainer
+                    : transform;
+
+            t.SetParent(parent, false);
+
+            t.position =
+                spawnPoint != null
+                    ? spawnPoint.position
+                    : transform.position;
+
+            t.localRotation =
+                Quaternion.identity;
+
+            // The expensive instance already exists.
+            currentEnemy.root.SetActive(true);
+
+            Debug.Log(
+                $"[EnemySpawner] Using prewarmed enemy {enemyId}."
+            );
+        }
+        else
+        {
+            currentEnemy =
+                BallFactoryAddressables.Instance
+                    .SpawnEnemyWithRefs(
+                        enemyId,
+                        spawnPoint != null
+                            ? spawnPoint.position
+                            : transform.position,
+                        enemyContainer != null
+                            ? enemyContainer
+                            : transform
+                    );
+        }
 
         if (currentEnemy.IsValid)
         {
@@ -90,7 +140,7 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
-    private System.Collections.IEnumerator DelayedEnter(float delay)
+    private IEnumerator DelayedEnter(float delay)
     {
         yield return new WaitForSeconds(delay);
         PlayEnterOnCurrentEnemy();
@@ -100,5 +150,81 @@ public class EnemySpawner : MonoBehaviour
     public void NotifyEnemyDestroyed(GameObject root)
     {
         ClearEnemy();
+    }
+
+    public bool IsEnemyWarm(int enemyId)
+    {
+        return
+            warmedEnemyId == enemyId &&
+            warmedEnemy.IsValid;
+    }
+
+    public bool IsWarmingEnemy(int enemyId)
+    {
+        return
+            warmupRoutine != null &&
+            warmingEnemyId == enemyId;
+    }
+
+    public void WarmupEnemy(int enemyId)
+    {
+        if (IsEnemyWarm(enemyId))
+            return;
+
+        if (IsWarmingEnemy(enemyId))
+            return;
+
+        if (warmupRoutine != null)
+            return;
+
+        warmingEnemyId = enemyId;
+
+        warmupRoutine =
+            StartCoroutine(
+                WarmupEnemyRoutine(enemyId)
+            );
+    }
+
+    private IEnumerator
+    WarmupEnemyRoutine(int enemyId)
+    {
+        BallFactoryAddressables.SpawnedEnemy result =
+            default;
+
+        if (BallFactoryAddressables.Instance == null)
+        {
+            warmingEnemyId = -1;
+            warmupRoutine = null;
+            yield break;
+        }
+
+        yield return BallFactoryAddressables.Instance
+            .PrewarmEnemy(
+                enemyId,
+                enemyContainer,
+                enemy =>
+                {
+                    result = enemy;
+                }
+            );
+
+        if (result.IsValid)
+        {
+            warmedEnemy = result;
+            warmedEnemyId = enemyId;
+
+            Debug.Log(
+                $"[EnemySpawner] Enemy {enemyId} prewarmed."
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                $"[EnemySpawner] Failed to prewarm enemy {enemyId}."
+            );
+        }
+
+        warmingEnemyId = -1;
+        warmupRoutine = null;
     }
 }

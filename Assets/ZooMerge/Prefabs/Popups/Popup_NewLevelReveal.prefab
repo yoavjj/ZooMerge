@@ -472,7 +472,7 @@ MonoBehaviour:
   dissolveAmount: 1.1
   revealTrigger: Reveal
   revealOutTrigger: Out
-  galaxyArtContainer: {fileID: 5760373794554939477}
+  galaxyArtContainer: {fileID: 369227929725173690}
   showGalaxyArtInReveal: 1
   galaxyProgress: {fileID: 8273236827436565612}
   animateGalaxyProgressOnEvent: 1
@@ -1178,22 +1178,38 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1654141853355864864, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
+      propertyPath: m_Value
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4275619130115037546, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
       propertyPath: m_Name
       value: Galaxy_Slider
       objectReference: {fileID: 0}
     - target: {fileID: 8274942163248745927, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8274942163248745927, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8274942163248745927, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -13.424011
+      objectReference: {fileID: 0}
+    - target: {fileID: 8274942163248745927, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -96.19861
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
---- !u!224 &5760373794554939477 stripped
+--- !u!224 &369227929725173690 stripped
 RectTransform:
-  m_CorrespondingSourceObject: {fileID: 4334253767313835717, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
+  m_CorrespondingSourceObject: {fileID: 8559490749977243946, guid: b791b09353ddb4815ac7e2c4d1adcf4b, type: 3}
   m_PrefabInstance: {fileID: 8347045481801141904}
   m_PrefabAsset: {fileID: 0}
 --- !u!224 &7079046003537197807 stripped

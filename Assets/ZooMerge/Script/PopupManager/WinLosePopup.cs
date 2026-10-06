@@ -62,6 +62,10 @@ public class WinLosePopup : SfxBehaviourTirgger
     [SerializeField]
     private BallUnlockOfferPrompt unlockOfferPrompt;
 
+    [Header("Settings Popup")]
+    private GameObject settingsPopupInstance;
+    private const string SETTINGS_POPUP = "SettingsPopup";
+
     private BallSelectionManager BallSelection =>
         BallSelectionManager.Instance;
 
@@ -223,6 +227,34 @@ public class WinLosePopup : SfxBehaviourTirgger
             StopCoroutine(playPressedRoutine);
             playPressedRoutine = null;
         }
+
+        if (settingsPopupInstance != null)
+        {
+            Destroy(settingsPopupInstance);
+            settingsPopupInstance = null;
+        }
+    }
+
+    public void PrepareBeforeShow(GameOverReason reason, bool isLevelComplete)
+    {
+        currentReason = reason;
+        levelCompleteContext = isLevelComplete;
+
+        RefreshHeroPanelVisibility(reason);
+    }
+
+    public void PrepareAndShow(int currentLevel, GameOverReason reason, bool isLevelComplete)
+    {
+        currentReason = reason;
+        levelCompleteContext = isLevelComplete;
+
+        RefreshHeroPanelVisibility(reason);
+
+        SetLevelMessage(currentLevel, reason);
+
+        gameObject.SetActive(true);
+
+        PlayPopupIn();
     }
 
     private void HandleUnlockPopupRequested(
@@ -308,8 +340,6 @@ public class WinLosePopup : SfxBehaviourTirgger
 
         currentReason = reason;
 
-        RefreshHeroPanelVisibility(reason);
-
         // Build merge summary
         if (mergeSummaryPanel != null &&
             MergeSessionTracker.Instance != null)
@@ -319,15 +349,6 @@ public class WinLosePopup : SfxBehaviourTirgger
                     .GetCurrentSnapshot();
 
             mergeSummaryPanel.Build(snapshot);
-        }
-
-        if (animator != null)
-        {
-            animator.SetTrigger(
-                reason == GameOverReason.Won
-                    ? "Win"
-                    : "Lose"
-            );
         }
 
         if (levelProgressBarSlider != null)
@@ -375,19 +396,20 @@ public class WinLosePopup : SfxBehaviourTirgger
 
             case GameOverReason.Lost:
                 {
-                    levelMessageText.text = $"Try Again: Level {currentLevel}";
+                    levelMessageText.text =
+                        $"Try Again: Level {currentLevel}";
 
                     if (!PlayerProgress.HasRetryLimitForCurrentLevel())
                     {
-                        playButtonText.text = "Retry"; // checkpoint / tutorial unlimited
+                        playButtonText.text = "Retry";
                     }
                     else
                     {
-                        int g = MergeLevelManager.CurrentGalaxyId;
-                        int l = MergeLevelManager.CurrentLevelInGalaxy;
+                        int remaining =
+                            PlayerProgress.CurrentLevelRetriesRemaining();
 
-                        int remainingAfterLoss = PlayerProgress.PeekRetriesAfterLoss(g, l);
-                        playButtonText.text = $"Retry ({remainingAfterLoss}/{PlayerProgress.GetRetryCap()})";
+                        playButtonText.text =
+                            $"Retry ({remaining}/{PlayerProgress.GetRetryCap()})";
                     }
 
                     break;
@@ -442,6 +464,31 @@ public class WinLosePopup : SfxBehaviourTirgger
         SetContinueMessageAfterFailure();
 
         isContinue = true;
+    }
+
+    public void ShowSettingsPopup()
+    {
+        if (settingsPopupInstance != null)
+            return;
+
+        PlayUiSfx(SfxCue.ButtonClick);
+
+        if (prefabLibrary == null || outOfTriesContainer == null)
+        {
+            Debug.LogWarning("[WinLosePopup] Missing PrefabLibrary or popup container.");
+            return;
+        }
+
+        GameObject prefab = prefabLibrary.GetRaw(SETTINGS_POPUP);
+
+        if (prefab == null)
+        {
+            Debug.LogWarning("[WinLosePopup] SettingsPopup prefab not found.");
+            return;
+        }
+
+        settingsPopupInstance = Instantiate(prefab, outOfTriesContainer);
+        ResetRectTransform(settingsPopupInstance.transform);
     }
 
     public void OnMainMenuButtonPressed()
@@ -708,6 +755,22 @@ public class WinLosePopup : SfxBehaviourTirgger
         Destroy(gameObject, 2.5f);
     }
 
+    public void PlayPopupIn()
+    {
+        RefreshHeroPanelVisibility(currentReason);
+
+        if (animator == null)
+            return;
+
+        string triggerName =
+            currentReason == GameOverReason.Won
+                ? "Win"
+                : "Lose";
+
+        animator.ResetTrigger(triggerName);
+        animator.SetTrigger(triggerName);
+    }
+
     private void StartNextLevelFlow()
     {
         if (playPressedRoutine != null)
@@ -774,6 +837,7 @@ public class WinLosePopup : SfxBehaviourTirgger
             yield return new WaitForSeconds(delay);
 
         animator.SetTrigger("Out");
+        popupContent?.PlayOut();
 
         // ✅ Keep reveal visible for the remaining time
         float remaining = Mathf.Max(0f, levelRevealDuration - delay);
@@ -843,8 +907,7 @@ public class WinLosePopup : SfxBehaviourTirgger
             return;
         }
 
-        levelCompleteContext = toLevelEnd;  // already in your code
-        RefreshHeroPanelVisibility(currentReason);
+        levelCompleteContext = toLevelEnd;
 
         if (toLevelEnd && preloadLevelRevealOnStart && !MergeLevelManager.IsLastLevelInCurrentGalaxy)
         {

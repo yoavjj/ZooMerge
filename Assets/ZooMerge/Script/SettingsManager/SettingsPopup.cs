@@ -50,6 +50,13 @@ public class SettingsPopup : SfxBehaviourTirgger
     [SerializeField]
     private TextMeshProUGUI userIdText;
 
+    [Header("Popup Animation")]
+    [SerializeField] private Animator popupAnimator;
+
+    private static readonly int TR_Out = Animator.StringToHash("Out");
+
+    private bool isClosing = false;
+
     private void OnEnable()
     {
         UserIdUIHelper.RefreshText(userIdText);
@@ -95,6 +102,30 @@ public class SettingsPopup : SfxBehaviourTirgger
 
             ApplyToggleVisual(toggle);
         }
+    }
+
+    public void ClosePopup()
+    {
+        if (isClosing)
+            return;
+
+        isClosing = true;
+
+        PlayUiSfx(SfxCue.ButtonClick);
+
+        if (popupAnimator == null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        popupAnimator.ResetTrigger(TR_Out);
+        popupAnimator.SetTrigger(TR_Out);
+    }
+
+    public void AE_CloseFinished()
+    {
+        Destroy(gameObject);
     }
 
     public void ToggleByIndex(int index)

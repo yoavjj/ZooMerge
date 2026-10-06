@@ -31,21 +31,43 @@ public class RetriesTextBinder : MonoBehaviour
 
     public void Refresh()
     {
-        if (text == null) return;
+        if (text == null)
+            return;
 
-        int remaining = PlayerProgress.CurrentLevelRetriesRemaining();
+        int remaining =
+            PlayerProgress.CurrentLevelRetriesRemaining();
 
-        // unlimited
-        if (remaining == int.MaxValue)
+        bool showTemporaryUnlimited =
+            remaining <= 0 &&
+            PlayerProgress.PendingHeartShouldShowUnlimited;
+
+        if (remaining == int.MaxValue ||
+            showTemporaryUnlimited)
         {
-            text.text = string.Format(format, unlimitedText);
+            text.text =
+                string.Format(
+                    format,
+                    unlimitedText
+                );
+
             return;
         }
 
-        // clamped normal display
-        int cap = PlayerProgress.GetRetryCap();
-        remaining = Mathf.Clamp(remaining, 0, cap);
-        text.text = string.Format(format, remaining);
+        int cap =
+            PlayerProgress.GetRetryCap();
+
+        remaining =
+            Mathf.Clamp(
+                remaining,
+                0,
+                cap
+            );
+
+        text.text =
+            string.Format(
+                format,
+                remaining
+            );
     }
 
     // 🔥 Animation Event calls this (no args, safest)

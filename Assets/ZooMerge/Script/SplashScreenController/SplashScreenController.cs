@@ -67,6 +67,15 @@ public class SplashScreenController : MonoBehaviour
         if (startDelay > 0f)
             yield return new WaitForSeconds(startDelay);
 
+        // Start expensive session-music initialization early,
+        // while the Splash screen is still doing Firebase / ATT / cloud work.
+        if (AudioManager.Instance != null)
+        {
+            StartCoroutine(
+                AudioManager.Instance.PrewarmSessionMusic()
+            );
+        }
+
         // 1) Firebase
         FirebaseInitializer.WaitForFirebase(
             onReady: () =>
@@ -200,6 +209,15 @@ public class SplashScreenController : MonoBehaviour
 
         // Load main scene with progress
         yield return StartCoroutine(LoadMainSceneWithProgress());
+
+        // Do not enter Main until the future gameplay music
+        // has been initialized by Unity/FMOD.
+        if (AudioManager.Instance != null)
+        {
+            yield return new WaitUntil(
+                () => AudioManager.Instance.IsSessionMusicPrewarmed
+            );
+        }
     }
 
     private IEnumerator LoadMainSceneWithProgress()

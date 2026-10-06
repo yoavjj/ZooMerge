@@ -15,6 +15,8 @@ public class CoinFlyService : SfxBehaviourTirgger
     [Header("Settings")]
     [SerializeField] private CollectibleFlightSettings coinSettings;
 
+    [SerializeField] private float mainMenuArcHeight = 300f;
+
     [Header("Canvas")]
     [SerializeField] private Canvas rootCanvas;
 
@@ -35,7 +37,13 @@ public class CoinFlyService : SfxBehaviourTirgger
 
     public enum Source { Session, Cooldown }
 
-    public void FlyCoins(int amount, Source source, RectTransform overrideSpawnContainer = null)
+    public enum FlightPath
+    {
+        Direct,
+        MainMenuCurve
+    }
+
+    public void FlyCoins(int amount, Source source, RectTransform overrideSpawnContainer = null, bool useDefaultArc = true)
     {
         if (amount <= 0) return;
 
@@ -71,7 +79,7 @@ public class CoinFlyService : SfxBehaviourTirgger
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             spawnContainer, targetScreen, uiCam, out Vector2 targetLocal);
 
-        StartCoroutine(FlyRoutine(amount, prefab, spawnContainer, icon, targetLocal, coinUI));
+        StartCoroutine(FlyRoutine(amount, prefab, spawnContainer, icon, targetLocal, coinUI, useDefaultArc));
     }
 
     private IEnumerator FlyRoutine(
@@ -80,7 +88,8 @@ public class CoinFlyService : SfxBehaviourTirgger
         RectTransform spawnContainer,
         Sprite icon,
         Vector2 targetLocal,
-        TopBarCoinItemUI coinUI)
+        TopBarCoinItemUI coinUI,
+        bool useDefaultArc)
     {
         var collectible = Instantiate(prefab, spawnContainer);
 
@@ -89,22 +98,23 @@ public class CoinFlyService : SfxBehaviourTirgger
 
         yield return new WaitForSecondsRealtime(coinSettings.holdDuration);
 
+        float arcHeight = useDefaultArc
+            ? coinSettings.arcHeight
+            : mainMenuArcHeight;
+
         collectible.LaunchToLocalPoint(
             targetLocalPosition: targetLocal,
             totalDuration: coinSettings.shortFlyDuration,
             onArrive: () =>
             {
-                // ✅ commit economy here
                 GameInventory.Instance.Add(CurrencyType.Coins, amount);
 
-                // ✅ animate UI
                 coinUI.AddCoins(amount);
 
-                // ✅ server snapshot
                 CloudSaveManager.SyncEconomyNow();
             },
             delay: 0f,
-            arcHeight: coinSettings.arcHeight,
+            arcHeight: arcHeight,
             holdDuration: 0f,
             easeInCurve: coinSettings.easeInCurve,
             easeOutCurve: coinSettings.easeOutCurve

@@ -15,6 +15,10 @@ public static class PlayerProgress
     private const string KEY_LAST_LEVEL_IN_GALAXY = "PROG_LastLevelInGalaxy";
     private const string KEY_LAST_ENEMY_INDEX = "PROG_LastEnemyIndex";
 
+    // -------- Pending heart reward --------
+    private const string KEY_PENDING_HEART_REWARD = "PROG_PendingHeartReward";
+    private const string KEY_PENDING_HEART_SHOW_UNLIMITED = "PROG_PendingHeartShowUnlimited";
+
     public static int LastGalaxyId
     {
         get => PlayerPrefs.GetInt(KEY_LAST_GALAXY, 1);
@@ -192,6 +196,7 @@ public static class PlayerProgress
 
         NewLevelRetriesRemaining = GetStartingRetries();
 
+        ClearPendingHeartReward();
         SaveNow();
         NotifyRetriesChanged();
         MergeLevelManager.SetProgress(1, 1, 0);
@@ -224,4 +229,60 @@ public static class PlayerProgress
 
         return Mathf.Max(0, NewLevelRetriesRemaining - 1);
     }
+
+    public static int PendingHeartRewardAmount =>
+    Mathf.Max(
+        0,
+        PlayerPrefs.GetInt(
+            KEY_PENDING_HEART_REWARD,
+            0
+        )
+    );
+
+    public static bool HasPendingHeartReward =>
+        PendingHeartRewardAmount > 0;
+
+    public static void SetPendingHeartReward(
+        int amount,
+        bool showUnlimitedUntilCollected = false)
+    {
+        if (amount <= 0)
+            return;
+
+        PlayerPrefs.SetInt(
+            KEY_PENDING_HEART_REWARD,
+            amount
+        );
+
+        PlayerPrefs.SetInt(
+            KEY_PENDING_HEART_SHOW_UNLIMITED,
+            showUnlimitedUntilCollected ? 1 : 0
+        );
+
+        PlayerPrefs.Save();
+
+        NotifyRetriesChanged();
+    }
+
+    public static void ClearPendingHeartReward()
+    {
+        PlayerPrefs.DeleteKey(
+            KEY_PENDING_HEART_REWARD
+        );
+
+        PlayerPrefs.DeleteKey(
+            KEY_PENDING_HEART_SHOW_UNLIMITED
+        );
+
+        PlayerPrefs.Save();
+
+        NotifyRetriesChanged();
+    }
+
+    public static bool PendingHeartShouldShowUnlimited =>
+    HasPendingHeartReward &&
+    PlayerPrefs.GetInt(
+        KEY_PENDING_HEART_SHOW_UNLIMITED,
+        0
+    ) == 1;
 }

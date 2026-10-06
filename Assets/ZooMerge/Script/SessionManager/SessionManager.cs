@@ -14,7 +14,13 @@ public class SessionManager : MonoBehaviour
     [Header("UI Animators")]
     [SerializeField] private Animator topUIAnimator;
     [SerializeField] private Animator bottomUIAnimator;
+    [SerializeField] private Animator pauseUIAnimator;
 
+    [Header("Pause Button Art")]
+    [SerializeField] private Animator pauseButtonArtAnimator;
+
+    private static readonly int TR_PauseButtonIn = Animator.StringToHash("In");
+    private static readonly int TR_PauseButtonOut = Animator.StringToHash("Out");
     private static readonly int TR_SessionStart = Animator.StringToHash("Session_Start");
     private static readonly int TR_SessionEnd = Animator.StringToHash("Session_End");
     private static readonly int TR_SessionPause = Animator.StringToHash("Session_Pause");
@@ -137,6 +143,10 @@ public class SessionManager : MonoBehaviour
         // Treat quitting like an end
         TriggerSessionEnd();
 
+        // Safety: main menu always forces Pause UI to its Session_End state.
+        pauseUIAnimator?.ResetTrigger(TR_SessionStart);
+        pauseUIAnimator?.SetTrigger(TR_SessionEnd);
+
         // Make sure the bottom sidebar menu is in the "in" state
         PlayBottomSideBarMenuIn();
 
@@ -215,11 +225,13 @@ public class SessionManager : MonoBehaviour
             enemyDieAnimator.SetTrigger(enemyEndTriggerName);
         }
 
-        topUIAnimator?.ResetTrigger("Session_Start");
-        bottomUIAnimator?.ResetTrigger("Session_Start");
+        topUIAnimator?.ResetTrigger(TR_SessionStart);
+        bottomUIAnimator?.ResetTrigger(TR_SessionStart);
+        pauseUIAnimator?.ResetTrigger(TR_SessionStart);
 
-        topUIAnimator?.SetTrigger("Session_End");
-        bottomUIAnimator?.SetTrigger("Session_End");
+        topUIAnimator?.SetTrigger(TR_SessionEnd);
+        bottomUIAnimator?.SetTrigger(TR_SessionEnd);
+        pauseUIAnimator?.SetTrigger(TR_SessionEnd);
 
         if (overlayRaycaster != null)
             overlayRaycaster.enabled = false;
@@ -242,6 +254,9 @@ public class SessionManager : MonoBehaviour
             bottomUIAnimator?.ResetTrigger(TR_SessionEnd);
             bottomUIAnimator?.SetTrigger(TR_SessionStart);
         }
+
+        pauseUIAnimator?.ResetTrigger(TR_SessionEnd);
+        pauseUIAnimator?.SetTrigger(TR_SessionStart);
 
         bottomUIStartedEarlyForReward = false;
 
@@ -326,5 +341,23 @@ public class SessionManager : MonoBehaviour
 
         bottomUIAnimator.ResetTrigger(TR_SessionEnd);
         bottomUIAnimator.SetTrigger(TR_SessionStart);
+    }
+
+    public void ShowPauseButtonArt()
+    {
+        if (pauseButtonArtAnimator == null)
+            return;
+
+        pauseButtonArtAnimator.ResetTrigger(TR_PauseButtonOut);
+        pauseButtonArtAnimator.SetTrigger(TR_PauseButtonIn);
+    }
+
+    public void HidePauseButtonArt()
+    {
+        if (pauseButtonArtAnimator == null)
+            return;
+
+        pauseButtonArtAnimator.ResetTrigger(TR_PauseButtonIn);
+        pauseButtonArtAnimator.SetTrigger(TR_PauseButtonOut);
     }
 }

@@ -55,6 +55,14 @@ public class AudioManager : MonoBehaviour
     public bool IsSfxEnabled =>
     sfxPlayer != null && sfxPlayer.IsEnabled;
 
+    public bool IsSessionMusicPrewarmed
+    {
+        get;
+        private set;
+    }
+
+    private bool sessionMusicPrewarmStarted;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -102,6 +110,45 @@ public class AudioManager : MonoBehaviour
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= HandleSceneLoaded;
+    }
+
+    public IEnumerator PrewarmSessionMusic()
+    {
+        if (IsSessionMusicPrewarmed)
+            yield break;
+
+        if (sessionMusicPrewarmStarted)
+        {
+            yield return new WaitUntil(
+                () => IsSessionMusicPrewarmed
+            );
+
+            yield break;
+        }
+
+        sessionMusicPrewarmStarted = true;
+
+        if (sessionMusic == null)
+        {
+            IsSessionMusicPrewarmed = true;
+            yield break;
+        }
+
+        Debug.Log(
+            "[AudioManager] Prewarming session music..."
+        );
+
+        yield return StartCoroutine(
+            musicPlayer.PrewarmClip(
+                sessionMusic
+            )
+        );
+
+        IsSessionMusicPrewarmed = true;
+
+        Debug.Log(
+            "[AudioManager] Session music prewarm complete."
+        );
     }
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)

@@ -38,7 +38,6 @@ public class SpaceshipSkinRevealAnimator : MonoBehaviour
     [Header("Animator")]
     [SerializeField] private Animator revealAnimator;
     [SerializeField] private string revealTrigger = "Reveal";
-    [SerializeField] private string idleTrigger = "Idle";
 
     private Material runtimeMat;
     private Sprite pendingFinalSprite;
@@ -147,30 +146,51 @@ public class SpaceshipSkinRevealAnimator : MonoBehaviour
         Apply();
     }
 
-    public void PrepareReveal(Sprite oldSprite, Sprite newSprite)
+    public bool PrepareReveal(Sprite oldSprite, Sprite newSprite)
     {
         if (oldSprite == null || newSprite == null)
         {
             Debug.LogWarning("[SpaceshipSkinRevealAnimator] Old or new sprite is null.");
-            return;
+            return false;
         }
 
         EnsureMaterialInstance();
+        EnsureBeamMaterialInstance();
 
         if (runtimeMat == null)
-            return;
+        {
+            Debug.LogWarning("[SpaceshipSkinRevealAnimator] Runtime material is missing.");
+            return false;
+        }
+
+        // Force the renderer to visually start from the OLD skin.
+        targetRenderer.sprite = oldSprite;
 
         runtimeMat.SetTexture(currentTexProperty, oldSprite.texture);
         runtimeMat.SetTexture(nextTexProperty, newSprite.texture);
 
         pendingFinalSprite = newSprite;
+
         blend = 0f;
+        beamReveal = 0f;
+
         Apply();
+
+        Debug.Log(
+            $"[SpaceshipSkinRevealAnimator] Prepared reveal: " +
+            $"{oldSprite.name} -> {newSprite.name}"
+        );
+
+        return true;
     }
 
     public void PlayReveal(Sprite oldSprite, Sprite newSprite, Action onComplete = null)
     {
-        PrepareReveal(oldSprite, newSprite);
+        if (!PrepareReveal(oldSprite, newSprite))
+        {
+            onComplete?.Invoke();
+            return;
+        }
 
         revealFinished = onComplete;
 
@@ -178,20 +198,13 @@ public class SpaceshipSkinRevealAnimator : MonoBehaviour
         {
             revealAnimator.ResetTrigger(revealTrigger);
             revealAnimator.SetTrigger(revealTrigger);
+
+            Debug.Log("[SpaceshipSkinRevealAnimator] Reveal trigger fired.");
         }
         else
         {
             AE_FinishReveal();
         }
-    }
-
-    public void PlayIdle()
-    {
-        if (revealAnimator == null || string.IsNullOrEmpty(idleTrigger))
-            return;
-
-        revealAnimator.ResetTrigger(idleTrigger);
-        revealAnimator.SetTrigger(idleTrigger);
     }
 
     // Call this at the END of the animation via Animation Event
@@ -212,7 +225,6 @@ public class SpaceshipSkinRevealAnimator : MonoBehaviour
         beamReveal = 0f;
 
         Apply();
-        PlayIdle();
 
         pendingFinalSprite = null;
 

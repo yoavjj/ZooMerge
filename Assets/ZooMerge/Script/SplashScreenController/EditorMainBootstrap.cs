@@ -10,7 +10,10 @@ public class EditorMainBootstrap : MonoBehaviour
 
     private IEnumerator Start()
     {
-        // 1) Local fast resume
+        // --------------------------------
+        // 1. LOCAL FAST RESUME
+        // --------------------------------
+
         GameInventory.Instance.LoadFromPrefs();
 
         int g = PlayerProgress.LastGalaxyId;
@@ -19,18 +22,41 @@ public class EditorMainBootstrap : MonoBehaviour
 
         MergeLevelManager.SetProgress(g, l, e);
 
-        // 2) Ensure persistent managers exist
-        if (audioManagerPrefab != null && AudioManager.Instance == null)
+        // --------------------------------
+        // 2. ENSURE PERSISTENT MANAGERS
+        // --------------------------------
+
+        if (audioManagerPrefab != null &&
+            AudioManager.Instance == null)
         {
             Instantiate(audioManagerPrefab);
         }
 
-        if (adManagerPrefab != null && AdManager.Instance == null)
+        if (adManagerPrefab != null &&
+            AdManager.Instance == null)
         {
             Instantiate(adManagerPrefab);
         }
 
-        // 3) Firebase + Remote Config
+        // --------------------------------
+        // 3. PREWARM SESSION MUSIC
+        // --------------------------------
+        //
+        // Start this NOW so the expensive first AudioSource.Play /
+        // FMOD initialization happens while Firebase/cloud boot work
+        // is running instead of when gameplay begins.
+
+        if (AudioManager.Instance != null)
+        {
+            StartCoroutine(
+                AudioManager.Instance.PrewarmSessionMusic()
+            );
+        }
+
+        // --------------------------------
+        // 4. FIREBASE + REMOTE CONFIG
+        // --------------------------------
+
         bool firebaseReady = false;
 
         FirebaseInitializer.WaitForFirebase(
@@ -40,7 +66,10 @@ public class EditorMainBootstrap : MonoBehaviour
             },
             onError: err =>
             {
-                Debug.LogError($"[EditorMainBootstrap] Firebase failed: {err}");
+                Debug.LogError(
+                    $"[EditorMainBootstrap] Firebase failed: {err}"
+                );
+
                 firebaseReady = true;
             }
         );
@@ -48,29 +77,65 @@ public class EditorMainBootstrap : MonoBehaviour
         while (!firebaseReady)
             yield return null;
 
-        // 4) Sync progress
+        // --------------------------------
+        // 5. SYNC PROGRESS
+        // --------------------------------
+
         bool synced = false;
-        CloudSaveManager.SyncProgressFromCloud(() => synced = true);
+
+        CloudSaveManager.SyncProgressFromCloud(
+            () => synced = true
+        );
 
         while (!synced)
             yield return null;
 
-        // 5) Sync economy
+        // --------------------------------
+        // 6. SYNC ECONOMY
+        // --------------------------------
+
         bool econSynced = false;
-        CloudSaveManager.SyncEconomyFromCloud(() => econSynced = true);
+
+        CloudSaveManager.SyncEconomyFromCloud(
+            () => econSynced = true
+        );
 
         while (!econSynced)
             yield return null;
 
+        // --------------------------------
+        // 7. WAIT FOR AUDIO PREWARM
+        // --------------------------------
+        //
+        // Firebase/cloud work and music prewarming have been running
+        // in parallel. Before declaring boot complete, make sure
+        // session music is actually ready.
+
+        if (AudioManager.Instance != null)
+        {
+            yield return new WaitUntil(
+                () =>
+                    AudioManager.Instance
+                        .IsSessionMusicPrewarmed
+            );
+        }
+
+        // --------------------------------
+        // 8. BOOT COMPLETE
+        // --------------------------------
+
         FirebaseInitializer.BootComplete = true;
 
-        var topBar = FindObjectOfType<TopBarMenu>();
+        var topBar =
+            FindObjectOfType<TopBarMenu>();
+
         if (topBar != null)
             topBar.RefreshCoins();
 
         Debug.Log(
             "[EditorMainBootstrap] Boot complete " +
-            "(audio + ads + firebase + cloud progress + economy)."
+            "(audio prewarmed + ads + firebase + " +
+            "cloud progress + economy)."
         );
     }
 #endif

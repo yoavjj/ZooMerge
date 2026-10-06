@@ -18,6 +18,9 @@ public class CoinCooldownWidget : SfxBehaviourTirgger
     [SerializeField] private RectTransform cooldownCoinSpawnContainer;
     [SerializeField] private CooldownRewardScheduleSO schedule;
 
+    [Header("Flight Path")]
+    [SerializeField] private bool useDefaultArc = true;
+
     private Coroutine tickRoutine;
     private bool doneStateShown;
 
@@ -64,7 +67,7 @@ public class CoinCooldownWidget : SfxBehaviourTirgger
 
                 // When ready, we can stop updating the timer text (optional)
                 if (timerText != null)
-                    timerText.text = ": 00:00";
+                    timerText.text = "00:00";
             }
             else
             {
@@ -96,7 +99,8 @@ public class CoinCooldownWidget : SfxBehaviourTirgger
             coinFlyService.FlyCoins(
                 coinsToGrant,
                 CoinFlyService.Source.Cooldown,
-                cooldownCoinSpawnContainer
+                cooldownCoinSpawnContainer,
+                useDefaultArc
             );
         }
         else
