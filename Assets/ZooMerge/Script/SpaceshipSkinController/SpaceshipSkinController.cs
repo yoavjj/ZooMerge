@@ -1,8 +1,10 @@
 using UnityEngine;
+using System;
 
 public class SpaceshipSkinController : MonoBehaviour
 {
     public static SpaceshipSkinController Instance { get; private set; }
+    public static event Action<string> SkinSelected;
 
     [Header("Catalog")]
     [SerializeField] private SpaceshipSkinCatalogSO skinCatalog;
@@ -44,6 +46,8 @@ public class SpaceshipSkinController : MonoBehaviour
         bool wasAlreadyUnlocked = SpaceshipSkinProgress.IsUnlocked(skinId);
 
         SpaceshipSkinProgress.UnlockAndSelect(skinId);
+
+        SkinSelected?.Invoke(skinId);
 
         if (!wasAlreadyUnlocked)
             AnalyticsEvents.SpaceshipSkinUnlocked(skinId);
@@ -113,6 +117,8 @@ public class SpaceshipSkinController : MonoBehaviour
 
         // Save ownership immediately. Do not wait for the visual animation.
         SpaceshipSkinProgress.UnlockAndSelect(skinId);
+
+        SkinSelected?.Invoke(skinId);
 
         if (!wasAlreadyUnlocked)
             AnalyticsEvents.SpaceshipSkinUnlocked(skinId);
@@ -186,5 +192,34 @@ public class SpaceshipSkinController : MonoBehaviour
     public string GetCurrentSkinId()
     {
         return currentSkinId;
+    }
+
+    public bool SelectSkin(string skinId)
+    {
+        if (string.IsNullOrWhiteSpace(skinId))
+            return false;
+
+        if (!SpaceshipSkinProgress.IsUnlocked(skinId))
+        {
+            Debug.LogWarning(
+                $"[SpaceshipSkinController] Cannot select locked skin: {skinId}"
+            );
+
+            return false;
+        }
+
+        if (!ApplySkin(skinId))
+            return false;
+
+        SpaceshipSkinProgress.CurrentSkinId = skinId;
+        PlayerPrefs.Save();
+
+        SkinSelected?.Invoke(skinId);
+
+        Debug.Log(
+            $"[SpaceshipSkinController] Selected skin: {skinId}"
+        );
+
+        return true;
     }
 }

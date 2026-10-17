@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
@@ -48,6 +49,12 @@ public class MainMenuUI : SfxBehaviourTirgger
     private BallUnlockPopup ballUnlockPopupInstance;
     private const string BALL_UNLOCK_POPUP =
     "BallUnlockPopup";
+
+    private const string CONNECTION_LOST_POPUP =
+    "ConnectionLostPopup";
+
+    private GameObject connectionLostInstance;
+    private Coroutine internetCheckRoutine;
 
 
     private bool IsOutOfTriesPopupOpen => outOfTriesInstance != null;
@@ -139,6 +146,18 @@ public class MainMenuUI : SfxBehaviourTirgger
 
         if (settingsPopupInstance != null)
             Destroy(settingsPopupInstance);
+
+        if (internetCheckRoutine != null)
+        {
+            StopCoroutine(internetCheckRoutine);
+            internetCheckRoutine = null;
+        }
+
+        if (connectionLostInstance != null)
+        {
+            Destroy(connectionLostInstance);
+            connectionLostInstance = null;
+        }
     }
 
     private void HandleRetriesPurchasedFromPopup(int amount)
@@ -251,7 +270,119 @@ public class MainMenuUI : SfxBehaviourTirgger
         if (playLocked)
             return;
 
+        if (internetCheckRoutine != null)
+            return;
+
+        internetCheckRoutine =
+            StartCoroutine(
+                CheckInternetThenContinuePlay()
+            );
+    }
+
+    private IEnumerator CheckInternetThenContinuePlay()
+    {
+        bool connected = false;
+
+        yield return InternetConnectionChecker.Check(
+            result => connected = result
+        );
+
+        // Internet is available.
+        if (connected)
+        {
+            internetCheckRoutine = null;
+
+            ContinuePlayPressed();
+            yield break;
+        }
+
+        Debug.LogWarning(
+            "[MainMenuUI] Internet unavailable. Showing connection popup."
+        );
+
+        bool restored = false;
+
+        bool popupOpened =
+            ShowConnectionLostPopup(
+                () => restored = true
+            );
+
+        if (!popupOpened)
+        {
+            internetCheckRoutine = null;
+            yield break;
+        }
+
+        // Wait until ConnectionLostPopup detects internet,
+        // plays Connected, and its animation event completes.
+        while (!restored)
+            yield return null;
+
+        connectionLostInstance = null;
+        internetCheckRoutine = null;
+
+        Debug.Log(
+            "[MainMenuUI] Internet restored. Continuing Play."
+        );
+
+        // Continue the SAME Play press automatically.
         ContinuePlayPressed();
+    }
+
+    private bool ShowConnectionLostPopup(Action onConnectionRestored)
+    {
+        if (prefabLibrary == null ||
+            outOfTriesContainer == null)
+        {
+            Debug.LogWarning(
+                "[MainMenuUI] Missing PrefabLibrary or popup container."
+            );
+
+            return false;
+        }
+
+        GameObject prefab =
+            prefabLibrary.GetRaw(
+                CONNECTION_LOST_POPUP
+            );
+
+        if (prefab == null)
+        {
+            Debug.LogWarning(
+                "[MainMenuUI] ConnectionLostPopup prefab not found."
+            );
+
+            return false;
+        }
+
+        connectionLostInstance =
+            Instantiate(
+                prefab,
+                outOfTriesContainer
+            );
+
+        ConnectionLostPopup popup =
+            connectionLostInstance.GetComponent<
+                ConnectionLostPopup
+            >();
+
+        if (popup == null)
+        {
+            Debug.LogError(
+                "[MainMenuUI] ConnectionLostPopup component is missing."
+            );
+
+            Destroy(connectionLostInstance);
+            connectionLostInstance = null;
+
+            return false;
+        }
+
+        popup.Initialize(
+            onConnectionRestored
+        );
+
+        return true;
     }
 
     private void ContinuePlayPressed()

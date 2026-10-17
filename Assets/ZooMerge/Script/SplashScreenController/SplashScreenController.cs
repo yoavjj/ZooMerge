@@ -10,6 +10,15 @@ using Unity.Advertisement.IosSupport;
 
 public class SplashScreenController : MonoBehaviour
 {
+    [Header("Connection Lost Popup")]
+    [SerializeField] private PrefabLibrary prefabLibrary;
+    [SerializeField] private Transform popupContainer;
+
+    private const string CONNECTION_LOST_POPUP =
+        "ConnectionLostPopup";
+
+    private GameObject connectionLostInstance;
+
     [Header("Scene To Load")]
     [SerializeField] private string mainSceneName = "Main";
 
@@ -50,64 +59,131 @@ public class SplashScreenController : MonoBehaviour
     private IEnumerator Start()
     {
         AnalyticsEvents.SessionStart();
-        
+
         startTime = Time.time;
         SetProgress(0f);
 
-        // 1) Local fast resume
+        // --------------------------------
+        // 1. LOCAL FAST RESUME
+        // --------------------------------
+
         GameInventory.Instance.LoadFromPrefs();
 
-        int g = PlayerPrefs.GetInt("PROG_LastGalaxyId", 1);
-        int l = PlayerPrefs.GetInt("PROG_LastLevelInGalaxy", 1);
-        MergeLevelManager.SetProgress(g, l);
+        int g =
+            PlayerPrefs.GetInt(
+                "PROG_LastGalaxyId",
+                1
+            );
 
-        UserIdUIHelper.RefreshText(userIdText);
+        int l =
+            PlayerPrefs.GetInt(
+                "PROG_LastLevelInGalaxy",
+                1
+            );
 
-        // ✅ Short delay so the splash UI fully appears before heavy work starts
+        MergeLevelManager.SetProgress(
+            g,
+            l
+        );
+
+        UserIdUIHelper.RefreshText(
+            userIdText
+        );
+
+        // --------------------------------
+        // 2. LET SPLASH APPEAR FIRST
+        // --------------------------------
+
         if (startDelay > 0f)
-            yield return new WaitForSeconds(startDelay);
+            yield return new WaitForSeconds(
+                startDelay
+            );
 
-        // Start expensive session-music initialization early,
-        // while the Splash screen is still doing Firebase / ATT / cloud work.
-        if (AudioManager.Instance != null)
+        // --------------------------------
+        // 3. INTERNET CHECK FIRST
+        // --------------------------------
+        //
+        // Boot stops here while offline.
+        // The popup stays active until the user
+        // successfully reconnects and continues.
+
+        yield return StartCoroutine(
+            EnsureInternetConnection()
+        );
+
+        Debug.Log(
+            "[Splash] Internet connection confirmed."
+        );
+
+        // --------------------------------
+        // 4. CREATE AD MANAGER
+        // --------------------------------
+        //
+        // Only create network-dependent services
+        // after internet has been confirmed.
+
+        if (adManagerPrefab != null &&
+            AdManager.Instance == null)
         {
-            StartCoroutine(
-                AudioManager.Instance.PrewarmSessionMusic()
+            Instantiate(
+                adManagerPrefab
             );
         }
 
-        // 1) Firebase
+        // --------------------------------
+        // 5. SESSION MUSIC PREWARM
+        // --------------------------------
+
+        if (AudioManager.Instance != null)
+        {
+            StartCoroutine(
+                AudioManager.Instance
+                    .PrewarmSessionMusic()
+            );
+        }
+
+        // --------------------------------
+        // 6. FIREBASE + REMOTE CONFIG
+        // --------------------------------
+
         FirebaseInitializer.WaitForFirebase(
             onReady: () =>
             {
-                // Sync progress from Firestore BEFORE we allow the splash to continue
-                CloudSaveManager.SyncProgressFromCloud(() =>
-                {
-                    CloudSaveManager.SyncEconomyFromCloud(() =>
+                // Sync progress first.
+                CloudSaveManager.SyncProgressFromCloud(
+                    () =>
                     {
-                        progressSynced = true; // now means "progress + economy are synced"
-                        firebaseDone = true;
-                    });
-                });
+                        // Then sync economy.
+                        CloudSaveManager.SyncEconomyFromCloud(
+                            () =>
+                            {
+                                progressSynced = true;
+                                firebaseDone = true;
+                            }
+                        );
+                    }
+                );
             },
-            onError: (error) =>
+            onError: error =>
             {
-                Debug.LogError($"[Splash] Firebase failed: {error}");
+                Debug.LogError(
+                    $"[Splash] Firebase failed: {error}"
+                );
 
-                // If Firebase failed, we can't sync → continue using local prefs
+                // Continue using local data if Firebase
+                // still fails after internet was confirmed.
                 progressSynced = true;
                 firebaseDone = true;
             }
         );
 
-        // 2) Spawn AdManager (Ads + ATT live on that prefab)
-        if (adManagerPrefab != null && AdManager.Instance == null)
-        {
-            Instantiate(adManagerPrefab);
-        }
+        // --------------------------------
+        // 7. CONTINUE NORMAL BOOT FLOW
+        // --------------------------------
 
-        // Start the boot flow
-        yield return StartCoroutine(BootRoutine());
+        yield return StartCoroutine(
+            BootRoutine()
+        );
     }
 
     private IEnumerator BootRoutine()
@@ -276,6 +352,84 @@ public class SplashScreenController : MonoBehaviour
             UserIdUIHelper.FlashCopiedFeedback(
                 userIdText
             )
+        );
+    }
+
+    private IEnumerator EnsureInternetConnection()
+    {
+        bool connected = false;
+
+        yield return InternetConnectionChecker.Check(
+            result => connected = result
+        );
+
+        if (connected)
+            yield break;
+
+        Debug.LogWarning(
+            "[Splash] No internet connection."
+        );
+
+        if (prefabLibrary == null ||
+            popupContainer == null)
+        {
+            Debug.LogError(
+                "[Splash] Missing PrefabLibrary or popup container."
+            );
+
+            yield break;
+        }
+
+        GameObject prefab =
+            prefabLibrary.GetRaw(
+                CONNECTION_LOST_POPUP
+            );
+
+        if (prefab == null)
+        {
+            Debug.LogError(
+                "[Splash] ConnectionLostPopup not found."
+            );
+
+            yield break;
+        }
+
+        connectionLostInstance =
+            Instantiate(
+                prefab,
+                popupContainer
+            );
+
+        ConnectionLostPopup popup =
+            connectionLostInstance.GetComponent<
+                ConnectionLostPopup
+            >();
+
+        if (popup == null)
+        {
+            Debug.LogError(
+                "[Splash] ConnectionLostPopup component missing."
+            );
+
+            Destroy(connectionLostInstance);
+            connectionLostInstance = null;
+
+            yield break;
+        }
+
+        bool restored = false;
+
+        popup.Initialize(
+            () => restored = true
+        );
+
+        while (!restored)
+            yield return null;
+
+        connectionLostInstance = null;
+
+        Debug.Log(
+            "[Splash] Internet connection restored."
         );
     }
 }

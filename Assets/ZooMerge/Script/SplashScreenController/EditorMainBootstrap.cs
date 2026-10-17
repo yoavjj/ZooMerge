@@ -8,6 +8,15 @@ public class EditorMainBootstrap : MonoBehaviour
     [SerializeField] private AdManager adManagerPrefab;
     [SerializeField] private AudioManager audioManagerPrefab;
 
+    [Header("Connection Lost Popup")]
+    [SerializeField] private PrefabLibrary prefabLibrary;
+    [SerializeField] private Transform popupContainer;
+
+    private const string CONNECTION_LOST_POPUP =
+        "ConnectionLostPopup";
+
+    private GameObject connectionLostInstance;
+
     private IEnumerator Start()
     {
         // --------------------------------
@@ -23,14 +32,41 @@ public class EditorMainBootstrap : MonoBehaviour
         MergeLevelManager.SetProgress(g, l, e);
 
         // --------------------------------
-        // 2. ENSURE PERSISTENT MANAGERS
+        // 2. CREATE AUDIO MANAGER
         // --------------------------------
+        //
+        // Audio does not require internet,
+        // so it is safe to create immediately.
 
         if (audioManagerPrefab != null &&
             AudioManager.Instance == null)
         {
             Instantiate(audioManagerPrefab);
         }
+
+        // --------------------------------
+        // 3. INTERNET CHECK
+        // --------------------------------
+        //
+        // Boot waits here while offline.
+        // Nothing below this point runs until
+        // the connection has been restored.
+
+        yield return StartCoroutine(
+            EnsureInternetConnection()
+        );
+
+        Debug.Log(
+            "[EditorMainBootstrap] Internet connection confirmed."
+        );
+
+        // --------------------------------
+        // 4. CREATE AD MANAGER
+        // --------------------------------
+        //
+        // AdManager is network-dependent,
+        // so only create it after internet
+        // connectivity has been confirmed.
 
         if (adManagerPrefab != null &&
             AdManager.Instance == null)
@@ -39,22 +75,19 @@ public class EditorMainBootstrap : MonoBehaviour
         }
 
         // --------------------------------
-        // 3. PREWARM SESSION MUSIC
+        // 5. PREWARM AUDIO
         // --------------------------------
-        //
-        // Start this NOW so the expensive first AudioSource.Play /
-        // FMOD initialization happens while Firebase/cloud boot work
-        // is running instead of when gameplay begins.
 
         if (AudioManager.Instance != null)
         {
             StartCoroutine(
-                AudioManager.Instance.PrewarmSessionMusic()
+                AudioManager.Instance
+                    .PrewarmSessionMusic()
             );
         }
 
         // --------------------------------
-        // 4. FIREBASE + REMOTE CONFIG
+        // 6. FIREBASE + REMOTE CONFIG
         // --------------------------------
 
         bool firebaseReady = false;
@@ -78,7 +111,7 @@ public class EditorMainBootstrap : MonoBehaviour
             yield return null;
 
         // --------------------------------
-        // 5. SYNC PROGRESS
+        // 7. SYNC PROGRESS
         // --------------------------------
 
         bool synced = false;
@@ -91,7 +124,7 @@ public class EditorMainBootstrap : MonoBehaviour
             yield return null;
 
         // --------------------------------
-        // 6. SYNC ECONOMY
+        // 8. SYNC ECONOMY
         // --------------------------------
 
         bool econSynced = false;
@@ -104,12 +137,8 @@ public class EditorMainBootstrap : MonoBehaviour
             yield return null;
 
         // --------------------------------
-        // 7. WAIT FOR AUDIO PREWARM
+        // 9. WAIT FOR AUDIO PREWARM
         // --------------------------------
-        //
-        // Firebase/cloud work and music prewarming have been running
-        // in parallel. Before declaring boot complete, make sure
-        // session music is actually ready.
 
         if (AudioManager.Instance != null)
         {
@@ -121,7 +150,7 @@ public class EditorMainBootstrap : MonoBehaviour
         }
 
         // --------------------------------
-        // 8. BOOT COMPLETE
+        // 10. BOOT COMPLETE
         // --------------------------------
 
         FirebaseInitializer.BootComplete = true;
@@ -134,9 +163,87 @@ public class EditorMainBootstrap : MonoBehaviour
 
         Debug.Log(
             "[EditorMainBootstrap] Boot complete " +
-            "(audio prewarmed + ads + firebase + " +
+            "(internet + audio prewarmed + ads + firebase + " +
             "cloud progress + economy)."
         );
     }
 #endif
+
+    private IEnumerator EnsureInternetConnection()
+    {
+        bool connected = false;
+
+        yield return InternetConnectionChecker.Check(
+            result => connected = result
+        );
+
+        if (connected)
+            yield break;
+
+        Debug.LogWarning(
+            "[Splash] No internet connection."
+        );
+
+        if (prefabLibrary == null ||
+            popupContainer == null)
+        {
+            Debug.LogError(
+                "[Splash] Missing PrefabLibrary or popup container."
+            );
+
+            yield break;
+        }
+
+        GameObject prefab =
+            prefabLibrary.GetRaw(
+                CONNECTION_LOST_POPUP
+            );
+
+        if (prefab == null)
+        {
+            Debug.LogError(
+                "[Splash] ConnectionLostPopup not found."
+            );
+
+            yield break;
+        }
+
+        connectionLostInstance =
+            Instantiate(
+                prefab,
+                popupContainer
+            );
+
+        ConnectionLostPopup popup =
+            connectionLostInstance.GetComponent<
+                ConnectionLostPopup
+            >();
+
+        if (popup == null)
+        {
+            Debug.LogError(
+                "[Splash] ConnectionLostPopup component missing."
+            );
+
+            Destroy(connectionLostInstance);
+            connectionLostInstance = null;
+
+            yield break;
+        }
+
+        bool restored = false;
+
+        popup.Initialize(
+            () => restored = true
+        );
+
+        while (!restored)
+            yield return null;
+
+        connectionLostInstance = null;
+
+        Debug.Log(
+            "[Splash] Internet connection restored."
+        );
+    }
 }

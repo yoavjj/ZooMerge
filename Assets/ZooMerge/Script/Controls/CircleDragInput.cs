@@ -133,7 +133,7 @@ public class CircleDragInput : MonoBehaviour,
 
         // ✅ NEW: recenter after 4 seconds
         if (recenterAfterEndRoutine != null) StopCoroutine(recenterAfterEndRoutine);
-        recenterAfterEndRoutine = StartCoroutine(RecenterAfterDelay(4f));
+        recenterAfterEndRoutine = StartCoroutine(RecenterAfterDelay(3f));
     }
 
     private IEnumerator RecenterAfterDelay(float delay)

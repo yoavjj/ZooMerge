@@ -40,6 +40,8 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
 
     private bool hasLoggedPopupShown;
 
+    private Coroutine connectionActionRoutine;
+
     private void Awake()
     {
         LastSpawned = this;
@@ -71,46 +73,81 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
             IAPManager.Instance.PurchaseCompleted -= HandleIapPurchaseCompleted;
             IAPManager.Instance.Ready -= HandleIapReady;
         }
+
+        if (connectionActionRoutine != null)
+        {
+            StopCoroutine(connectionActionRoutine);
+            connectionActionRoutine = null;
+        }
     }
 
     public void BuyThreeRetriesWithIap()
+    {
+        RunWhenConnected(
+            ContinueBuyThreeRetriesWithIap
+        );
+    }
+
+    private void ContinueBuyThreeRetriesWithIap()
     {
         if (isPurchasingRetryIap)
             return;
 
         if (PlayerProgress.CurrentLevelRetriesRemaining() > 0)
         {
-            Debug.Log("[OutOfTriesPopup] Retries already available, no need to purchase.");
+            Debug.Log(
+                "[OutOfTriesPopup] Retries already available, no need to purchase."
+            );
 
-            PlayUiSfx(SfxCue.ButtonClickNegative);
+            PlayUiSfx(
+                SfxCue.ButtonClickNegative
+            );
+
             return;
         }
 
-        IAPManager manager = IAPManager.Instance;
+        IAPManager manager =
+            IAPManager.Instance;
 
         if (manager == null)
         {
-            Debug.LogWarning("[OutOfTriesPopup] IAPManager is unavailable.");
+            Debug.LogWarning(
+                "[OutOfTriesPopup] IAPManager is unavailable."
+            );
 
-            PlayUiSfx(SfxCue.ButtonClickNegative);
+            PlayUiSfx(
+                SfxCue.ButtonClickNegative
+            );
+
             return;
         }
 
         if (!manager.IsReady)
         {
-            Debug.LogWarning("[OutOfTriesPopup] Store is not ready.");
+            Debug.LogWarning(
+                "[OutOfTriesPopup] Store is not ready."
+            );
 
-            PlayUiSfx(SfxCue.ButtonClickNegative);
+            PlayUiSfx(
+                SfxCue.ButtonClickNegative
+            );
+
             return;
         }
 
-        IAPProductCatalogSO.ProductDefinition definition = manager.GetRetryProduct();
+        IAPProductCatalogSO.ProductDefinition definition =
+            manager.GetRetryProduct();
 
         if (definition == null)
         {
-            Debug.LogError("[OutOfTriesPopup] Retry IAP product is not configured.");
+            Debug.LogError(
+                "[OutOfTriesPopup] Retry IAP product is not configured."
+            );
 
-            PlayUiSfx(SfxCue.ButtonClickNegative);
+            PlayUiSfx(
+                SfxCue.ButtonClickNegative
+            );
+
             return;
         }
 
@@ -119,7 +156,9 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
         if (retryIapButton != null)
             retryIapButton.interactable = false;
 
-        PlayUiSfx(SfxCue.ButtonClick);
+        PlayUiSfx(
+            SfxCue.ButtonClick
+        );
 
         manager.PurchaseRetries();
     }
@@ -162,6 +201,8 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
             PlayUiSfx(SfxCue.ButtonClickNegative);
             return;
         }
+
+        AnalyticsEvents.RetryPurchasedWithIap(definition.productId, definition.rewardAmount);
 
         RetriesPurchased?.Invoke(definition.rewardAmount);
 
@@ -219,57 +260,71 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
 
     public void WatchAdForRetry()
     {
-        // Only offer if truly out of tries
+        RunWhenConnected(
+            ContinueWatchAdForRetry
+        );
+    }
+
+    private void ContinueWatchAdForRetry()
+    {
+        // Only offer if truly out of tries.
         if (PlayerProgress.CurrentLevelRetriesRemaining() > 0)
         {
-            Debug.Log("[OutOfTriesPopup] Retries already available, no need for ad.");
+            Debug.Log(
+                "[OutOfTriesPopup] Retries already available, no need for ad."
+            );
+
             Close();
-            PlayUiSfx(SfxCue.ButtonClickNegative);
+
+            PlayUiSfx(
+                SfxCue.ButtonClickNegative
+            );
+
             return;
         }
 
         if (AdManager.Instance == null)
         {
-            Debug.LogWarning("[OutOfTriesPopup] AdManager missing.");
-            PlayUiSfx(SfxCue.ButtonClickNegative);
+            Debug.LogWarning(
+                "[OutOfTriesPopup] AdManager missing."
+            );
+
+            PlayUiSfx(
+                SfxCue.ButtonClickNegative
+            );
+
             return;
         }
 
-        PlayUiSfx(SfxCue.ButtonClick);
-
-        // Optional: disable button UI here while ad is showing
+        PlayUiSfx(
+            SfxCue.ButtonClick
+        );
 
         AdManager.Instance.ShowRewarded(
-        onReward: () =>
-        {
-            // Permanent per-player Firestore counter.
-            CloudSaveManager
-                .RegisterRewardedAdCompleted();
-
-            // Aggregated Analytics event.
-            AnalyticsEvents.RewardedAdCompleted(
-                "out_of_tries_retry"
-            );
-
-            // Tell UI/game systems.
-            RetriesPurchased?.Invoke(1);
-
-            // Existing cloud snapshot.
-            CloudSaveManager.SyncEconomyNow();
-
-            if (MessageText != null)
+            onReward: () =>
             {
-                MessageText.text =
-                    successMessage;
-            }
+                CloudSaveManager.RegisterRewardedAdCompleted();
 
-            Debug.Log(
-                "[OutOfTriesPopup] " +
-                "Rewarded success: +1 retry"
-            );
+                AnalyticsEvents.RewardedAdCompleted(
+                    "out_of_tries_retry"
+                );
 
-            Close(retryTrigger);
-        },
+                RetriesPurchased?.Invoke(1);
+
+                CloudSaveManager.SyncEconomyNow();
+
+                if (MessageText != null)
+                    MessageText.text = successMessage;
+
+                Debug.Log(
+                    "[OutOfTriesPopup] Rewarded success: +1 retry"
+                );
+
+                Close(
+                    retryTrigger
+                );
+            },
+
             onFail: reason =>
             {
                 AnalyticsEvents.RewardedAdFailed(
@@ -314,7 +369,15 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
                     : $"{price}";
         }
     }
+
     public void BuyRetriesWithCoins()
+    {
+        RunWhenConnected(
+            ContinueBuyRetriesWithCoins
+        );
+    }
+
+    private void ContinueBuyRetriesWithCoins()
     {
         // Only makes sense if truly out of tries.
         if (PlayerProgress.CurrentLevelRetriesRemaining() > 0)
@@ -527,5 +590,62 @@ public class OutOfTriesPopup : SfxBehaviourTirgger
             coinBalance,
             retryCost
         );
+    }
+
+    private void RunWhenConnected(
+    Action connectedAction)
+    {
+        if (connectionActionRoutine != null)
+            return;
+
+        connectionActionRoutine =
+            StartCoroutine(
+                CheckInternetThenRun(
+                    connectedAction
+                )
+            );
+    }
+
+    private IEnumerator CheckInternetThenRun(
+        Action connectedAction)
+    {
+        bool connected = false;
+
+        yield return InternetConnectionChecker.Check(
+            result => connected = result
+        );
+
+        if (!connected)
+        {
+            Debug.LogWarning(
+                "[OutOfTriesPopup] No internet connection."
+            );
+
+            bool restored = false;
+
+            bool popupOpened =
+                PopupManager.Instance != null &&
+                PopupManager.Instance
+                    .ShowConnectionLostPopup(
+                        () => restored = true
+                    );
+
+            if (!popupOpened)
+            {
+                connectionActionRoutine = null;
+                yield break;
+            }
+
+            while (!restored)
+                yield return null;
+
+            Debug.Log(
+                "[OutOfTriesPopup] Internet restored. Continuing action."
+            );
+        }
+
+        connectionActionRoutine = null;
+
+        connectedAction?.Invoke();
     }
 }

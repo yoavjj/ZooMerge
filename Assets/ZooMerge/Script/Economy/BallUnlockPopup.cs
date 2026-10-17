@@ -110,20 +110,21 @@ public class BallUnlockPopup : SfxBehaviourTirgger
     public BallType TargetType => targetType;
     private bool wasReadyToUnlock;
 
+    private Coroutine purchaseConnectionRoutine;
 
     private void Awake()
     {
         if (coinPurchaseButton != null)
         {
             coinPurchaseButton.onClick.AddListener(
-                PurchaseWithCoins
+                OnCoinPurchasePressed
             );
         }
 
         if (iapPurchaseButton != null)
         {
             iapPurchaseButton.onClick.AddListener(
-                PurchaseWithIap
+                OnIapPurchasePressed
             );
         }
 
@@ -133,6 +134,20 @@ public class BallUnlockPopup : SfxBehaviourTirgger
             iapLoadingGroup.blocksRaycasts = false;
             iapLoadingGroup.interactable = false;
         }
+    }
+
+    private void OnCoinPurchasePressed()
+    {
+        RunPurchaseWhenConnected(
+            PurchaseWithCoins
+        );
+    }
+
+    private void OnIapPurchasePressed()
+    {
+        RunPurchaseWhenConnected(
+            PurchaseWithIap
+        );
     }
 
     private void OnEnable()
@@ -198,6 +213,15 @@ public class BallUnlockPopup : SfxBehaviourTirgger
             iapLoadingGroup.interactable = false;
         }
 
+        if (purchaseConnectionRoutine != null)
+        {
+            StopCoroutine(
+                purchaseConnectionRoutine
+            );
+
+            purchaseConnectionRoutine = null;
+        }
+
         messageLocked = false;
         isOpening = false;
     }
@@ -207,15 +231,24 @@ public class BallUnlockPopup : SfxBehaviourTirgger
         if (coinPurchaseButton != null)
         {
             coinPurchaseButton.onClick.RemoveListener(
-                PurchaseWithCoins
+                OnCoinPurchasePressed
             );
         }
 
         if (iapPurchaseButton != null)
         {
             iapPurchaseButton.onClick.RemoveListener(
-                PurchaseWithIap
+                OnIapPurchasePressed
             );
+        }
+
+        if (purchaseConnectionRoutine != null)
+        {
+            StopCoroutine(
+                purchaseConnectionRoutine
+            );
+
+            purchaseConnectionRoutine = null;
         }
     }
 
@@ -1090,5 +1123,65 @@ public class BallUnlockPopup : SfxBehaviourTirgger
             targetAlpha > 0f;
 
         iapLoadingRoutine = null;
+    }
+
+    private void RunPurchaseWhenConnected(
+    Action purchaseAction)
+    {
+        if (purchaseConnectionRoutine != null)
+            return;
+
+        if (isCompletingPurchase)
+            return;
+
+        purchaseConnectionRoutine =
+            StartCoroutine(
+                CheckInternetThenPurchase(
+                    purchaseAction
+                )
+            );
+    }
+
+    private IEnumerator CheckInternetThenPurchase(
+        Action purchaseAction)
+    {
+        bool connected = false;
+
+        yield return InternetConnectionChecker.Check(
+            result => connected = result
+        );
+
+        if (!connected)
+        {
+            Debug.LogWarning(
+                "[BallUnlockPopup] No internet connection."
+            );
+
+            bool restored = false;
+
+            bool popupOpened =
+                PopupManager.Instance != null &&
+                PopupManager.Instance
+                    .ShowConnectionLostPopup(
+                        () => restored = true
+                    );
+
+            if (!popupOpened)
+            {
+                purchaseConnectionRoutine = null;
+                yield break;
+            }
+
+            while (!restored)
+                yield return null;
+
+            Debug.Log(
+                "[BallUnlockPopup] Internet restored. Continuing purchase."
+            );
+        }
+
+        purchaseConnectionRoutine = null;
+
+        purchaseAction?.Invoke();
     }
 }

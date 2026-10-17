@@ -32,4 +32,7 @@ public enum SfxCue
     Countdown_GameOver = 23,
     NewCard_Reveal = 24,
     NewCard_Intro = 25,
+    Skin_Reveal = 26,
+    Woosh_In = 27,
+    Woosh_Out = 28,
 }

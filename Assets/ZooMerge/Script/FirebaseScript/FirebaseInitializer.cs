@@ -202,33 +202,75 @@ public static class FirebaseInitializer
         onErrorQueue.Clear();
     }
 
-    public static async void RefreshRemoteConfig(Action onComplete = null, Action<string> onError = null)
+    public static async void RefreshRemoteConfig(
+        Action onComplete = null,
+        Action<string> onError = null)
     {
         string configKey = "merge_levels";
-        TimeSpan fetchInterval = TimeSpan.FromHours(6);
 
-#if UNITY_EDITOR
-        configKey = "merge_levels_testing";
-        fetchInterval = TimeSpan.Zero;
-#endif
+    #if UNITY_EDITOR
+            configKey = "merge_levels_testing";
+    #endif
 
         try
         {
-            // Use the same dynamic interval logic
-            await FirebaseRemoteConfig.DefaultInstance.FetchAsync(fetchInterval);
-            await FirebaseRemoteConfig.DefaultInstance.ActivateAsync();
+            var remoteConfig =
+                FirebaseRemoteConfig.DefaultInstance;
 
-            string json = FirebaseRemoteConfig.DefaultInstance.GetValue(configKey).StringValue;
-            MergeScoreData = JsonConvert.DeserializeObject<MergeLevelData>(json);
-            MergeLevelManager.Initialize(MergeScoreData);
+            Debug.Log(
+                $"[RemoteConfig] Force refreshing '{configKey}'..."
+            );
 
-            Debug.Log($"🔁 Refreshed {configKey} successfully.");
+            await remoteConfig.FetchAsync(
+                TimeSpan.Zero
+            );
+
+            bool activated =
+                await remoteConfig.ActivateAsync();
+
+            BaseMergeScore =
+                (int)remoteConfig
+                    .GetValue("base_merge_score")
+                    .LongValue;
+
+            ScoreMultiplier =
+                (float)remoteConfig
+                    .GetValue("score_multiplier")
+                    .DoubleValue;
+
+            string json =
+                remoteConfig
+                    .GetValue(configKey)
+                    .StringValue;
+
+            MergeScoreData =
+                JsonConvert.DeserializeObject<
+                    MergeLevelData
+                >(json);
+
+            MergeLevelManager.Initialize(
+                MergeScoreData
+            );
+
+            Debug.Log(
+                $"🔁 Refreshed '{configKey}'. " +
+                $"Activated={activated}, " +
+                $"Galaxies=" +
+                $"{MergeScoreData?.galaxies?.Count ?? 0}"
+            );
+
             onComplete?.Invoke();
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"⚠️ Remote Config refresh failed: {e.Message}");
-            onError?.Invoke(e.Message);
+            Debug.LogWarning(
+                $"⚠️ Remote Config refresh failed: " +
+                $"{e.Message}"
+            );
+
+            onError?.Invoke(
+                e.Message
+            );
         }
     }
 }

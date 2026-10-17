@@ -20,6 +20,11 @@ public class PopupManager : SfxBehaviourTirgger
     private const string LOSE_POPUP = "LosePopup";
     private const string PAUSE = "PauseRestartPopup";
 
+    private const string CONNECTION_LOST_POPUP =
+    "ConnectionLostPopup";
+
+    private GameObject connectionLostPopupInstance;
+
     public static event Action OnForceClosePausePopup;
 
     [SerializeField] private BallSpawner ballSpawner;
@@ -824,6 +829,76 @@ public class PopupManager : SfxBehaviourTirgger
         {
             navigationPopups.Remove(id);
         }
+    }
+
+    public bool ShowConnectionLostPopup(
+    Action onConnectionRestored)
+    {
+        if (connectionLostPopupInstance != null)
+            return false;
+
+        if (prefabLibrary == null)
+        {
+            Debug.LogWarning(
+                "[PopupManager] PrefabLibrary is missing."
+            );
+
+            return false;
+        }
+
+        GameObject prefab =
+            prefabLibrary.GetRaw(
+                CONNECTION_LOST_POPUP
+            );
+
+        if (prefab == null)
+        {
+            Debug.LogWarning(
+                "[PopupManager] ConnectionLostPopup prefab not found."
+            );
+
+            return false;
+        }
+
+        connectionLostPopupInstance =
+            Instantiate(
+                prefab,
+                transform
+            );
+
+        if (connectionLostPopupInstance.transform
+            is RectTransform rect)
+        {
+            StretchToParent(rect);
+        }
+
+        ConnectionLostPopup popup =
+            connectionLostPopupInstance.GetComponent<
+                ConnectionLostPopup
+            >();
+
+        if (popup == null)
+        {
+            Debug.LogError(
+                "[PopupManager] ConnectionLostPopup component missing."
+            );
+
+            Destroy(connectionLostPopupInstance);
+            connectionLostPopupInstance = null;
+
+            return false;
+        }
+
+        popup.Initialize(
+            () =>
+            {
+                connectionLostPopupInstance = null;
+
+                onConnectionRestored?.Invoke();
+            }
+        );
+
+        return true;
     }
 }
 

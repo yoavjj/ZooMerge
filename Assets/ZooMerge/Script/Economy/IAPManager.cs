@@ -712,6 +712,11 @@ $"Products: {catalog.allProducts.Count}"
 
         CloudSaveManager.RegisterIapPurchase();
 
+        if (definition.rewardType == IAPRewardType.Retries)
+        {
+            CloudSaveManager.RegisterRetryIapPurchase();
+        }
+
         Debug.Log($"[IAPManager] {reason} Confirming purchase.");
 
         storeController.ConfirmPurchase(order);

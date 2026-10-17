@@ -1,11 +1,13 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 [ExecuteAlways]
-public class SpaceshipSkinRevealAnimator : MonoBehaviour
+public class SpaceshipSkinRevealAnimator : SfxBehaviourTirgger
 {
     [Header("Target")]
     [SerializeField] private SpriteRenderer targetRenderer;
+    [SerializeField] private Image targetImage;
 
     [Header("Material")]
     [SerializeField] private Material sourceMaterial;
@@ -97,24 +99,54 @@ public class SpaceshipSkinRevealAnimator : MonoBehaviour
 
     private void EnsureMaterialInstance()
     {
-        if (targetRenderer == null)
+        if (targetRenderer == null &&
+            targetImage == null)
+        {
             return;
+        }
 
-        Material baseMat = overrideMaterial && sourceMaterial != null
-            ? sourceMaterial
-            : targetRenderer.sharedMaterial;
+        Material targetMaterial = null;
+
+        if (targetImage != null)
+            targetMaterial = targetImage.material;
+        else if (targetRenderer != null)
+            targetMaterial = targetRenderer.sharedMaterial;
+
+        Material baseMat =
+            overrideMaterial &&
+            sourceMaterial != null
+                ? sourceMaterial
+                : targetMaterial;
 
         if (baseMat == null)
             return;
 
-        if (runtimeMat != null && targetRenderer.sharedMaterial == runtimeMat)
+        bool alreadyAssigned =
+            runtimeMat != null &&
+            (
+                (targetImage != null &&
+                 targetImage.material == runtimeMat) ||
+
+                (targetRenderer != null &&
+                 targetRenderer.sharedMaterial == runtimeMat)
+            );
+
+        if (alreadyAssigned)
             return;
 
         DisposeRuntimeMaterial();
 
-        runtimeMat = Instantiate(baseMat);
-        runtimeMat.name = baseMat.name + " (Runtime)";
-        targetRenderer.sharedMaterial = runtimeMat;
+        runtimeMat =
+            Instantiate(baseMat);
+
+        runtimeMat.name =
+            baseMat.name +
+            " (Runtime)";
+
+        if (targetImage != null)
+            targetImage.material = runtimeMat;
+        else
+            targetRenderer.sharedMaterial = runtimeMat;
     }
 
     private void Apply()
@@ -164,7 +196,7 @@ public class SpaceshipSkinRevealAnimator : MonoBehaviour
         }
 
         // Force the renderer to visually start from the OLD skin.
-        targetRenderer.sprite = oldSprite;
+        SetTargetSprite(oldSprite);
 
         runtimeMat.SetTexture(currentTexProperty, oldSprite.texture);
         runtimeMat.SetTexture(nextTexProperty, newSprite.texture);
@@ -210,15 +242,27 @@ public class SpaceshipSkinRevealAnimator : MonoBehaviour
     // Call this at the END of the animation via Animation Event
     public void AE_FinishReveal()
     {
-        if (targetRenderer == null || pendingFinalSprite == null)
+        if (pendingFinalSprite == null)
+        {
+            FinishRevealCallback();
             return;
+        }
 
-        targetRenderer.sprite = pendingFinalSprite;
+        SetTargetSprite(
+            pendingFinalSprite
+        );
 
         if (runtimeMat != null)
         {
-            runtimeMat.SetTexture(currentTexProperty, pendingFinalSprite.texture);
-            runtimeMat.SetTexture(nextTexProperty, pendingFinalSprite.texture);
+            runtimeMat.SetTexture(
+                currentTexProperty,
+                pendingFinalSprite.texture
+            );
+
+            runtimeMat.SetTexture(
+                nextTexProperty,
+                pendingFinalSprite.texture
+            );
         }
 
         blend = 0f;
@@ -228,8 +272,16 @@ public class SpaceshipSkinRevealAnimator : MonoBehaviour
 
         pendingFinalSprite = null;
 
-        Action callback = revealFinished;
+        FinishRevealCallback();
+    }
+
+    private void FinishRevealCallback()
+    {
+        Action callback =
+            revealFinished;
+
         revealFinished = null;
+
         callback?.Invoke();
     }
 
@@ -287,6 +339,52 @@ public class SpaceshipSkinRevealAnimator : MonoBehaviour
         EnsureBeamMaterialInstance();
 
         Apply();
+    }
+
+    private Sprite GetCurrentSprite()
+    {
+        if (targetImage != null)
+            return targetImage.sprite;
+
+        if (targetRenderer != null)
+            return targetRenderer.sprite;
+
+        return null;
+    }
+
+    private void SetTargetSprite(
+        Sprite sprite)
+    {
+        if (targetImage != null)
+        {
+            targetImage.sprite = sprite;
+            return;
+        }
+
+        if (targetRenderer != null)
+            targetRenderer.sprite = sprite;
+    }
+
+    private bool HasTarget()
+    {
+        return
+            targetImage != null ||
+            targetRenderer != null;
+    }
+
+    public void AE_PlayRevealSfx()
+    {
+        PlayUiSfx(SfxCue.Skin_Reveal);
+    } 
+
+    public void AE_PlayWooshInSfx()
+    {
+        PlayUiSfx(SfxCue.Woosh_In);
+    } 
+
+    public void AE_PlayWooshOutSfx()
+    {
+        PlayUiSfx(SfxCue.Woosh_Out);
     }
 
     public SpriteRenderer TargetRenderer => targetRenderer;

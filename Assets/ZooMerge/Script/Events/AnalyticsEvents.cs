@@ -403,6 +403,53 @@ public static class AnalyticsEvents
         );
     }
 
+    public static void RetryPurchasedWithIap(
+string productId,
+int retriesGranted)
+    {
+        if (ShouldSend())
+        {
+            FirebaseAnalytics.SetUserProperty(
+                "has_made_iap",
+                "true"
+            );
+
+            FirebaseAnalytics.SetUserProperty(
+                "has_bought_retry_iap",
+                "true"
+            );
+        }
+
+        Log(
+            "retry_purchase_with_iap",
+
+            new Parameter(
+                "product_id",
+                productId
+            ),
+
+            new Parameter(
+                "retries_granted",
+                retriesGranted
+            ),
+
+            new Parameter(
+                "galaxy_id",
+                MergeLevelManager.CurrentGalaxyId
+            ),
+
+            new Parameter(
+                "level_in_galaxy",
+                MergeLevelManager.CurrentLevelInGalaxy
+            ),
+
+            new Parameter(
+                "level",
+                MergeLevelManager.CurrentLevelNumber
+            )
+        );
+    }
+
     private static string NormalizeAdFailureReason(
     string reason)
     {

@@ -20,6 +20,8 @@ public static class CloudSaveManager
 
     private const string PREF_TOTAL_RETRY_COINS_SPENT = "TotalRetryCoinsSpent";
     private const string PREF_HAS_MADE_IAP = "HasMadeIap";
+    private const string PREF_HAS_BOUGHT_RETRY_IAP =
+    "HasBoughtRetryIap";
     private const string PREF_COUNTED_AS_PAYER = "CountedAsPayer";
 
     private static float lastSaveTime = -1f;
@@ -169,6 +171,7 @@ public static class CloudSaveManager
         int totalRetryPurchasesWithCoins = PlayerPrefs.GetInt(PREF_TOTAL_RETRY_PURCHASES_WITH_COINS,0);
         int totalRetryCoinsSpent = PlayerPrefs.GetInt(PREF_TOTAL_RETRY_COINS_SPENT,0);
         bool hasMadeIap = PlayerPrefs.GetInt(PREF_HAS_MADE_IAP,0) == 1;
+        bool hasBoughtRetryIap = PlayerPrefs.GetInt(PREF_HAS_BOUGHT_RETRY_IAP,0) == 1;
 
         // --- INVENTORY ---
         int coins = GameInventory.Instance.Get(CurrencyType.Coins);
@@ -265,7 +268,8 @@ public static class CloudSaveManager
                     {"has_completed_rewarded_ad", totalRewardedAdsCompleted > 0},
                     {"retry_purchases_with_coins", totalRetryPurchasesWithCoins},
                     {"retry_coins_spent_total", totalRetryCoinsSpent},
-                    {"has_made_iap", hasMadeIap}
+                    {"has_made_iap", hasMadeIap},
+                    {"has_bought_retry_iap", hasBoughtRetryIap}
                 }
             },
             { "cosmetics", new Dictionary<string, object>
@@ -961,7 +965,7 @@ public static class CloudSaveManager
 
     public static void RegisterIapPurchase()
     {
-        // Always remember locally that this user has made an IAP.
+        // Remember locally immediately.
         PlayerPrefs.SetInt(
             PREF_HAS_MADE_IAP,
             1
@@ -993,85 +997,112 @@ public static class CloudSaveManager
             db.Collection("metadata")
                 .Document("global_counters");
 
-        bool alreadyCounted =
-            PlayerPrefs.GetInt(
-                PREF_COUNTED_AS_PAYER,
-                0
-            ) == 1;
-
-        WriteBatch batch =
-            db.StartBatch();
-
-        // Always make sure the player's document says
-        // that this player has made an IAP.
-        batch.Set(
-            playerRef,
-            new Dictionary<string, object>
-            {
-            {
-                "monetization",
-                new Dictionary<string, object>
-                {
-                    { "has_made_iap", true }
-                }
-            }
-            },
-            SetOptions.MergeAll
-        );
-
-        // Only increment the global payer counter once
-        // on this device/install.
-        if (!alreadyCounted)
+        db.RunTransactionAsync(transaction =>
         {
-            batch.Set(
-                counterRef,
-                new Dictionary<string, object>
+            return transaction
+                .GetSnapshotAsync(playerRef)
+                .ContinueWith(task =>
                 {
-                {
-                    "total_payers",
-                    FieldValue.Increment(1)
-                }
-                },
-                SetOptions.MergeAll
-            );
-        }
+                    DocumentSnapshot snapshot =
+                        task.Result;
 
-        batch.CommitAsync()
-            .ContinueWithOnMainThread(task =>
+                    bool alreadyPayer = false;
+
+                    if (snapshot.Exists &&
+                        snapshot.TryGetValue(
+                            "monetization",
+                            out Dictionary<string, object>
+                                monetizationMap))
+                    {
+                        if (monetizationMap.TryGetValue(
+                                "has_made_iap",
+                                out object hasMadeIapValue))
+                        {
+                            alreadyPayer =
+                                Convert.ToBoolean(
+                                    hasMadeIapValue
+                                );
+                        }
+                    }
+
+                    // Always mark this player's document
+                    // as having completed a real-money IAP.
+                    transaction.Set(
+                        playerRef,
+                        new Dictionary<string, object>
+                        {
+                        {
+                            "monetization",
+                            new Dictionary<string, object>
+                            {
+                                {
+                                    "has_made_iap",
+                                    true
+                                }
+                            }
+                        }
+                        },
+                        SetOptions.MergeAll
+                    );
+
+                    // Only the FIRST IAP for this Firestore
+                    // user increments the global payer count.
+                    if (!alreadyPayer)
+                    {
+                        transaction.Set(
+                            counterRef,
+                            new Dictionary<string, object>
+                            {
+                            {
+                                "total_payers",
+                                FieldValue.Increment(1)
+                            }
+                            },
+                            SetOptions.MergeAll
+                        );
+                    }
+
+                    return alreadyPayer;
+                });
+        })
+        .ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted)
             {
-                if (task.IsFaulted)
-                {
-                    Debug.LogError(
-                        "[CloudSave] Failed to register IAP payer: " +
-                        task.Exception
-                    );
+                Debug.LogError(
+                    "[CloudSave] Failed to register IAP payer: " +
+                    task.Exception
+                );
 
-                    return;
-                }
+                return;
+            }
 
-                if (!alreadyCounted)
-                {
-                    PlayerPrefs.SetInt(
-                        PREF_COUNTED_AS_PAYER,
-                        1
-                    );
+            bool wasAlreadyPayer =
+                task.Result;
 
-                    PlayerPrefs.Save();
+            PlayerPrefs.SetInt(
+                PREF_COUNTED_AS_PAYER,
+                1
+            );
 
-                    Debug.Log(
-                        "[CloudSave] Player marked as payer. " +
-                        "total_payers incremented."
-                    );
-                }
-                else
-                {
-                    Debug.Log(
-                        "[CloudSave] Player already counted as payer. " +
-                        "Player monetization flag refreshed."
-                    );
-                }
-            });
-        }
+            PlayerPrefs.Save();
+
+            if (!wasAlreadyPayer)
+            {
+                Debug.Log(
+                    "[CloudSave] Player became a payer. " +
+                    "total_payers incremented."
+                );
+            }
+            else
+            {
+                Debug.Log(
+                    "[CloudSave] Existing payer confirmed. " +
+                    "total_payers was NOT incremented again."
+                );
+            }
+        });
+    }
 
     public static void SaveSpaceshipSkinsOnly(Action<bool> onComplete = null)
     {
@@ -1115,6 +1146,69 @@ public static class CloudSaveManager
 
             Debug.Log($"[CloudSave] Spaceship skin saved immediately: {SpaceshipSkinProgress.CurrentSkinId}");
             onComplete?.Invoke(true);
+        });
+    }
+
+    public static void RegisterRetryIapPurchase()
+    {
+        PlayerPrefs.SetInt(
+            PREF_HAS_BOUGHT_RETRY_IAP,
+            1
+        );
+
+        PlayerPrefs.Save();
+
+        if (string.IsNullOrEmpty(
+                FirebaseInitializer.UserId))
+        {
+            Debug.LogWarning(
+                "[CloudSave] Retry IAP registered locally, " +
+                "but UserId is not ready."
+            );
+
+            return;
+        }
+
+        DocumentReference playerRef =
+            FirebaseFirestore.DefaultInstance
+                .Collection("players")
+                .Document(
+                    FirebaseInitializer.UserId
+                );
+
+        Dictionary<string, object> patch =
+            new Dictionary<string, object>
+            {
+            {
+                "monetization",
+                new Dictionary<string, object>
+                {
+                    {
+                        "has_bought_retry_iap",
+                        true
+                    }
+                }
+            }
+            };
+
+        playerRef.SetAsync(
+            patch,
+            SetOptions.MergeAll
+        ).ContinueWithOnMainThread(task =>
+        {
+            if (task.IsFaulted)
+            {
+                Debug.LogError(
+                    "[CloudSave] Failed to register retry IAP: " +
+                    task.Exception
+                );
+
+                return;
+            }
+
+            Debug.Log(
+                "[CloudSave] Retry IAP flag saved."
+            );
         });
     }
 

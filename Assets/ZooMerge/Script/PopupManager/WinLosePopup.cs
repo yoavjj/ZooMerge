@@ -19,6 +19,14 @@ public class WinLosePopup : SfxBehaviourTirgger
     private GameObject outOfTriesInstance;
     private bool IsOutOfTriesPopupOpen => outOfTriesInstance != null;
 
+    private const string CONNECTION_LOST_POPUP =
+        "ConnectionLostPopup";
+
+    private GameObject connectionLostInstance;
+    private Coroutine internetCheckRoutine;
+
+    private Coroutine summaryCloudSaveRoutine;
+    private bool waitingForSummaryCloudSave;
 
     private const string OUT_OF_TRIES_POPUP = "OutOfTriesPopup";
     private const string LEVEL_REVEAL = "LevelReveal";
@@ -232,6 +240,18 @@ public class WinLosePopup : SfxBehaviourTirgger
         {
             Destroy(settingsPopupInstance);
             settingsPopupInstance = null;
+        }
+
+        if (internetCheckRoutine != null)
+        {
+            StopCoroutine(internetCheckRoutine);
+            internetCheckRoutine = null;
+        }
+
+        if (connectionLostInstance != null)
+        {
+            Destroy(connectionLostInstance);
+            connectionLostInstance = null;
         }
     }
 
@@ -648,14 +668,73 @@ public class WinLosePopup : SfxBehaviourTirgger
         if (playPressedLocked)
             return;
 
+        if (internetCheckRoutine != null)
+            return;
+
+        internetCheckRoutine =
+            StartCoroutine(
+                CheckInternetThenContinuePlay()
+            );
+    }
+
+    private IEnumerator CheckInternetThenContinuePlay()
+    {
+        bool connected = false;
+
+        yield return InternetConnectionChecker.Check(
+            result => connected = result
+        );
+
+        if (connected)
+        {
+            internetCheckRoutine = null;
+
+            ContinuePlayPressed();
+            yield break;
+        }
+
+        Debug.LogWarning(
+            "[WinLosePopup] Internet unavailable. Showing connection popup."
+        );
+
+        bool restored = false;
+
+        bool popupOpened =
+            ShowConnectionLostPopup(
+                () => restored = true
+            );
+
+        if (!popupOpened)
+        {
+            internetCheckRoutine = null;
+            yield break;
+        }
+
+        while (!restored)
+            yield return null;
+
+        connectionLostInstance = null;
+        internetCheckRoutine = null;
+
+        Debug.Log(
+            "[WinLosePopup] Internet restored. Continuing Play."
+        );
+
+        ContinuePlayPressed();
+    }
+
+    private void ContinuePlayPressed()
+    {
         if (IsSummaryBusy())
         {
-            deferredAction = DeferredAction.PlayPressed;
+            deferredAction =
+                DeferredAction.PlayPressed;
 
             return;
         }
 
-        BallSelectionManager selectionManager = BallSelection;
+        BallSelectionManager selectionManager =
+            BallSelection;
 
         if (selectionManager == null ||
             !selectionManager.HasRequiredSelection)
@@ -670,27 +749,36 @@ public class WinLosePopup : SfxBehaviourTirgger
             return;
         }
 
-        int g = MergeLevelManager.CurrentGalaxyId;
+        int g =
+            MergeLevelManager.CurrentGalaxyId;
 
-        int l = MergeLevelManager.CurrentLevelInGalaxy;
+        int l =
+            MergeLevelManager.CurrentLevelInGalaxy;
 
-        // ✅ If player has 0 retries left, show OutOfTries popup instead of retrying
+        // If player has 0 retries left,
+        // show OutOfTries instead of restarting.
         if (currentReason == GameOverReason.Lost &&
             PlayerProgress.IsOnNewLevel(g, l) &&
             PlayerProgress.NewLevelRetriesRemaining <= 0)
         {
             ShowOutOfTriesPopup();
-            PlayUiSfx(SfxCue.ButtonClickNegative);
+
+            PlayUiSfx(
+                SfxCue.ButtonClickNegative
+            );
+
             return;
         }
 
-        PlayUiSfx(SfxCue.ButtonClick);
+        PlayUiSfx(
+            SfxCue.ButtonClick
+        );
 
-
-        // 2. Lock the button so it cannot be pressed again
         playPressedLocked = true;
 
-        deferredAction = DeferredAction.None; // clear if you want
+        deferredAction =
+            DeferredAction.None;
+
         HandleContinue();
 
         if (!IsNewLevel())
@@ -699,19 +787,98 @@ public class WinLosePopup : SfxBehaviourTirgger
             return;
         }
 
-        PlayerProgress.OnLevelStarted(MergeLevelManager.CurrentGalaxyId, MergeLevelManager.CurrentLevelInGalaxy);
+        PlayerProgress.OnLevelStarted(
+            MergeLevelManager.CurrentGalaxyId,
+            MergeLevelManager.CurrentLevelInGalaxy
+        );
 
         StartNextLevelFlow();
+
         OnWinLoseClosed?.Invoke();
+    }
+
+    private bool ShowConnectionLostPopup(
+    Action onConnectionRestored)
+    {
+        if (prefabLibrary == null ||
+            outOfTriesContainer == null)
+        {
+            Debug.LogWarning(
+                "[WinLosePopup] Missing PrefabLibrary or popup container."
+            );
+
+            return false;
+        }
+
+        GameObject prefab =
+            prefabLibrary.GetRaw(
+                CONNECTION_LOST_POPUP
+            );
+
+        if (prefab == null)
+        {
+            Debug.LogWarning(
+                "[WinLosePopup] ConnectionLostPopup prefab not found."
+            );
+
+            return false;
+        }
+
+        connectionLostInstance =
+            Instantiate(
+                prefab,
+                outOfTriesContainer
+            );
+
+        ResetRectTransform(
+            connectionLostInstance.transform
+        );
+
+        ConnectionLostPopup popup =
+            connectionLostInstance.GetComponent<
+                ConnectionLostPopup
+            >();
+
+        if (popup == null)
+        {
+            Debug.LogError(
+                "[WinLosePopup] ConnectionLostPopup component is missing."
+            );
+
+            Destroy(connectionLostInstance);
+            connectionLostInstance = null;
+
+            return false;
+        }
+
+        popup.Initialize(
+            onConnectionRestored
+        );
+
+        return true;
     }
 
     private bool IsSummaryBusy()
     {
-        if (mergeSummaryPanel != null && mergeSummaryPanel.IsBusy)
+        if (mergeSummaryPanel != null &&
+            mergeSummaryPanel.IsBusy)
         {
-            Debug.Log("⏳ Wait! Merge summary still running.");
+            Debug.Log(
+                "⏳ Wait! Merge summary still running."
+            );
+
             return true;
         }
+
+        if (waitingForSummaryCloudSave)
+        {
+            Debug.Log(
+                "⏳ Wait! Merge rewards are being saved."
+            );
+
+            return true;
+        }
+
         return false;
     }
 
@@ -970,44 +1137,27 @@ public class WinLosePopup : SfxBehaviourTirgger
 
     private void HandleSummaryReady()
     {
-        // Decide if we're out of retries (only relevant on Loss)
-        bool outOfRetries =
-            currentReason == GameOverReason.Lost &&
-            PlayerProgress.HasRetryLimitForCurrentLevel() &&
-            PlayerProgress.CurrentLevelRetriesRemaining() <= 0;
+        // --------------------------------
+        // SAVE LOCAL PROGRESS FIRST
+        // --------------------------------
 
-        // ✅ If out of retries: spawn popup AFTER collectibles finish
-        // and DO NOT play the play-button "Ready" animation.
-        if (outOfRetries)
-        {
-            ShowOutOfTriesPopup();
-
-            // important: don't auto-run deferred PlayPressed (it would bypass popup)
-            deferredAction = DeferredAction.None;
-            deferredRoadmapFromLevelFlow = false;
-        }
-        else
-        {
-            // Normal behavior: do the "Ready" button FX
-            if (playButtonAnimator != null && !string.IsNullOrEmpty(readyTrigger))
-            {
-                playButtonAnimator.ResetTrigger(readyTrigger);
-                playButtonAnimator.SetTrigger(readyTrigger);
-            }
-        }
-
-        // ---- existing progress saving logic stays the same ----
         if (currentReason == GameOverReason.Won)
         {
-            // ✅ Only advance to NEXT LEVEL when the whole level is complete
             if (levelCompleteContext)
             {
-                MergeLevelManager.PeekNextProgress(out int nextG, out int nextL);
-                PlayerProgress.SetResumePoint(nextG, nextL, 0); // new level always starts at enemy 0
+                MergeLevelManager.PeekNextProgress(
+                    out int nextG,
+                    out int nextL
+                );
+
+                PlayerProgress.SetResumePoint(
+                    nextG,
+                    nextL,
+                    0
+                );
             }
             else
             {
-                // Mid-level enemy win: DO NOT jump levels
                 PlayerProgress.CaptureFromManagers();
             }
         }
@@ -1016,45 +1166,217 @@ public class WinLosePopup : SfxBehaviourTirgger
             PlayerProgress.CaptureFromManagers();
         }
 
-        CloudSaveManager.SaveSnapshot(currentReason == GameOverReason.Won);
+        // --------------------------------
+        // NOW MAKE SURE ECONOMY REACHES CLOUD
+        // --------------------------------
 
-        // Collectibles are finished now.
-        // Only offer an unlock during a full level-complete screen.
+        if (summaryCloudSaveRoutine != null)
+            StopCoroutine(summaryCloudSaveRoutine);
+
+        waitingForSummaryCloudSave = true;
+
+        summaryCloudSaveRoutine =
+            StartCoroutine(
+                SaveSummaryWhenOnline()
+            );
+    }
+
+    private IEnumerator SaveSummaryWhenOnline()
+    {
+        while (true)
+        {
+            // --------------------------------
+            // 1. CHECK INTERNET
+            // --------------------------------
+
+            bool connected = false;
+
+            yield return InternetConnectionChecker.Check(
+                result => connected = result
+            );
+
+            if (!connected)
+            {
+                Debug.LogWarning(
+                    "[WinLosePopup] Internet lost before merge rewards were saved."
+                );
+
+                bool restored = false;
+
+                bool popupOpened =
+                    ShowConnectionLostPopup(
+                        () => restored = true
+                    );
+
+                if (!popupOpened)
+                {
+                    yield return new WaitForSecondsRealtime(1f);
+                    continue;
+                }
+
+                // Wait for your existing ConnectionLostPopup
+                // to detect the restored connection and finish
+                // the Connected animation.
+                while (!restored)
+                    yield return null;
+
+                connectionLostInstance = null;
+
+                Debug.Log(
+                    "[WinLosePopup] Internet restored. Saving merge rewards."
+                );
+            }
+
+            // --------------------------------
+            // 2. SAVE MERGES / ECONOMY
+            // --------------------------------
+
+            bool saveFinished = false;
+            bool saveSucceeded = false;
+
+            CloudSaveManager.SaveEconomyStateImmediate(
+                success =>
+                {
+                    saveSucceeded = success;
+                    saveFinished = true;
+                }
+            );
+
+            while (!saveFinished)
+                yield return null;
+
+            // Firestore confirmed the economy write.
+            if (saveSucceeded)
+                break;
+
+            // Internet may have disappeared between
+            // our connection test and the Firestore write.
+            Debug.LogWarning(
+                "[WinLosePopup] Economy upload failed. Retrying..."
+            );
+
+            yield return new WaitForSecondsRealtime(
+                1f
+            );
+        }
+
+        Debug.Log(
+            "[WinLosePopup] Merge rewards successfully saved to Firestore."
+        );
+
+        // Keep your normal complete snapshot as well.
+        CloudSaveManager.SaveSnapshot(
+            currentReason == GameOverReason.Won
+        );
+
+        waitingForSummaryCloudSave = false;
+        summaryCloudSaveRoutine = null;
+
+        ContinueAfterSummarySaved();
+    }
+
+    private void ContinueAfterSummarySaved()
+    {
+        bool outOfRetries =
+            currentReason == GameOverReason.Lost &&
+            PlayerProgress.HasRetryLimitForCurrentLevel() &&
+            PlayerProgress.CurrentLevelRetriesRemaining() <= 0;
+
+        // --------------------------------
+        // OUT OF RETRIES / READY BUTTON
+        // --------------------------------
+
+        if (outOfRetries)
+        {
+            ShowOutOfTriesPopup();
+
+            deferredAction =
+                DeferredAction.None;
+
+            deferredRoadmapFromLevelFlow =
+                false;
+        }
+        else
+        {
+            if (playButtonAnimator != null &&
+                !string.IsNullOrEmpty(
+                    readyTrigger
+                ))
+            {
+                playButtonAnimator.ResetTrigger(
+                    readyTrigger
+                );
+
+                playButtonAnimator.SetTrigger(
+                    readyTrigger
+                );
+            }
+        }
+
+        // --------------------------------
+        // AUTOMATIC UNLOCK OFFER
+        // --------------------------------
+
         if (heroPanelHolder != null &&
             heroPanelHolder.activeSelf &&
             unlockOfferPrompt != null &&
-            unlockOfferPrompt.TryGetAvailableUnlock(out BallType availableType))
+            unlockOfferPrompt.TryGetAvailableUnlock(
+                out BallType availableType
+            ))
         {
-            bool popupOpened = ShowBallUnlockPopup(availableType);
+            bool popupOpened =
+                ShowBallUnlockPopup(
+                    availableType
+                );
 
             if (popupOpened)
             {
-                unlockOfferPrompt.MarkAsOffered(availableType);
+                unlockOfferPrompt.MarkAsOffered(
+                    availableType
+                );
 
-                // The unlock popup now owns the player's attention.
-                // Cancel any Play press that was queued while collectibles were flying.
-                deferredAction = DeferredAction.None;
-                deferredRoadmapFromLevelFlow = false;
+                deferredAction =
+                    DeferredAction.None;
+
+                deferredRoadmapFromLevelFlow =
+                    false;
 
                 return;
             }
         }
 
-        // ✅ run last cached action (only one)
-        var action = deferredAction;
-        var roadmapFlow = deferredRoadmapFromLevelFlow;
+        // --------------------------------
+        // RUN DEFERRED PLAYER ACTION
+        // --------------------------------
 
-        deferredAction = DeferredAction.None;
-        deferredRoadmapFromLevelFlow = false;
+        DeferredAction action =
+            deferredAction;
 
-        // Important: if out-of-retries, don't auto-run deferred PlayPressed (it would bypass your popup)
+        bool roadmapFlow =
+            deferredRoadmapFromLevelFlow;
+
+        deferredAction =
+            DeferredAction.None;
+
+        deferredRoadmapFromLevelFlow =
+            false;
+
         if (outOfRetries)
             return;
 
-        if (action == DeferredAction.PlayPressed)
+        if (action ==
+            DeferredAction.PlayPressed)
+        {
             OnPlayPressed();
-        else if (action == DeferredAction.ShowGalaxyRoadmap)
-            ShowGalaxyRoadmap(roadmapFlow);
+        }
+        else if (
+            action ==
+            DeferredAction.ShowGalaxyRoadmap)
+        {
+            ShowGalaxyRoadmap(
+                roadmapFlow
+            );
+        }
     }
 
     private void ShowOutOfTriesPopup()
