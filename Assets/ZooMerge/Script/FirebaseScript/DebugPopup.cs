@@ -103,32 +103,27 @@ public class DebugPopup : MonoBehaviour
     {
         PlayerProgress.ResetProgressToStart();
 
-        // Clear any uncollected spaceship skin reward.
-        SpaceshipSkinProgress.ClearPendingSkinReward();
+        // Completely reset spaceship ownership + selection.
+        SpaceshipSkinProgress.ResetToDefaultOnly();
 
-        // Reset spaceship skin to spaceship_01.
-        SpaceshipSkinProgress.UnlockAndSelect(
-            SpaceshipSkinProgress.DefaultSkinId
-        );
-
-        // Immediately update the visible spaceship.
+        // Immediately refresh the visible gameplay spaceship.
         if (SpaceshipSkinController.Instance != null)
-        {
             SpaceshipSkinController.Instance.ApplySavedSkin();
-        }
 
-        // Save the reset skin to cloud.
-        CloudSaveManager.SaveSpaceshipSkinsOnly();
-
-        var menu = FindObjectOfType<MainMenuUI>();
+        var menu =
+            FindObjectOfType<MainMenuUI>();
 
         if (menu != null)
             menu.ForceRefreshProgressUIAndCache();
 
+        // Cosmetics are sent to the server only through SaveSnapshot.
+        CloudSaveManager.SaveSnapshot(
+            incrementMidLevelCompleted: false
+        );
+
         Debug.Log(
             $"[DebugPopup] Progress restarted. " +
-            $"Skin reset to '{SpaceshipSkinProgress.DefaultSkinId}'. " +
-            $"Pending skin reward cleared."
+            $"Spaceship skins reset to '{SpaceshipSkinProgress.DefaultSkinId}' only."
         );
     }
 

@@ -40,11 +40,42 @@ public class GarageSkinPopup : MonoBehaviour
     private void OnEnable()
     {
         SpaceshipSkinController.SkinSelected += HandleSkinSelected;
+        SpaceshipSkinProgress.SkinProgressChanged += HandleSkinProgressChanged;
     }
 
     private void OnDisable()
     {
         SpaceshipSkinController.SkinSelected -= HandleSkinSelected;
+        SpaceshipSkinProgress.SkinProgressChanged -= HandleSkinProgressChanged;
+    }
+
+    private void HandleSkinProgressChanged()
+    {
+        // Refresh every catalog item's locked/unlocked visual.
+        foreach (GarageSkinCatalogItemUI item in spawnedItems)
+        {
+            if (item != null)
+                item.RefreshVisualState();
+        }
+
+        // Sync the main Garage preview back to the saved skin.
+        string currentSkinId =
+            SpaceshipSkinProgress.CurrentSkinId;
+
+        currentPreviewSkinId =
+            currentSkinId;
+
+        isSkinRevealPlaying = false;
+        revealingSkinId = null;
+
+        SetMainSpaceship(
+            currentSkinId
+        );
+
+        Debug.Log(
+            $"[GarageSkinPopup] Skin progress refreshed. " +
+            $"Current={currentSkinId}"
+        );
     }
 
     private void BuildSkinCatalog()

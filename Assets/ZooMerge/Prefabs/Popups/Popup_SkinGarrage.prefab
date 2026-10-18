@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 912288960012205814}
+  - component: {fileID: 3299645082499472576}
   - component: {fileID: 2252021413283355187}
   m_Layer: 0
   m_Name: ScrollRec_Holder
@@ -37,6 +38,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 400}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &3299645082499472576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 831692342345480545}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c9a05161b4cf4ef7956b7bb5836159d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MobileHorizontalScrollFeel
+  scrollRect: {fileID: 2252021413283355187}
+  dragThreshold: 4
+  decelerationRate: 0.25
+  elasticity: 0.1
 --- !u!114 &2252021413283355187
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -53,9 +70,9 @@ MonoBehaviour:
   m_Horizontal: 1
   m_Vertical: 0
   m_MovementType: 1
-  m_Elasticity: 0.1
+  m_Elasticity: 0.08
   m_Inertia: 1
-  m_DecelerationRate: 0.135
+  m_DecelerationRate: 0.25
   m_ScrollSensitivity: 1
   m_Viewport: {fileID: 2076424574337404795}
   m_HorizontalScrollbar: {fileID: 0}

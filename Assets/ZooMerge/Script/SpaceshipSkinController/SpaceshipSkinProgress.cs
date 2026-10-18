@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public static class SpaceshipSkinProgress
 {
@@ -8,6 +9,14 @@ public static class SpaceshipSkinProgress
     private const string KEY_UNLOCKED_IDS = "SHIP_UNLOCKED_IDS";
     public const string DefaultSkinId = "spaceship_01";
     private const string KEY_PENDING_SKIN_REWARD = "SHIP_PENDING_SKIN_REWARD";
+
+
+    public static event Action SkinProgressChanged;
+
+    private static void NotifyChanged()
+    {
+        SkinProgressChanged?.Invoke();
+    }
 
     public static string CurrentSkinId
     {
@@ -155,6 +164,8 @@ public static class SpaceshipSkinProgress
             CurrentSkinId = currentSkinId;
 
         PlayerPrefs.Save();
+
+        NotifyChanged();
     }
 
     public static string PendingSkinRewardId =>
@@ -176,5 +187,55 @@ public static class SpaceshipSkinProgress
     {
         PlayerPrefs.DeleteKey(KEY_PENDING_SKIN_REWARD);
         PlayerPrefs.Save();
+    }
+
+    public static void ResetToDefaultOnly()
+    {
+        string savedIds =
+            PlayerPrefs.GetString(
+                KEY_UNLOCKED_IDS,
+                string.Empty
+            );
+
+        if (!string.IsNullOrWhiteSpace(savedIds))
+        {
+            string[] ids =
+                savedIds.Split('|');
+
+            foreach (string skinId in ids)
+            {
+                if (string.IsNullOrWhiteSpace(skinId))
+                    continue;
+
+                PlayerPrefs.DeleteKey(
+                    KEY_UNLOCK_PREFIX + skinId
+                );
+            }
+        }
+
+        // Extra safety.
+        PlayerPrefs.DeleteKey(
+            KEY_UNLOCK_PREFIX + DefaultSkinId
+        );
+
+        // Remove the old ownership list.
+        PlayerPrefs.DeleteKey(
+            KEY_UNLOCKED_IDS
+        );
+
+        // Remove any pending reward.
+        PlayerPrefs.DeleteKey(KEY_PENDING_SKIN_REWARD);
+
+        // Reset selected skin.
+        CurrentSkinId = DefaultSkinId;
+
+        PlayerPrefs.Save();
+
+        NotifyChanged();
+
+        Debug.Log(
+            $"[SpaceshipSkinProgress] Reset skins. " +
+            $"Only '{DefaultSkinId}' is now unlocked."
+        );
     }
 }

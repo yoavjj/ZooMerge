@@ -11,7 +11,13 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
     private class PopupTab
     {
         public string id;
+
+        [Header("Button")]
         public RectTransform button;
+
+        [Tooltip("Visual child that scales when this tab is selected.")]
+        public RectTransform selectedScaleTarget;
+
         public string prefabId;
 
         [Header("Availability")]
@@ -47,6 +53,27 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
         1f,
         1f
     );
+
+    [Header("Selected Tab Scale")]
+    [SerializeField, Min(1f)]
+    private float selectedScale = 1.1f;
+
+    [SerializeField, Min(0f)]
+    private float selectedScaleDuration = 0.15f;
+
+    [SerializeField]
+    private AnimationCurve selectedScaleCurve =
+        AnimationCurve.EaseInOut(
+            0f,
+            0f,
+            1f,
+            1f
+        );
+
+    private Coroutine selectedScaleRoutine;
+
+    private readonly List<Vector3>
+        selectedVisualBaseScales = new();
 
     [Header("Popup Message")]
     [SerializeField] private Animator popupMessageAnimator;
@@ -84,12 +111,12 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
 
     private IEnumerator Start()
     {
-        // Wait for Canvas Scaler and responsive UI layout.
         yield return null;
 
         Canvas.ForceUpdateCanvases();
 
         CacheSlideDistance();
+        CacheSelectedVisualScales();
 
         SelectPopupIndexInstant(2);
     }
@@ -104,6 +131,133 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
             currentRoadmap.OnClosedRoadmap -=
                 HandleRoadmapClosed;
         }
+    }
+
+    private void CacheSelectedVisualScales()
+    {
+        selectedVisualBaseScales.Clear();
+
+        for (int i = 0; i < tabs.Count; i++)
+        {
+            RectTransform target =
+                tabs[i] != null
+                    ? tabs[i].selectedScaleTarget
+                    : null;
+
+            selectedVisualBaseScales.Add(
+                target != null
+                    ? target.localScale
+                    : Vector3.one
+            );
+        }
+    }
+
+    private void ScaleSelectedTab(int selectedIndex)
+    {
+        if (selectedScaleRoutine != null)
+            StopCoroutine(selectedScaleRoutine);
+
+        selectedScaleRoutine =
+            StartCoroutine(
+                ScaleSelectedTabRoutine(
+                    selectedIndex
+                )
+            );
+    }
+
+    private IEnumerator ScaleSelectedTabRoutine(
+    int selectedIndex)
+    {
+        List<Vector3> startScales =
+            new();
+
+        for (int i = 0; i < tabs.Count; i++)
+        {
+            RectTransform target =
+                tabs[i] != null
+                    ? tabs[i].selectedScaleTarget
+                    : null;
+
+            startScales.Add(
+                target != null
+                    ? target.localScale
+                    : Vector3.one
+            );
+        }
+
+        float elapsed = 0f;
+
+        while (elapsed < selectedScaleDuration)
+        {
+            elapsed +=
+                Time.unscaledDeltaTime;
+
+            float normalized =
+                selectedScaleDuration <= 0f
+                    ? 1f
+                    : Mathf.Clamp01(
+                        elapsed /
+                        selectedScaleDuration
+                    );
+
+            float t =
+                selectedScaleCurve != null
+                    ? selectedScaleCurve.Evaluate(
+                        normalized
+                    )
+                    : normalized;
+
+            for (int i = 0; i < tabs.Count; i++)
+            {
+                if (tabs[i] == null ||
+                    tabs[i].selectedScaleTarget == null)
+                {
+                    continue;
+                }
+
+                Vector3 baseScale =
+                    selectedVisualBaseScales[i];
+
+                Vector3 targetScale =
+                    i == selectedIndex
+                        ? baseScale *
+                          selectedScale
+                        : baseScale;
+
+                tabs[i]
+                    .selectedScaleTarget
+                    .localScale =
+                        Vector3.LerpUnclamped(
+                            startScales[i],
+                            targetScale,
+                            t
+                        );
+            }
+
+            yield return null;
+        }
+
+        for (int i = 0; i < tabs.Count; i++)
+        {
+            if (tabs[i] == null ||
+                tabs[i].selectedScaleTarget == null)
+            {
+                continue;
+            }
+
+            Vector3 baseScale =
+                selectedVisualBaseScales[i];
+
+            tabs[i]
+                .selectedScaleTarget
+                .localScale =
+                    i == selectedIndex
+                        ? baseScale *
+                          selectedScale
+                        : baseScale;
+        }
+
+        selectedScaleRoutine = null;
     }
 
     private void CacheSlideDistance()
@@ -150,13 +304,15 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
         }
 
         MoveSelectorToIndex(index);
+        ScaleSelectedTab(index);
 
         if (popupRoutine != null)
             StopCoroutine(popupRoutine);
 
-        popupRoutine = StartCoroutine(
-            SwitchPopupRoutine(index)
-        );
+        popupRoutine =
+            StartCoroutine(
+                SwitchPopupRoutine(index)
+            );
     }
 
     private void ShowPopupMessage(string message)
@@ -190,6 +346,7 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
         PreparePopupForDisplay(index, popup);
 
         currentIndex = index;
+        ScaleSelectedTab(index);
 
         if (selector != null && tabs[index].button != null)
         {

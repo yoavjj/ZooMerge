@@ -4,6 +4,7 @@ using UnityEngine;
 public class EditorMainBootstrap : MonoBehaviour
 {
 #if UNITY_EDITOR
+
     [Header("Assign the same prefabs you use in Splash")]
     [SerializeField] private AdManager adManagerPrefab;
     [SerializeField] private AudioManager audioManagerPrefab;
@@ -19,10 +20,6 @@ public class EditorMainBootstrap : MonoBehaviour
 
     private IEnumerator Start()
     {
-        // --------------------------------
-        // 1. LOCAL FAST RESUME
-        // --------------------------------
-
         GameInventory.Instance.LoadFromPrefs();
 
         int g = PlayerProgress.LastGalaxyId;
@@ -31,26 +28,11 @@ public class EditorMainBootstrap : MonoBehaviour
 
         MergeLevelManager.SetProgress(g, l, e);
 
-        // --------------------------------
-        // 2. CREATE AUDIO MANAGER
-        // --------------------------------
-        //
-        // Audio does not require internet,
-        // so it is safe to create immediately.
-
         if (audioManagerPrefab != null &&
             AudioManager.Instance == null)
         {
             Instantiate(audioManagerPrefab);
         }
-
-        // --------------------------------
-        // 3. INTERNET CHECK
-        // --------------------------------
-        //
-        // Boot waits here while offline.
-        // Nothing below this point runs until
-        // the connection has been restored.
 
         yield return StartCoroutine(
             EnsureInternetConnection()
@@ -60,35 +42,18 @@ public class EditorMainBootstrap : MonoBehaviour
             "[EditorMainBootstrap] Internet connection confirmed."
         );
 
-        // --------------------------------
-        // 4. CREATE AD MANAGER
-        // --------------------------------
-        //
-        // AdManager is network-dependent,
-        // so only create it after internet
-        // connectivity has been confirmed.
-
         if (adManagerPrefab != null &&
             AdManager.Instance == null)
         {
             Instantiate(adManagerPrefab);
         }
 
-        // --------------------------------
-        // 5. PREWARM AUDIO
-        // --------------------------------
-
         if (AudioManager.Instance != null)
         {
             StartCoroutine(
-                AudioManager.Instance
-                    .PrewarmSessionMusic()
+                AudioManager.Instance.PrewarmSessionMusic()
             );
         }
-
-        // --------------------------------
-        // 6. FIREBASE + REMOTE CONFIG
-        // --------------------------------
 
         bool firebaseReady = false;
 
@@ -110,10 +75,6 @@ public class EditorMainBootstrap : MonoBehaviour
         while (!firebaseReady)
             yield return null;
 
-        // --------------------------------
-        // 7. SYNC PROGRESS
-        // --------------------------------
-
         bool synced = false;
 
         CloudSaveManager.SyncProgressFromCloud(
@@ -122,10 +83,6 @@ public class EditorMainBootstrap : MonoBehaviour
 
         while (!synced)
             yield return null;
-
-        // --------------------------------
-        // 8. SYNC ECONOMY
-        // --------------------------------
 
         bool econSynced = false;
 
@@ -136,10 +93,6 @@ public class EditorMainBootstrap : MonoBehaviour
         while (!econSynced)
             yield return null;
 
-        // --------------------------------
-        // 9. WAIT FOR AUDIO PREWARM
-        // --------------------------------
-
         if (AudioManager.Instance != null)
         {
             yield return new WaitUntil(
@@ -148,10 +101,6 @@ public class EditorMainBootstrap : MonoBehaviour
                         .IsSessionMusicPrewarmed
             );
         }
-
-        // --------------------------------
-        // 10. BOOT COMPLETE
-        // --------------------------------
 
         FirebaseInitializer.BootComplete = true;
 
@@ -162,12 +111,9 @@ public class EditorMainBootstrap : MonoBehaviour
             topBar.RefreshCoins();
 
         Debug.Log(
-            "[EditorMainBootstrap] Boot complete " +
-            "(internet + audio prewarmed + ads + firebase + " +
-            "cloud progress + economy)."
+            "[EditorMainBootstrap] Boot complete."
         );
     }
-#endif
 
     private IEnumerator EnsureInternetConnection()
     {
@@ -181,14 +127,14 @@ public class EditorMainBootstrap : MonoBehaviour
             yield break;
 
         Debug.LogWarning(
-            "[Splash] No internet connection."
+            "[EditorMainBootstrap] No internet connection."
         );
 
         if (prefabLibrary == null ||
             popupContainer == null)
         {
             Debug.LogError(
-                "[Splash] Missing PrefabLibrary or popup container."
+                "[EditorMainBootstrap] Missing PrefabLibrary or popup container."
             );
 
             yield break;
@@ -202,7 +148,7 @@ public class EditorMainBootstrap : MonoBehaviour
         if (prefab == null)
         {
             Debug.LogError(
-                "[Splash] ConnectionLostPopup not found."
+                "[EditorMainBootstrap] ConnectionLostPopup not found."
             );
 
             yield break;
@@ -222,7 +168,7 @@ public class EditorMainBootstrap : MonoBehaviour
         if (popup == null)
         {
             Debug.LogError(
-                "[Splash] ConnectionLostPopup component missing."
+                "[EditorMainBootstrap] ConnectionLostPopup component missing."
             );
 
             Destroy(connectionLostInstance);
@@ -243,7 +189,9 @@ public class EditorMainBootstrap : MonoBehaviour
         connectionLostInstance = null;
 
         Debug.Log(
-            "[Splash] Internet connection restored."
+            "[EditorMainBootstrap] Internet connection restored."
         );
     }
+
+#endif
 }
