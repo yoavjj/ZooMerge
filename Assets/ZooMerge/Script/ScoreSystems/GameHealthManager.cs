@@ -125,9 +125,10 @@ public class GameHealthManager : MonoBehaviour
                         if (BallEventManager.IsGameOver)
                             return;
 
-                        // Save collectible entitlements immediately.
+                        // Save collectible / feature entitlements immediately.
                         SavePendingHeartReward();
                         SavePendingSpaceshipSkinReward();
+                        UnlockCoinCooldownFeatureReward();
 
                         // ✅ Reset retry refill price ladder on a successful level completion
                         RetryRefillPricingRuntime.ResetPurchaseCount();
@@ -144,6 +145,28 @@ public class GameHealthManager : MonoBehaviour
                     }
                 }
             });
+    }
+
+    private void UnlockCoinCooldownFeatureReward()
+    {
+        LevelCompletionReward reward =
+            MergeLevelManager.CurrentLevelCompletionReward;
+
+        if (reward == null)
+            return;
+
+        if ((reward.rewardType &
+             LevelRewardType.CoinCooldownFeature) == 0)
+        {
+            return;
+        }
+
+        CooldownRewardProgress.UnlockFeature();
+
+        Debug.Log(
+            "[GameHealthManager] " +
+            "Coin Cooldown feature unlocked."
+        );
     }
 
     private IEnumerator StopAndDestroyGameOverBallsAfterWin(float delay)
@@ -289,16 +312,27 @@ public class GameHealthManager : MonoBehaviour
         if (reward == null)
             return;
 
-        if ((reward.rewardType & LevelRewardType.SpaceshipSkin) == 0)
+        if ((reward.rewardType &
+             LevelRewardType.SpaceshipSkin) == 0)
+        {
             return;
+        }
 
-        if (string.IsNullOrWhiteSpace(reward.spaceshipSkinId))
+        if (string.IsNullOrWhiteSpace(
+                reward.spaceshipSkinId))
+        {
             return;
+        }
 
-        SpaceshipSkinProgress.SetPendingSkinReward(reward.spaceshipSkinId);
+        SpaceshipSkinProgress.SetPendingSkinReward(
+            reward.spaceshipSkinId,
+            reward.allowReject
+        );
 
         Debug.Log(
-            $"[GameHealthManager] Pending spaceship skin saved: {reward.spaceshipSkinId}"
+            $"[GameHealthManager] Pending spaceship skin saved: " +
+            $"{reward.spaceshipSkinId}, " +
+            $"AllowReject={reward.allowReject}"
         );
     }
 

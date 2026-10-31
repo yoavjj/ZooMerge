@@ -222,4 +222,20 @@ public class SpaceshipSkinController : MonoBehaviour
 
         return true;
     }
+
+    public SpaceshipSkinCatalogSO.SkinDefinition
+    GetSkinDefinition(string skinId)
+    {
+        if (skinCatalog == null)
+            return null;
+
+        return skinCatalog.GetDefinition(
+            skinId
+        );
+    }
+
+    public Sprite CurrentSprite =>
+        spaceshipRenderer != null
+            ? spaceshipRenderer.sprite
+            : null;
 }

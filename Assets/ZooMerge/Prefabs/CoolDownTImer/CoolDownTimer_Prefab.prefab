@@ -36,7 +36,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 14.3, y: -145.2}
   m_SizeDelta: {x: 384.68, y: 128.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &358362096850988808
@@ -50,13 +50,13 @@ GameObject:
   - component: {fileID: 2628899176862124458}
   - component: {fileID: 4528648575494416670}
   - component: {fileID: 5737739157972302170}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: mainMenu_doveCollect_bg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2628899176862124458
 RectTransform:
   m_ObjectHideFlags: 0
@@ -74,7 +74,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 33.8683, y: 3.2058}
-  m_SizeDelta: {x: 340.2744, y: 511.7284}
+  m_SizeDelta: {x: 321.7, y: 483.7}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4528648575494416670
 CanvasRenderer:
@@ -261,7 +261,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2684582442466500915}
   - component: {fileID: 2030323564935765087}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: CoinContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -345,7 +345,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -4.4200134}
+  m_AnchoredPosition: {x: 34.6, y: -8.4}
   m_SizeDelta: {x: 384.68, y: 160.59}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8006313589370298294
@@ -437,13 +437,13 @@ GameObject:
   - component: {fileID: 298383302864051531}
   - component: {fileID: 1604159059002893340}
   - component: {fileID: 2271860560602691418}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: notification_icon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &298383302864051531
 RectTransform:
   m_ObjectHideFlags: 0
@@ -512,7 +512,7 @@ GameObject:
   - component: {fileID: 6645178193563176732}
   - component: {fileID: 5395202526043035950}
   - component: {fileID: 6332097335758388405}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: doveArt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -535,8 +535,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -138, y: -2.1}
-  m_SizeDelta: {x: 117.76, y: 124.3}
+  m_AnchoredPosition: {x: -8, y: 182.5}
+  m_SizeDelta: {x: 248.69, y: 226.97}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5395202526043035950
 CanvasRenderer:
@@ -611,8 +611,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -4.42}
-  m_SizeDelta: {x: 384.68, y: 160.59}
+  m_AnchoredPosition: {x: -17.97, y: 0.34}
+  m_SizeDelta: {x: 185.17, y: 106.69}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8064993819759650239
 CanvasRenderer:
@@ -651,7 +651,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.8
+  m_PixelsPerUnitMultiplier: 1.2
 --- !u!1 &6517086094215090634
 GameObject:
   m_ObjectHideFlags: 0
@@ -663,7 +663,7 @@ GameObject:
   - component: {fileID: 1460793038257545515}
   - component: {fileID: 4777379221400353859}
   - component: {fileID: 7757542869235837097}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: CoolDownTimer_Prefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -704,7 +704,7 @@ Animator:
   m_GameObject: {fileID: 6517086094215090634}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 22100000, guid: 27ad3a18943d1481cbaaa0a0bb2778d5, type: 2}
+  m_Controller: {fileID: 9100000, guid: 8be6840a7e79f445a85f6b2674f8df64, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -736,7 +736,7 @@ MonoBehaviour:
   coinFlyService: {fileID: 0}
   cooldownCoinSpawnContainer: {fileID: 2684582442466500915}
   schedule: {fileID: 11400000, guid: f8e530f5dd1d9419e8530a289eb77bb3, type: 2}
-  useDefaultArc: 1
+  useDefaultArc: 0
 --- !u!1 &6871872213376274518
 GameObject:
   m_ObjectHideFlags: 0
@@ -748,7 +748,7 @@ GameObject:
   - component: {fileID: 1070603283178662171}
   - component: {fileID: 3786689295095728702}
   - component: {fileID: 3935505297056087310}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: winLose_doveCollect_bg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -823,7 +823,7 @@ GameObject:
   - component: {fileID: 1949827143586285732}
   - component: {fileID: 5487761664858777298}
   - component: {fileID: 147622068378385958}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: Timer_Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -840,15 +840,15 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6680780700466771726}
   m_Father: {fileID: 1460793038257545515}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -4.42}
-  m_SizeDelta: {x: 384.68, y: 160.59}
+  m_AnchoredPosition: {x: 31.54, y: -154.45}
+  m_SizeDelta: {x: 181.29, y: 83.49}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5487761664858777298
 CanvasRenderer:
@@ -878,7 +878,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: cce07728aa25b4a69acb688073a56ae8, type: 3}
+  m_Sprite: {fileID: -1174372049167162128, guid: 7e6500058e31b4b21ab5d198c51d953d, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -887,7 +887,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.85
+  m_PixelsPerUnitMultiplier: 1.45
 --- !u!1 &8675724542830951871
 GameObject:
   m_ObjectHideFlags: 0
@@ -922,8 +922,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 33.56, y: 0.000034332}
-  m_SizeDelta: {x: 283.28, y: 74.9}
+  m_AnchoredPosition: {x: 4.24, y: 0.000034332}
+  m_SizeDelta: {x: 140.75, y: 74.9}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1637292669550176953
 CanvasRenderer:
@@ -980,7 +980,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 51.15
+  m_fontSize: 49.05
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1036,13 +1036,13 @@ GameObject:
   - component: {fileID: 9006673299419770634}
   - component: {fileID: 4886935159110153331}
   - component: {fileID: 1900057501957468421}
-  m_Layer: 5
+  m_Layer: 0
   m_Name: doveWindowFrame_artwork
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &9006673299419770634
 RectTransform:
   m_ObjectHideFlags: 0

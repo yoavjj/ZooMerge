@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class MainMenuUI : SfxBehaviourTirgger
@@ -28,11 +29,24 @@ public class MainMenuUI : SfxBehaviourTirgger
     private bool cachedIsNewLevel;
     private bool cacheReady = false;
 
-    [Header("Out Of Tries Popup (Main Menu)")]
-    [SerializeField] private PrefabLibrary prefabLibrary;
-    [SerializeField] private Transform outOfTriesContainer;
+    [Header("Main Menu Overlay")]
+    [SerializeField]
+    private PrefabLibrary prefabLibrary;
+
+    [FormerlySerializedAs("outOfTriesContainer")]
+    [SerializeField]
+    private Transform mainMenuOverlayContainer;
     private GameObject outOfTriesInstance;
     private const string OUT_OF_TRIES_POPUP = "OutOfTriesPopup";
+
+    [Header("Coin Cooldown Feature")]
+    [SerializeField] private CoinCooldownWidget coinCooldownWidget;
+    [SerializeField, Min(0f)] private float collectFtueDelay = 1.5f;
+
+    private Coroutine collectFtueDelayRoutine;
+    private GameObject collectFtuePopupInstance;
+
+    private const string COLLECT_FTUE_POPUP = "CollectFTUEPopup";
 
     [Header("Settings Popup")]
     private GameObject settingsPopupInstance;
@@ -72,6 +86,8 @@ public class MainMenuUI : SfxBehaviourTirgger
     {
         if (playButton != null)
             playButton.onClick.AddListener(OnPlayPressed);
+
+        RefreshCoinCooldownFeatureVisibility();
     }
 
     private void OnEnable()
@@ -158,6 +174,35 @@ public class MainMenuUI : SfxBehaviourTirgger
             Destroy(connectionLostInstance);
             connectionLostInstance = null;
         }
+
+        if (collectFtuePopupInstance != null)
+        {
+            Destroy(
+                collectFtuePopupInstance
+            );
+
+            collectFtuePopupInstance = null;
+        }
+
+        if (collectFtueDelayRoutine != null)
+        {
+            StopCoroutine(
+                collectFtueDelayRoutine
+            );
+
+            collectFtueDelayRoutine = null;
+        }
+    }
+
+    public void RefreshCoinCooldownFeatureVisibility()
+    {
+        if (coinCooldownWidget == null)
+        {
+            Debug.LogWarning("[MainMenuUI] CoinCooldownWidget reference is missing.");
+            return;
+        }
+
+        coinCooldownWidget.gameObject.SetActive(CooldownRewardProgress.IsFeatureUnlocked);
     }
 
     private void HandleRetriesPurchasedFromPopup(int amount)
@@ -250,9 +295,89 @@ public class MainMenuUI : SfxBehaviourTirgger
 
         levelArtController?.Refresh();
 
+        // Only create this feature after the player
+        // has earned it.
+        InitializeCoinCooldownFeature();
+
         // Do the first expensive ball creation while the player
         // is still looking at the Main Menu.
         PopupManager.Instance?.WarmupSession();
+    }
+
+    private void InitializeCoinCooldownFeature()
+    {
+        RefreshCoinCooldownFeatureVisibility();
+
+        if (!CooldownRewardProgress.IsFeatureUnlocked)
+            return;
+
+        if (CooldownRewardProgress.ShouldShowFtue && collectFtueDelayRoutine == null)
+            collectFtueDelayRoutine = StartCoroutine(ShowCoinCooldownFtueAfterDelay());
+    }
+
+    private IEnumerator ShowCoinCooldownFtueAfterDelay()
+    {
+        if (collectFtueDelay > 0f)
+        {
+            yield return new WaitForSecondsRealtime(
+                collectFtueDelay
+            );
+        }
+
+        collectFtueDelayRoutine = null;
+
+        // Check again in case something changed
+        // while we were waiting.
+        if (!CooldownRewardProgress.ShouldShowFtue)
+            yield break;
+
+        ShowCoinCooldownFtue();
+    }
+
+    private void ShowCoinCooldownFtue()
+    {
+        if (collectFtuePopupInstance != null)
+            return;
+
+        if (prefabLibrary == null ||
+            mainMenuOverlayContainer == null)
+        {
+            Debug.LogWarning(
+                "[MainMenuUI] Missing PrefabLibrary " +
+                "or Main Menu Overlay Container."
+            );
+
+            return;
+        }
+
+        GameObject prefab =
+            prefabLibrary.GetRaw(
+                COLLECT_FTUE_POPUP
+            );
+
+        if (prefab == null)
+        {
+            Debug.LogWarning(
+                "[MainMenuUI] CollectFTUEPopup " +
+                "was not found in PrefabLibrary."
+            );
+
+            return;
+        }
+
+        collectFtuePopupInstance =
+            Instantiate(
+                prefab,
+                mainMenuOverlayContainer
+            );
+
+        // The popup should only appear once.
+        CooldownRewardProgress.MarkFtueShown();
+
+        Debug.Log(
+            "[MainMenuUI] " +
+            "Coin Cooldown FTUE shown."
+        );
     }
 
     private void CacheSessionStartData()
@@ -332,7 +457,7 @@ public class MainMenuUI : SfxBehaviourTirgger
     private bool ShowConnectionLostPopup(Action onConnectionRestored)
     {
         if (prefabLibrary == null ||
-            outOfTriesContainer == null)
+            mainMenuOverlayContainer == null)
         {
             Debug.LogWarning(
                 "[MainMenuUI] Missing PrefabLibrary or popup container."
@@ -358,7 +483,7 @@ public class MainMenuUI : SfxBehaviourTirgger
         connectionLostInstance =
             Instantiate(
                 prefab,
-                outOfTriesContainer
+                mainMenuOverlayContainer
             );
 
         ConnectionLostPopup popup =
@@ -551,16 +676,16 @@ public class MainMenuUI : SfxBehaviourTirgger
 
         PlayUiSfx(SfxCue.ButtonClick);
 
-        if (prefabLibrary == null || outOfTriesContainer == null)
+        if (prefabLibrary == null || mainMenuOverlayContainer == null)
         {
-            Debug.LogWarning("[MainMenuUI] Missing prefabLibrary or outOfTriesContainer.");
+            Debug.LogWarning("[MainMenuUI] Missing prefabLibrary or mainMenuOverlayContainer.");
             return;
         }
 
         var prefab = prefabLibrary.GetRaw(OUT_OF_TRIES_POPUP);
         if (prefab == null) return;
 
-        outOfTriesInstance = Instantiate(prefab, outOfTriesContainer);
+        outOfTriesInstance = Instantiate(prefab, mainMenuOverlayContainer);
 
         // ✅ Main-menu context => HIDE quit button to prevent crash flow
         OutOfTriesPopup.LastSpawned?.SetQuitButtonVisible(false);
@@ -573,7 +698,7 @@ public class MainMenuUI : SfxBehaviourTirgger
 
         PlayUiSfx(SfxCue.ButtonClick);
 
-        if (prefabLibrary == null || outOfTriesContainer == null)
+        if (prefabLibrary == null || mainMenuOverlayContainer == null)
         {
             Debug.LogWarning("[MainMenuUI] Missing PrefabLibrary or popup container.");
             return;
@@ -587,7 +712,7 @@ public class MainMenuUI : SfxBehaviourTirgger
             return;
         }
 
-        settingsPopupInstance = Instantiate(prefab, outOfTriesContainer);
+        settingsPopupInstance = Instantiate(prefab, mainMenuOverlayContainer);
     }
 
     public void ForceRefreshProgressUIAndCache()
@@ -722,7 +847,7 @@ public class MainMenuUI : SfxBehaviourTirgger
             return;
         }
 
-        if (outOfTriesContainer == null)
+        if (mainMenuOverlayContainer == null)
         {
             Debug.LogWarning(
                 "[MainMenuUI] Popup container is not assigned."
@@ -747,7 +872,7 @@ public class MainMenuUI : SfxBehaviourTirgger
 
         ballUnlockPopupInstance = Instantiate(
             popupPrefab,
-            outOfTriesContainer
+            mainMenuOverlayContainer
         );
 
         ballUnlockPopupInstance.Closed +=

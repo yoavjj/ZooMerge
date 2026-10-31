@@ -31,6 +31,11 @@ public class WinLosePopup : SfxBehaviourTirgger
     private const string OUT_OF_TRIES_POPUP = "OutOfTriesPopup";
     private const string LEVEL_REVEAL = "LevelReveal";
     private const string GALAXY_ROADMAP = "GalaxyRoadmapPopup";
+    private const string COLLECT_FTUE_POPUP = "CollectFTUEPopup";
+
+    [SerializeField, Min(0f)] private float collectFtueDelay = 0.4f;
+
+    private GameObject collectFtuePopupInstance;
 
     [Header("Merge Summary")]
     [SerializeField] private MergeSummaryPanel mergeSummaryPanel;
@@ -252,6 +257,15 @@ public class WinLosePopup : SfxBehaviourTirgger
         {
             Destroy(connectionLostInstance);
             connectionLostInstance = null;
+        }
+
+        if (collectFtuePopupInstance != null)
+        {
+            Destroy(
+                collectFtuePopupInstance
+            );
+
+            collectFtuePopupInstance = null;
         }
     }
 
@@ -1269,8 +1283,26 @@ public class WinLosePopup : SfxBehaviourTirgger
             currentReason == GameOverReason.Won
         );
 
+        // The collectible/save flow is finished now.
         waitingForSummaryCloudSave = false;
         summaryCloudSaveRoutine = null;
+
+        // --------------------------------
+        // COIN COOLDOWN FEATURE FTUE
+        // --------------------------------
+
+        bool ftueOpened = false;
+
+        yield return StartCoroutine(
+            TryShowCoinCooldownFtueAfterDelay(
+                opened => ftueOpened = opened
+            )
+        );
+
+        // If the FTUE opened, it now owns the flow.
+        // Its button will send the player to Main Menu.
+        if (ftueOpened)
+            yield break;
 
         ContinueAfterSummarySaved();
     }
@@ -1399,6 +1431,73 @@ public class WinLosePopup : SfxBehaviourTirgger
         OutOfTriesPopup.LastSpawned?.SetQuitButtonVisible(true);
     }
 
+    private IEnumerator TryShowCoinCooldownFtueAfterDelay(Action<bool> onComplete)
+    {
+        if (currentReason != GameOverReason.Won || !levelCompleteContext)
+        {
+            onComplete?.Invoke(false);
+            yield break;
+        }
+
+        if (!CooldownRewardProgress.ShouldShowFtue)
+        {
+            onComplete?.Invoke(false);
+            yield break;
+        }
+
+        if (collectFtueDelay > 0f)
+            yield return new WaitForSecondsRealtime(collectFtueDelay);
+
+        if (!CooldownRewardProgress.ShouldShowFtue)
+        {
+            onComplete?.Invoke(false);
+            yield break;
+        }
+
+        if (prefabLibrary == null || outOfTriesContainer == null)
+        {
+            Debug.LogWarning("[WinLosePopup] Missing PrefabLibrary or popup container for CollectFTUEPopup.");
+
+            onComplete?.Invoke(false);
+            yield break;
+        }
+
+        GameObject prefab = prefabLibrary.GetRaw(COLLECT_FTUE_POPUP);
+
+        if (prefab == null)
+        {
+            Debug.LogWarning("[WinLosePopup] CollectFTUEPopup not found in PrefabLibrary.");
+
+            onComplete?.Invoke(false);
+            yield break;
+        }
+
+        collectFtuePopupInstance = Instantiate(prefab, outOfTriesContainer);
+
+        ResetRectTransform(collectFtuePopupInstance.transform);
+
+        CollectFTUEPopup popup = CollectFTUEPopup.LastSpawned;
+
+        if (popup == null || popup.gameObject != collectFtuePopupInstance)
+        {
+            Debug.LogError("[WinLosePopup] Spawned CollectFTUEPopup did not register itself.");
+
+            Destroy(collectFtuePopupInstance);
+            collectFtuePopupInstance = null;
+
+            onComplete?.Invoke(false);
+            yield break;
+        }
+
+        popup.Initialize(this);
+
+        CooldownRewardProgress.MarkFtueShown();
+
+        Debug.Log("[WinLosePopup] Coin Cooldown FTUE shown.");
+
+        onComplete?.Invoke(true);
+    }
+
     private void HandleRetriesPurchased(int amount)
     {
         // ✅ Important: the popup may still be animating out.
@@ -1439,5 +1538,5 @@ public class WinLosePopup : SfxBehaviourTirgger
 
         animator.ResetTrigger(triggerName);
         animator.SetTrigger(triggerName);
-    }
+    } 
 }

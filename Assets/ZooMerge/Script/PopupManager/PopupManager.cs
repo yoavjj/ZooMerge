@@ -14,6 +14,10 @@ public class PopupManager : SfxBehaviourTirgger
     [SerializeField] private PrefabLibrary prefabLibrary;
     [SerializeField] private CollectibleFlyTarget heartFlyTarget;
 
+    [Header("Spaceship Skin Reward")]
+    [SerializeField]
+    private SpaceshipSkinRewardCollectFlow spaceshipSkinRewardCollectFlow;
+
     private const string MAIN_MENU = "MainMenuPopup";
     private const string WIN_POPUP = "WinPopup";
     private const string WIN_COMPLETE_POPUP = "WinCompletePopup";
@@ -665,13 +669,16 @@ public class PopupManager : SfxBehaviourTirgger
         string pendingSkinId =
             SpaceshipSkinProgress.PendingSkinRewardId;
 
+        bool allowReject =
+            SpaceshipSkinProgress.PendingSkinRewardAllowReject;
+
         if (string.IsNullOrWhiteSpace(pendingSkinId))
             yield break;
 
-        if (SpaceshipSkinController.Instance == null)
+        if (spaceshipSkinRewardCollectFlow == null)
         {
             Debug.LogWarning(
-                "[PopupManager] SpaceshipSkinController is missing."
+                "[PopupManager] SpaceshipSkinRewardCollectFlow is missing."
             );
 
             yield break;
@@ -680,8 +687,9 @@ public class PopupManager : SfxBehaviourTirgger
         bool skinFinished = false;
         bool skinSuccess = false;
 
-        SpaceshipSkinController.Instance.UnlockAndRevealSkin(
+        spaceshipSkinRewardCollectFlow.PlayReward(
             pendingSkinId,
+            allowReject,
             success =>
             {
                 skinSuccess = success;
@@ -698,7 +706,7 @@ public class PopupManager : SfxBehaviourTirgger
         SpaceshipSkinProgress.ClearPendingSkinReward();
 
         Debug.Log(
-            $"[PopupManager] Granted pending spaceship skin: {pendingSkinId}"
+            $"[PopupManager] Pending spaceship skin collected: {pendingSkinId}"
         );
     }
 

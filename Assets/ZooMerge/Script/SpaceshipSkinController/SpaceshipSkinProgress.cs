@@ -9,7 +9,55 @@ public static class SpaceshipSkinProgress
     private const string KEY_UNLOCKED_IDS = "SHIP_UNLOCKED_IDS";
     public const string DefaultSkinId = "spaceship_01";
     private const string KEY_PENDING_SKIN_REWARD = "SHIP_PENDING_SKIN_REWARD";
+    private const string KEY_REJECTED_PREFIX = "SHIP_REJECTED_";
+    private const string KEY_PENDING_SKIN_ALLOW_REJECT = "SHIP_PENDING_SKIN_ALLOW_REJECT";
 
+
+    public static bool PendingSkinRewardAllowReject =>
+        PlayerPrefs.GetInt(
+            KEY_PENDING_SKIN_ALLOW_REJECT,
+            1
+        ) == 1;
+
+    public static bool WasRejected(string skinId)
+    {
+        if (string.IsNullOrWhiteSpace(skinId))
+            return false;
+
+        return PlayerPrefs.GetInt(
+            KEY_REJECTED_PREFIX + skinId,
+            0
+        ) == 1;
+    }
+
+    public static void MarkRejected(string skinId)
+    {
+        if (string.IsNullOrWhiteSpace(skinId))
+            return;
+
+        PlayerPrefs.SetInt(
+            KEY_REJECTED_PREFIX + skinId,
+            1
+        );
+
+        PlayerPrefs.Save();
+
+        NotifyChanged();
+    }
+
+    public static void ClearRejected(string skinId)
+    {
+        if (string.IsNullOrWhiteSpace(skinId))
+            return;
+
+        PlayerPrefs.DeleteKey(
+            KEY_REJECTED_PREFIX + skinId
+        );
+
+        PlayerPrefs.Save();
+
+        NotifyChanged();
+    }
 
     public static event Action SkinProgressChanged;
 
@@ -52,6 +100,9 @@ public static class SpaceshipSkinProgress
         if (string.IsNullOrWhiteSpace(skinId))
             return;
 
+        bool wasAlreadyUnlocked =
+            IsUnlocked(skinId);
+
         PlayerPrefs.SetInt(
             KEY_UNLOCK_PREFIX + skinId,
             1
@@ -80,6 +131,9 @@ public static class SpaceshipSkinProgress
         }
 
         PlayerPrefs.Save();
+
+        if (!wasAlreadyUnlocked)
+            NotifyChanged();
     }
 
     public static void UnlockAndSelect(string skinId)
@@ -174,18 +228,36 @@ public static class SpaceshipSkinProgress
     public static bool HasPendingSkinReward =>
         !string.IsNullOrWhiteSpace(PendingSkinRewardId);
 
-    public static void SetPendingSkinReward(string skinId)
+    public static void SetPendingSkinReward(
+        string skinId,
+        bool allowReject)
     {
         if (string.IsNullOrWhiteSpace(skinId))
             return;
 
-        PlayerPrefs.SetString(KEY_PENDING_SKIN_REWARD, skinId);
+        PlayerPrefs.SetString(
+            KEY_PENDING_SKIN_REWARD,
+            skinId
+        );
+
+        PlayerPrefs.SetInt(
+            KEY_PENDING_SKIN_ALLOW_REJECT,
+            allowReject ? 1 : 0
+        );
+
         PlayerPrefs.Save();
     }
 
     public static void ClearPendingSkinReward()
     {
-        PlayerPrefs.DeleteKey(KEY_PENDING_SKIN_REWARD);
+        PlayerPrefs.DeleteKey(
+            KEY_PENDING_SKIN_REWARD
+        );
+
+        PlayerPrefs.DeleteKey(
+            KEY_PENDING_SKIN_ALLOW_REJECT
+        );
+
         PlayerPrefs.Save();
     }
 
@@ -210,6 +282,14 @@ public static class SpaceshipSkinProgress
                 PlayerPrefs.DeleteKey(
                     KEY_UNLOCK_PREFIX + skinId
                 );
+
+                PlayerPrefs.DeleteKey(
+                    KEY_REJECTED_PREFIX + skinId
+                );
+
+                PlayerPrefs.DeleteKey(
+                    KEY_PENDING_SKIN_ALLOW_REJECT
+                );
             }
         }
 
@@ -225,6 +305,9 @@ public static class SpaceshipSkinProgress
 
         // Remove any pending reward.
         PlayerPrefs.DeleteKey(KEY_PENDING_SKIN_REWARD);
+
+        // Remove pending allow reject key.
+        PlayerPrefs.DeleteKey(KEY_PENDING_SKIN_ALLOW_REJECT);
 
         // Reset selected skin.
         CurrentSkinId = DefaultSkinId;
