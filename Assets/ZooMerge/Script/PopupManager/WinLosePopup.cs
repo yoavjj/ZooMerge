@@ -17,6 +17,9 @@ public class WinLosePopup : SfxBehaviourTirgger
     [Header("Out Of Tries Popup (Spawned)")]
     [SerializeField] private Transform outOfTriesContainer; // e.g. PopupsRoot / same container you use for roadmap/reveal
     private GameObject outOfTriesInstance;
+    private OutOfTriesPopup outOfTriesPopup;
+    private Coroutine waitForOutOfTriesFtueRoutine;
+
     private bool IsOutOfTriesPopupOpen => outOfTriesInstance != null;
 
     private const string CONNECTION_LOST_POPUP =
@@ -27,6 +30,7 @@ public class WinLosePopup : SfxBehaviourTirgger
 
     private Coroutine summaryCloudSaveRoutine;
     private bool waitingForSummaryCloudSave;
+    private bool coinCooldownFtueBlocking;
 
     private const string OUT_OF_TRIES_POPUP = "OutOfTriesPopup";
     private const string LEVEL_REVEAL = "LevelReveal";
@@ -577,6 +581,9 @@ public class WinLosePopup : SfxBehaviourTirgger
 
     public void ShowGalaxyRoadmap(bool fromLevelFlow = false)
     {
+        if (coinCooldownFtueBlocking)
+            return;
+
         PlayUiSfx(SfxCue.ButtonClick);
         
         // ✅ If already open/spawning, ignore repeated clicks
@@ -680,6 +687,9 @@ public class WinLosePopup : SfxBehaviourTirgger
     public void OnPlayPressed()
     {
         if (playPressedLocked)
+            return;
+
+        if (coinCooldownFtueBlocking)
             return;
 
         if (internetCheckRoutine != null)
@@ -1287,9 +1297,32 @@ public class WinLosePopup : SfxBehaviourTirgger
         waitingForSummaryCloudSave = false;
         summaryCloudSaveRoutine = null;
 
+        bool outOfRetries =
+        currentReason == GameOverReason.Lost &&
+        PlayerProgress.HasRetryLimitForCurrentLevel() &&
+        PlayerProgress.CurrentLevelRetriesRemaining() <= 0;
+
+        // Out Of Tries always gets priority.
+        // ContinueAfterSummarySaved() will spawn it.
+        // When it eventually closes, HandleOutOfTriesClosed()
+        // will continue into the FTUE if one is pending.
+        if (outOfRetries)
+        {
+            ContinueAfterSummarySaved();
+            yield break;
+        }
+
         // --------------------------------
         // COIN COOLDOWN FEATURE FTUE
         // --------------------------------
+
+        bool shouldTryFtue =
+            currentReason == GameOverReason.Won &&
+            levelCompleteContext &&
+            CooldownRewardProgress.ShouldShowFtue;
+
+        if (shouldTryFtue)
+            coinCooldownFtueBlocking = true;
 
         bool ftueOpened = false;
 
@@ -1299,10 +1332,13 @@ public class WinLosePopup : SfxBehaviourTirgger
             )
         );
 
-        // If the FTUE opened, it now owns the flow.
-        // Its button will send the player to Main Menu.
+        // If the FTUE opened, keep the Play flow blocked.
+        // The FTUE button will send the player to Main Menu.
         if (ftueOpened)
             yield break;
+
+        // FTUE did not open, so normal WinLose flow can continue.
+        coinCooldownFtueBlocking = false;
 
         ContinueAfterSummarySaved();
     }
@@ -1413,7 +1449,8 @@ public class WinLosePopup : SfxBehaviourTirgger
 
     private void ShowOutOfTriesPopup()
     {
-        if (IsOutOfTriesPopupOpen) return;
+        if (IsOutOfTriesPopupOpen)
+            return;
 
         if (prefabLibrary == null || outOfTriesContainer == null)
         {
@@ -1421,14 +1458,95 @@ public class WinLosePopup : SfxBehaviourTirgger
             return;
         }
 
-        var prefab = prefabLibrary.GetRaw(OUT_OF_TRIES_POPUP);
-        if (prefab == null) return;
+        GameObject prefab = prefabLibrary.GetRaw(OUT_OF_TRIES_POPUP);
+
+        if (prefab == null)
+            return;
 
         outOfTriesInstance = Instantiate(prefab, outOfTriesContainer);
         ResetRectTransform(outOfTriesInstance.transform);
 
-        // ✅ ADD: gameplay context => allow quit button
-        OutOfTriesPopup.LastSpawned?.SetQuitButtonVisible(true);
+        outOfTriesPopup = OutOfTriesPopup.LastSpawned;
+
+        if (outOfTriesPopup != null)
+        {
+            outOfTriesPopup.Closed -= HandleOutOfTriesClosed;
+            outOfTriesPopup.Closed += HandleOutOfTriesClosed;
+
+            outOfTriesPopup.SetQuitButtonVisible(true);
+        }
+
+        if (outOfTriesPopup != null)
+        {
+            outOfTriesPopup.Closed -= HandleOutOfTriesClosed;
+            outOfTriesPopup = null;
+        }
+
+        if (waitForOutOfTriesFtueRoutine != null)
+        {
+            StopCoroutine(waitForOutOfTriesFtueRoutine);
+            waitForOutOfTriesFtueRoutine = null;
+        }
+
+        // If the Coin Cooldown FTUE is pending,
+        // block other WinLose actions until the
+        // Out Of Tries -> FTUE sequence is finished.
+        if (CooldownRewardProgress.ShouldShowFtue)
+            coinCooldownFtueBlocking = true;
+    }
+
+    private void HandleOutOfTriesClosed()
+    {
+        OutOfTriesPopup closingPopup = outOfTriesPopup;
+
+        if (closingPopup != null)
+            closingPopup.Closed -= HandleOutOfTriesClosed;
+
+        outOfTriesPopup = null;
+
+        // No FTUE waiting? Nothing else to do.
+        if (!CooldownRewardProgress.ShouldShowFtue)
+        {
+            coinCooldownFtueBlocking = false;
+            return;
+        }
+
+        if (waitForOutOfTriesFtueRoutine != null)
+            StopCoroutine(waitForOutOfTriesFtueRoutine);
+
+        waitForOutOfTriesFtueRoutine = StartCoroutine(
+            WaitForOutOfTriesThenShowFtue(closingPopup)
+        );
+    }
+
+    private IEnumerator WaitForOutOfTriesThenShowFtue(OutOfTriesPopup closingPopup)
+    {
+        // Closed fires when the Out animation STARTS.
+        // Wait until the popup is actually destroyed.
+        while (closingPopup != null)
+            yield return null;
+
+        outOfTriesInstance = null;
+
+        // Only after OutOfTries is completely gone
+        // do we begin the FTUE delay.
+        if (collectFtueDelay > 0f)
+            yield return new WaitForSecondsRealtime(collectFtueDelay);
+
+        waitForOutOfTriesFtueRoutine = null;
+
+        if (!CooldownRewardProgress.ShouldShowFtue)
+        {
+            coinCooldownFtueBlocking = false;
+            yield break;
+        }
+
+        bool opened = ShowCoinCooldownFtue();
+
+        // If something prevented the FTUE from opening,
+        // release the WinLose popup again.
+        if (!opened)
+            coinCooldownFtueBlocking = false;
     }
 
     private IEnumerator TryShowCoinCooldownFtueAfterDelay(Action<bool> onComplete)
@@ -1454,12 +1572,23 @@ public class WinLosePopup : SfxBehaviourTirgger
             yield break;
         }
 
+        bool opened = ShowCoinCooldownFtue();
+
+        onComplete?.Invoke(opened);
+    }
+
+    private bool ShowCoinCooldownFtue()
+    {
+        if (!CooldownRewardProgress.ShouldShowFtue)
+            return false;
+
+        if (collectFtuePopupInstance != null)
+            return true;
+
         if (prefabLibrary == null || outOfTriesContainer == null)
         {
             Debug.LogWarning("[WinLosePopup] Missing PrefabLibrary or popup container for CollectFTUEPopup.");
-
-            onComplete?.Invoke(false);
-            yield break;
+            return false;
         }
 
         GameObject prefab = prefabLibrary.GetRaw(COLLECT_FTUE_POPUP);
@@ -1467,13 +1596,10 @@ public class WinLosePopup : SfxBehaviourTirgger
         if (prefab == null)
         {
             Debug.LogWarning("[WinLosePopup] CollectFTUEPopup not found in PrefabLibrary.");
-
-            onComplete?.Invoke(false);
-            yield break;
+            return false;
         }
 
         collectFtuePopupInstance = Instantiate(prefab, outOfTriesContainer);
-
         ResetRectTransform(collectFtuePopupInstance.transform);
 
         CollectFTUEPopup popup = CollectFTUEPopup.LastSpawned;
@@ -1485,8 +1611,7 @@ public class WinLosePopup : SfxBehaviourTirgger
             Destroy(collectFtuePopupInstance);
             collectFtuePopupInstance = null;
 
-            onComplete?.Invoke(false);
-            yield break;
+            return false;
         }
 
         popup.Initialize(this);
@@ -1495,7 +1620,7 @@ public class WinLosePopup : SfxBehaviourTirgger
 
         Debug.Log("[WinLosePopup] Coin Cooldown FTUE shown.");
 
-        onComplete?.Invoke(true);
+        return true;
     }
 
     private void HandleRetriesPurchased(int amount)

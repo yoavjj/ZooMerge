@@ -200,8 +200,7 @@ public class GameHealthManager : MonoBehaviour
 
     private void SavePendingHeartReward()
     {
-        LevelCompletionReward reward =
-            MergeLevelManager.CurrentLevelCompletionReward;
+        LevelCompletionReward reward = MergeLevelManager.CurrentLevelCompletionReward;
 
         if (reward == null)
             return;
@@ -211,20 +210,20 @@ public class GameHealthManager : MonoBehaviour
 
         int amount = Mathf.Max(1, reward.amount);
 
-        bool cameFromUnlimitedTutorial =
-        PlayerProgress.IsTutorialUnlimited(
+        bool cameFromUnlimitedTutorial = PlayerProgress.IsTutorialUnlimited(
             MergeLevelManager.CurrentGalaxyId,
             MergeLevelManager.CurrentLevelInGalaxy
         );
+
+        // First Heart reward also unlocks the Heart feature.
+        HeartFeatureProgress.UnlockFeature();
 
         PlayerProgress.SetPendingHeartReward(
             amount,
             cameFromUnlimitedTutorial
         );
 
-        Debug.Log(
-            $"[GameHealthManager] Pending heart reward saved: {amount}"
-        );
+        Debug.Log($"[GameHealthManager] Pending heart reward saved: {amount}");
     }
 
     private void ShowEnemyTransitionMessage()

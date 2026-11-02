@@ -89,6 +89,7 @@ public class CollectibleFlyService : MonoBehaviour
         }
 
         StartCoroutine(FlyRoutine(
+            id,
             amount,
             entry,
             spawnContainer,
@@ -107,6 +108,7 @@ public class CollectibleFlyService : MonoBehaviour
     }
 
     private IEnumerator FlyRoutine(
+        string id,
         int amount,
         CollectibleFlyDatabaseSO.FlyEntry entry,
         RectTransform spawnContainer,
@@ -140,6 +142,25 @@ public class CollectibleFlyService : MonoBehaviour
             yield break;
         }
 
+        bool resumedFromHeartFtue = false;
+
+        HeartIntroAnimation heartIntro = instanceRoot.HeartIntroAnimation;
+
+        if (heartIntro != null)
+        {
+            bool showHeartFtue = id == "Heart_Session" && HeartFeatureProgress.ShouldShowFtue;
+
+            heartIntro.PrepareForFlight(showHeartFtue);
+
+            if (showHeartFtue)
+            {
+                while (heartIntro.IsBlockingFlight)
+                    yield return null;
+
+                resumedFromHeartFtue = true;
+            }
+        }
+
         var s = entry.settings;
         if (s == null)
         {
@@ -153,7 +174,7 @@ public class CollectibleFlyService : MonoBehaviour
         collectible.Rect.SetAsLastSibling();
         collectible.SetIcon(icon);
 
-        if (s.holdDuration > 0f)
+        if (!resumedFromHeartFtue && s.holdDuration > 0f)
             yield return new WaitForSecondsRealtime(s.holdDuration);
 
         // Get the target's CURRENT animated screen position.

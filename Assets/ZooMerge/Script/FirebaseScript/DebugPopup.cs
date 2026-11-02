@@ -209,6 +209,14 @@ public class DebugPopup : MonoBehaviour
         Debug.Log("[DebugPopup] Coin Cooldown feature, progression and timer reset.");
 
         // --------------------------------
+        // RESET HEART FEATURE FTUE
+        // --------------------------------
+
+        HeartFeatureProgress.ResetFeature();
+
+        Debug.Log("[DebugPopup] Heart feature FTUE reset.");
+
+        // --------------------------------
         // REFRESH MAIN MENU
         // --------------------------------
 
@@ -242,6 +250,8 @@ public class DebugPopup : MonoBehaviour
         CloudSaveManager.SaveSnapshot(
             incrementMidLevelCompleted: false
         );
+
+        Debug_CooldownLast3Seconds();
 
         Debug.Log(
             $"[DebugPopup] Progress restarted. " +
