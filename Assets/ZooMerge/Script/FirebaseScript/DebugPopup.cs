@@ -9,47 +9,84 @@ public class DebugPopup : MonoBehaviour
     [SerializeField]
     private BallType debugBallType = BallType.Cat;
 
-    GameHealthManager healthManager;
+    private GameHealthManager healthManager;
 
     [Header("Debug Fly Collectible")]
-    [SerializeField] private CollectibleFlyTarget heartFlyTarget;   // put this on the TOP BAR HEART ICON
-    [SerializeField] private string heartEntryId = "Hearts";         // must match CollectibleFlyService entry id
-    [SerializeField] private int debugHeartAmount = 1;              // later you can change 2..6 etc.
-    [SerializeField] private RectTransform overrideSpawnContainer;
+    [SerializeField]
+    private CollectibleFlyTarget heartFlyTarget;
+
+    [SerializeField]
+    private string heartEntryId = "Hearts";
+
+    [SerializeField]
+    private int debugHeartAmount = 1;
+
+    [SerializeField]
+    private RectTransform overrideSpawnContainer;
 
     // ✅ GameOver collider toggle
     private Transform gameOverColliderTf;
+
     [SerializeField]
     private bool gameOverIsDown = false;
+
     private const float GAMEOVER_Y_DOWN = -3.35f;
     private const float GAMEOVER_Y_UP = 0.69f;
 
     [ContextMenu("Cooldown Timer -> last 3 seconds")]
     public void Debug_CooldownLast3Seconds()
     {
-        CoinCooldown.Debug_SetRemainingSeconds(1);
-        Debug.Log("[DebugPopup] Cooldown timer forced to 3 seconds remaining.");
+        CoinCooldown.Debug_SetRemainingSeconds(3);
+
+        Debug.Log(
+            "[DebugPopup] Cooldown timer forced " +
+            "to 3 seconds remaining."
+        );
     }
 
     [System.Obsolete]
-    void Start()
+    private void Start()
     {
-        healthManager = FindObjectOfType<GameHealthManager>();
+        healthManager =
+            FindObjectOfType<GameHealthManager>();
+
         if (healthManager == null)
         {
-            Debug.LogError("[DebugPopup] Could not find GameHealthManager in the scene.");
+            Debug.LogError(
+                "[DebugPopup] Could not find " +
+                "GameHealthManager in the scene."
+            );
         }
 
         // ✅ Find the collider object by name once
-        var go = GameObject.Find("GameOver_Collider");
+        GameObject go =
+            GameObject.Find("GameOver_Collider");
+
         if (go != null)
         {
             gameOverColliderTf = go.transform;
         }
         else
         {
-            Debug.LogWarning("[DebugPopup] Could not find GameObject named 'GameOver_Collider' in the scene.");
+            Debug.LogWarning(
+                "[DebugPopup] Could not find GameObject " +
+                "named 'GameOver_Collider' in the scene."
+            );
         }
+    }
+
+    private void Update()
+    {
+#if UNITY_EDITOR
+
+        // Debug shortcut:
+        // Z = perform Final Merge.
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            FinalMerge();
+        }
+
+#endif
     }
 
     // Call this from your debug button / context menu
@@ -58,18 +95,35 @@ public class DebugPopup : MonoBehaviour
     {
         if (gameOverColliderTf == null)
         {
-            Debug.LogWarning("[DebugPopup] ToggleGameOverColliderY failed: 'GameOver_Collider' not found.");
+            Debug.LogWarning(
+                "[DebugPopup] ToggleGameOverColliderY failed: " +
+                "'GameOver_Collider' not found."
+            );
+
             return;
         }
 
-        // Toggle state first (so first press goes DOWN)
-        gameOverIsDown = !gameOverIsDown;
+        // Toggle state first
+        // so first press goes DOWN.
+        gameOverIsDown =
+            !gameOverIsDown;
 
-        var local = gameOverColliderTf.localPosition;
-        local.y = gameOverIsDown ? GAMEOVER_Y_DOWN : GAMEOVER_Y_UP;
-        gameOverColliderTf.localPosition = local;
+        Vector3 local =
+            gameOverColliderTf.localPosition;
 
-        Debug.Log($"[DebugPopup] GameOver_Collider localY set to {local.y} (down={gameOverIsDown})");
+        local.y =
+            gameOverIsDown
+                ? GAMEOVER_Y_DOWN
+                : GAMEOVER_Y_UP;
+
+        gameOverColliderTf.localPosition =
+            local;
+
+        Debug.Log(
+            $"[DebugPopup] GameOver_Collider " +
+            $"localY set to {local.y} " +
+            $"(down={gameOverIsDown})"
+        );
     }
 
     [ContextMenu("☢️ NUKE ALL SAVE DATA ☢️")]
@@ -77,53 +131,133 @@ public class DebugPopup : MonoBehaviour
     {
         PlayerPrefs.DeleteAll();
         PlayerPrefs.Save();
-        Debug.Log("[DEBUG] Local PlayerPrefs wiped clean.");
 
-        if (!string.IsNullOrEmpty(FirebaseInitializer.UserId))
+        Debug.Log(
+            "[DEBUG] Local PlayerPrefs wiped clean."
+        );
+
+        if (!string.IsNullOrEmpty(
+                FirebaseInitializer.UserId))
         {
-            FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
-            DocumentReference docRef = db.Collection("players").Document(FirebaseInitializer.UserId);
+            FirebaseFirestore db =
+                FirebaseFirestore.DefaultInstance;
 
-            docRef.DeleteAsync().ContinueWithOnMainThread(task =>
-            {
-                if (task.IsFaulted)
-                    Debug.LogError($"[DEBUG] Failed to delete cloud save: {task.Exception}");
-                else
-                    Debug.Log("[DEBUG] Cloud Save completely deleted!");
-            });
+            DocumentReference docRef =
+                db.Collection("players")
+                    .Document(
+                        FirebaseInitializer.UserId
+                    );
+
+            docRef.DeleteAsync()
+                .ContinueWithOnMainThread(
+                    task =>
+                    {
+                        if (task.IsFaulted)
+                        {
+                            Debug.LogError(
+                                $"[DEBUG] Failed to delete " +
+                                $"cloud save: {task.Exception}"
+                            );
+                        }
+                        else
+                        {
+                            Debug.Log(
+                                "[DEBUG] Cloud Save " +
+                                "completely deleted!"
+                            );
+                        }
+                    }
+                );
         }
         else
         {
-            Debug.LogWarning("[DEBUG] Could not delete cloud save: User is not logged in yet. Play the game first!");
+            Debug.LogWarning(
+                "[DEBUG] Could not delete cloud save: " +
+                "User is not logged in yet. " +
+                "Play the game first!"
+            );
         }
     }
 
     [System.Obsolete]
     public void RestartLevel()
     {
+        // --------------------------------
+        // RESET GAME PROGRESS
+        // --------------------------------
+
         PlayerProgress.ResetProgressToStart();
 
-        // Completely reset spaceship ownership + selection.
+        // --------------------------------
+        // RESET SPACESHIP SKINS
+        // --------------------------------
+
         SpaceshipSkinProgress.ResetToDefaultOnly();
 
-        // Immediately refresh the visible gameplay spaceship.
-        if (SpaceshipSkinController.Instance != null)
-            SpaceshipSkinController.Instance.ApplySavedSkin();
+        // --------------------------------
+        // RESET COIN COOLDOWN FEATURE
+        // --------------------------------
 
-        var menu =
-            FindObjectOfType<MainMenuUI>();
+        CooldownRewardProgress.ResetSteps();
+
+        PlayerPrefs.DeleteKey("CooldownReward_FeatureUnlocked");
+        PlayerPrefs.DeleteKey("CooldownReward_FtueShown");
+        PlayerPrefs.DeleteKey("CoinCooldown_EndUtcTicks");
+
+        PlayerPrefs.Save();
+
+        Debug.Log("[DebugPopup] Coin Cooldown feature, progression and timer reset.");
+
+        // --------------------------------
+        // RESET HEART FEATURE FTUE
+        // --------------------------------
+
+        HeartFeatureProgress.ResetFeature();
+
+        Debug.Log("[DebugPopup] Heart feature FTUE reset.");
+
+        // --------------------------------
+        // REFRESH MAIN MENU
+        // --------------------------------
+
+        MainMenuUI menu = FindFirstObjectByType<MainMenuUI>(FindObjectsInactive.Include);
 
         if (menu != null)
-            menu.ForceRefreshProgressUIAndCache();
+        {
+            // Hide the cooldown widget because
+            // the feature is no longer unlocked.
+            menu.RefreshCoinCooldownFeatureVisibility();
 
-        // Cosmetics are sent to the server only through SaveSnapshot.
+            // Refresh level/progress display.
+            menu.ForceRefreshProgressUIAndCache();
+        }
+
+        // --------------------------------
+        // REFRESH SPACESHIP
+        // --------------------------------
+
+        if (SpaceshipSkinController.Instance != null)
+        {
+            SpaceshipSkinController.Instance.ApplySavedSkin();
+        }
+
+        // --------------------------------
+        // SAVE RESET STATE
+        // --------------------------------
+
+        // Cosmetics are sent to the server
+        // only through SaveSnapshot.
         CloudSaveManager.SaveSnapshot(
             incrementMidLevelCompleted: false
         );
 
+        Debug_CooldownLast3Seconds();
+
         Debug.Log(
             $"[DebugPopup] Progress restarted. " +
-            $"Spaceship skins reset to '{SpaceshipSkinProgress.DefaultSkinId}' only."
+            $"Spaceship skins reset to " +
+            $"'{SpaceshipSkinProgress.DefaultSkinId}' only. " +
+            $"Coin Cooldown feature reset."
         );
     }
 
@@ -137,6 +271,7 @@ public class DebugPopup : MonoBehaviour
 
         // Reset retry hearts.
         PlayerProgress.NewLevelRetriesRemaining = 1;
+
         PlayerProgress.SaveNow();
         PlayerProgress.NotifyRetriesChanged();
 
@@ -147,21 +282,25 @@ public class DebugPopup : MonoBehaviour
             );
 
         if (menu != null)
+        {
             menu.RefreshAll();
+        }
 
         Debug.Log(
             "[DebugPopup] Local inventory reset. " +
             "Saving reset economy to cloud..."
         );
 
-        // Save the reset coins, merges, unlocks, and retries to Firestore.
+        // Save the reset coins, merges,
+        // unlocks, and retries to Firestore.
         CloudSaveManager.SaveEconomyStateImmediate(
             success =>
             {
                 if (success)
                 {
                     Debug.Log(
-                        "[DebugPopup] Inventory reset saved to cloud."
+                        "[DebugPopup] Inventory reset " +
+                        "saved to cloud."
                     );
                 }
                 else
@@ -178,20 +317,52 @@ public class DebugPopup : MonoBehaviour
 
     public void FinalMerge()
     {
+        // Try finding the health manager again
+        // in case it was recreated after Start().
         if (healthManager == null)
         {
-            Debug.LogError("[DebugPopup] Cannot perform Final Merge: GameHealthManager reference is missing.");
+            healthManager =
+                FindFirstObjectByType<GameHealthManager>(
+                    FindObjectsInactive.Include
+                );
+        }
+
+        if (healthManager == null)
+        {
+            Debug.LogError(
+                "[DebugPopup] Cannot perform Final Merge: " +
+                "GameHealthManager reference is missing."
+            );
+
             return;
         }
 
         healthManager.Debug_SetHpNow();
+
+        Debug.Log(
+            "[DebugPopup] Final Merge triggered."
+        );
     }
 
-    public static void Debug_SetRemainingSeconds(int seconds)
+    public static void Debug_SetRemainingSeconds(
+        int seconds)
     {
-        seconds = Mathf.Max(0, seconds);
-        long end = DateTime.UtcNow.AddSeconds(seconds).Ticks;
-        PlayerPrefs.SetString("CoinCooldown_EndUtcTicks", end.ToString());
+        seconds =
+            Mathf.Max(
+                0,
+                seconds
+            );
+
+        long end =
+            DateTime.UtcNow
+                .AddSeconds(seconds)
+                .Ticks;
+
+        PlayerPrefs.SetString(
+            "CoinCooldown_EndUtcTicks",
+            end.ToString()
+        );
+
         PlayerPrefs.Save();
     }
 
@@ -200,21 +371,41 @@ public class DebugPopup : MonoBehaviour
     {
         if (CollectibleFlyService.Instance == null)
         {
-            Debug.LogWarning("[DebugPopup] CollectibleFlyService.Instance is null.");
+            Debug.LogWarning(
+                "[DebugPopup] " +
+                "CollectibleFlyService.Instance is null."
+            );
+
             return;
         }
 
-        // Auto-find if not assigned
+        // Auto-find if not assigned.
         if (heartFlyTarget == null)
-            heartFlyTarget = FindFirstObjectByType<CollectibleFlyTarget>(FindObjectsInactive.Include);
+        {
+            heartFlyTarget =
+                FindFirstObjectByType<
+                    CollectibleFlyTarget
+                >(
+                    FindObjectsInactive.Include
+                );
+        }
 
         if (heartFlyTarget == null)
         {
-            Debug.LogWarning("[DebugPopup] heartFlyTarget not assigned and none found in scene.");
+            Debug.LogWarning(
+                "[DebugPopup] heartFlyTarget not assigned " +
+                "and none found in scene."
+            );
+
             return;
         }
 
-        CollectibleFlyService.Instance.Fly(heartEntryId, 1, heartFlyTarget, overrideSpawnContainer);
+        CollectibleFlyService.Instance.Fly(
+            heartEntryId,
+            debugHeartAmount,
+            heartFlyTarget,
+            overrideSpawnContainer
+        );
     }
 
     [ContextMenu("Debug: Unlock Selected Ball")]
@@ -226,13 +417,16 @@ public class DebugPopup : MonoBehaviour
         if (manager == null)
         {
             Debug.LogError(
-                "[DebugPopup] BallUnlockManager.Instance is null."
+                "[DebugPopup] " +
+                "BallUnlockManager.Instance is null."
             );
 
             return;
         }
 
-        manager.DebugUnlock(debugBallType);
+        manager.DebugUnlock(
+            debugBallType
+        );
 
         Debug.Log(
             $"[DebugPopup] Unlocked {debugBallType}. " +
@@ -250,7 +444,8 @@ public class DebugPopup : MonoBehaviour
         if (manager == null)
         {
             Debug.LogError(
-                "[DebugPopup] BallUnlockManager.Instance is null."
+                "[DebugPopup] " +
+                "BallUnlockManager.Instance is null."
             );
 
             return;
@@ -273,7 +468,8 @@ public class DebugPopup : MonoBehaviour
         if (manager == null)
         {
             Debug.LogError(
-                "[DebugPopup] BallUnlockManager.Instance is null."
+                "[DebugPopup] " +
+                "BallUnlockManager.Instance is null."
             );
 
             return;
@@ -293,6 +489,7 @@ public class DebugPopup : MonoBehaviour
     public void Debug_SetRetriesToZero()
     {
         PlayerProgress.NewLevelRetriesRemaining = 0;
+
         PlayerProgress.SaveNow();
         PlayerProgress.NotifyRetriesChanged();
 
@@ -300,9 +497,19 @@ public class DebugPopup : MonoBehaviour
             success =>
             {
                 if (success)
-                    Debug.Log("[DebugPopup] Retries reset to 0 and saved to cloud.");
+                {
+                    Debug.Log(
+                        "[DebugPopup] Retries reset to 0 " +
+                        "and saved to cloud."
+                    );
+                }
                 else
-                    Debug.LogError("[DebugPopup] Retries reset locally, but cloud save failed.");
+                {
+                    Debug.LogError(
+                        "[DebugPopup] Retries reset locally, " +
+                        "but cloud save failed."
+                    );
+                }
             }
         );
     }

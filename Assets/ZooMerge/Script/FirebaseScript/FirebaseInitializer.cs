@@ -67,6 +67,12 @@ public static class FirebaseInitializer
 
     public static string UserId { get; private set; }
 
+    public static BallUnlockRemoteConfigData
+    BallUnlockConfig {get;private set;} = new();
+
+    public static RetryRefillPricingRemoteConfigData
+    RetryRefillPricingConfig {get;private set;} = new();
+
     public static void WaitForFirebase(Action onReady, Action<string> onError = null)
     {
         if (IsReady)
@@ -143,53 +149,191 @@ public static class FirebaseInitializer
 
     private static async Task InitializeRemoteConfig()
     {
-        // 1. Determine which key and fetch interval to use
-        string configKey = "merge_levels";
-        TimeSpan fetchInterval = TimeSpan.FromHours(6); // Default for Production
+        string configKey =
+            "merge_levels";
+
+        string ballUnlockConfigKey =
+            "ball_unlock_catalog";
+
+        string retryPricingConfigKey =
+            "retry_refill_pricing";
+
+        TimeSpan fetchInterval =
+            TimeSpan.FromHours(6);
 
 #if UNITY_EDITOR
-        configKey = "merge_levels_testing";
-        fetchInterval = TimeSpan.Zero; // Instant for Editor testing
-        Debug.Log($"🛠️ Editor detected: Using '{configKey}' and instant fetch.");
+
+        configKey =
+            "merge_levels_testing";
+
+        ballUnlockConfigKey =
+            "ball_unlock_catalog_testing";
+
+        retryPricingConfigKey =
+"retry_refill_pricing_testing";
+
+        fetchInterval =
+            TimeSpan.Zero;
+
+        Debug.Log(
+            $"🛠️ Editor detected: " +
+            $"Using '{configKey}' and " +
+            $"'{ballUnlockConfigKey}' and " +
+            $"'{retryPricingConfigKey}'."
+        );
+
 #endif
 
-        // 2. Set defaults dynamically
-        var defaults = new Dictionary<string, object>
+        var defaults =
+            new Dictionary<string, object>
+            {
+            {
+                "base_merge_score",
+                2
+            },
+            {
+                "score_multiplier",
+                1.0f
+            },
+            {
+                configKey,
+                "{\"galaxies\":[]}"
+            },
+            {
+                ballUnlockConfigKey,
+                "{\"definitions\":[]}"
+            },
+            {
+                retryPricingConfigKey,
+                "{\"costs\":[],\"overflowStep\":3}"
+            }
+            };
+
+        FirebaseRemoteConfig remoteConfig =
+            FirebaseRemoteConfig.DefaultInstance;
+
+        await remoteConfig.SetDefaultsAsync(
+            defaults
+        );
+
+        try
+        {
+            await remoteConfig.FetchAsync(
+                fetchInterval
+            );
+
+            await remoteConfig.ActivateAsync();
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning(
+                $"⚠️ Remote Config fetch failed: " +
+                $"{e.Message}"
+            );
+        }
+
+        BaseMergeScore =
+            (int)remoteConfig
+                .GetValue("base_merge_score")
+                .LongValue;
+
+        ScoreMultiplier =
+            (float)remoteConfig
+                .GetValue("score_multiplier")
+                .DoubleValue;
+
+        string json =
+            remoteConfig
+                .GetValue(configKey)
+                .StringValue;
+
+        try
+        {
+            MergeScoreData =
+                JsonConvert.DeserializeObject<
+                    MergeLevelData
+                >(json);
+
+            MergeLevelManager.Initialize(
+                MergeScoreData
+            );
+
+            Debug.Log(
+                $"✅ Loaded " +
+                $"{MergeScoreData?.galaxies?.Count ?? 0} " +
+                $"galaxies from {configKey}."
+            );
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning(
+                $"⚠️ Failed to parse " +
+                $"{configKey} JSON: {e.Message}"
+            );
+
+            MergeScoreData =
+                new MergeLevelData();
+        }
+
+        // Load ball unlock requirements.
+        LoadBallUnlockRemoteConfig(
+            remoteConfig,
+            ballUnlockConfigKey
+        );
+
+        LoadRetryRefillPricingRemoteConfig(
+        remoteConfig,
+        retryPricingConfigKey
+        );
+    }
+
+    private static void LoadRetryRefillPricingRemoteConfig(
+    FirebaseRemoteConfig remoteConfig,
+    string configKey)
     {
-        { "base_merge_score", 2 },
-        { "score_multiplier", 1.0f },
-        { configKey, "{\"galaxies\":[]}" }
-    };
+        string json =
+            remoteConfig
+                .GetValue(configKey)
+                .StringValue;
 
-        await FirebaseRemoteConfig.DefaultInstance.SetDefaultsAsync(defaults);
-
-        try
-        {
-            // 3. Fetch using the dynamic interval
-            await FirebaseRemoteConfig.DefaultInstance.FetchAsync(fetchInterval);
-            await FirebaseRemoteConfig.DefaultInstance.ActivateAsync();
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"⚠️ Remote Config fetch failed: {e.Message}");
-        }
-
-        BaseMergeScore = (int)FirebaseRemoteConfig.DefaultInstance.GetValue("base_merge_score").LongValue;
-        ScoreMultiplier = (float)FirebaseRemoteConfig.DefaultInstance.GetValue("score_multiplier").DoubleValue;
-
-        // 4. Get the value using the dynamic key
-        string json = FirebaseRemoteConfig.DefaultInstance.GetValue(configKey).StringValue;
+        if (string.IsNullOrWhiteSpace(json))
+            return;
 
         try
         {
-            MergeScoreData = JsonConvert.DeserializeObject<MergeLevelData>(json);
-            MergeLevelManager.Initialize(MergeScoreData);
-            Debug.Log($"✅ Loaded {MergeScoreData?.galaxies?.Count ?? 0} galaxies from {configKey}.");
+            RetryRefillPricingRemoteConfigData data =
+                JsonConvert.DeserializeObject<
+                    RetryRefillPricingRemoteConfigData
+                >(json);
+
+            if (data == null ||
+                data.costs == null ||
+                data.costs.Length == 0)
+            {
+                Debug.LogWarning(
+                    $"[RemoteConfig] Retry pricing " +
+                    $"'{configKey}' is empty. " +
+                    $"Using local ScriptableObject values."
+                );
+
+                return;
+            }
+
+            RetryRefillPricingConfig =
+                data;
+
+            Debug.Log(
+                $"[RemoteConfig] Retry pricing loaded. " +
+                $"Costs={data.costs.Length}, " +
+                $"OverflowStep={data.overflowStep}"
+            );
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"⚠️ Failed to parse {configKey} JSON: {e.Message}");
-            MergeScoreData = new MergeLevelData();
+            Debug.LogWarning(
+                $"[RemoteConfig] Failed to parse " +
+                $"'{configKey}': {e.Message}"
+            );
         }
     }
 
@@ -206,19 +350,38 @@ public static class FirebaseInitializer
         Action onComplete = null,
         Action<string> onError = null)
     {
-        string configKey = "merge_levels";
+        string configKey =
+            "merge_levels";
 
-    #if UNITY_EDITOR
-            configKey = "merge_levels_testing";
-    #endif
+        string ballUnlockConfigKey =
+            "ball_unlock_catalog";
+
+        string retryPricingConfigKey =
+            "retry_refill_pricing";
+
+#if UNITY_EDITOR
+
+        configKey =
+            "merge_levels_testing";
+
+        ballUnlockConfigKey =
+            "ball_unlock_catalog_testing";
+        
+        retryPricingConfigKey =
+"retry_refill_pricing_testing";
+
+#endif
 
         try
         {
-            var remoteConfig =
+            FirebaseRemoteConfig remoteConfig =
                 FirebaseRemoteConfig.DefaultInstance;
 
             Debug.Log(
-                $"[RemoteConfig] Force refreshing '{configKey}'..."
+                $"[RemoteConfig] Force refreshing " +
+                $"'{configKey}' and " +
+                $"'{ballUnlockConfigKey}' and " +
+                $"'{retryPricingConfigKey}'..."
             );
 
             await remoteConfig.FetchAsync(
@@ -252,11 +415,23 @@ public static class FirebaseInitializer
                 MergeScoreData
             );
 
+            LoadBallUnlockRemoteConfig(
+                remoteConfig,
+                ballUnlockConfigKey
+            );
+
+            LoadRetryRefillPricingRemoteConfig(
+                remoteConfig,
+                retryPricingConfigKey
+            );
+
             Debug.Log(
-                $"🔁 Refreshed '{configKey}'. " +
+                $"🔁 Remote Config refreshed. " +
                 $"Activated={activated}, " +
                 $"Galaxies=" +
-                $"{MergeScoreData?.galaxies?.Count ?? 0}"
+                $"{MergeScoreData?.galaxies?.Count ?? 0}, " +
+                $"BallUnlocks=" +
+                $"{BallUnlockConfig?.definitions?.Count ?? 0}"
             );
 
             onComplete?.Invoke();
@@ -270,6 +445,54 @@ public static class FirebaseInitializer
 
             onError?.Invoke(
                 e.Message
+            );
+        }
+    }
+
+    private static void LoadBallUnlockRemoteConfig(
+        FirebaseRemoteConfig remoteConfig,
+        string configKey)
+    {
+        string json =
+            remoteConfig
+                .GetValue(configKey)
+                .StringValue;
+
+        if (string.IsNullOrWhiteSpace(json))
+            return;
+
+        try
+        {
+            BallUnlockRemoteConfigData data =
+                JsonConvert.DeserializeObject<
+                    BallUnlockRemoteConfigData
+                >(json);
+
+            if (data == null)
+                return;
+
+            BallUnlockConfig =
+                data;
+
+            if (BallUnlockManager.Instance != null)
+            {
+                BallUnlockManager.Instance
+                    .ApplyRemoteConfig(
+                        data
+                    );
+            }
+
+            Debug.Log(
+                $"[RemoteConfig] Ball unlock config loaded. " +
+                $"Definitions=" +
+                $"{data.definitions?.Count ?? 0}"
+            );
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning(
+                $"[RemoteConfig] Failed to parse " +
+                $"'{configKey}': {e.Message}"
             );
         }
     }

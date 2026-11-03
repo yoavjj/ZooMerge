@@ -386,6 +386,7 @@ MonoBehaviour:
   prefabLibrary: {fileID: 11400000, guid: 4891aac698ea7414ba3d83685b994d31, type: 2}
   popupContent: {fileID: 2080833205208347105}
   outOfTriesContainer: {fileID: 5472834388542785481}
+  collectFtueDelay: 0.4
   mergeSummaryPanel: {fileID: 1213392798309310528}
   messageText: {fileID: 5012511441031778412}
   levelMessageText: {fileID: 560395247051497555}
@@ -1511,7 +1512,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1027227487675315588, guid: 1db8a3beedf8a484d82bd14a09393297, type: 3}
       propertyPath: m_fontSize
-      value: 70.2
+      value: 65
       objectReference: {fileID: 0}
     - target: {fileID: 1737410940073377624, guid: 1db8a3beedf8a484d82bd14a09393297, type: 3}
       propertyPath: m_AnchorMax.y
@@ -1744,6 +1745,10 @@ PrefabInstance:
     - target: {fileID: 8812412972366214920, guid: 1db8a3beedf8a484d82bd14a09393297, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9071732360033667474, guid: 1db8a3beedf8a484d82bd14a09393297, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 26.592
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

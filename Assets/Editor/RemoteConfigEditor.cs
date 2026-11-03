@@ -3,6 +3,7 @@ using UnityEditor;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditorInternal;
 
 public class RemoteConfigEditor : EditorWindow
 {
@@ -322,6 +323,12 @@ public class RemoteConfigEditor : EditorWindow
                     "Skin ID",
                     reward.spaceshipSkinId
                 );
+
+            reward.allowReject =
+                EditorGUILayout.Toggle(
+                    "Allow Reject",
+                    reward.allowReject
+                );
         }
     }
 
@@ -393,6 +400,10 @@ public class RemoteConfigEditor : EditorWindow
         // Forces Unity to refresh and notice the file changed
         AssetDatabase.Refresh();
         Debug.Log($"Saved cleanly to: {path}");
+
+        // Open level.json in Unity's configured
+        // external code editor.
+        InternalEditorUtility.OpenFileAtLineExternal(path,1);
     }
 
     private void ExportToJson()

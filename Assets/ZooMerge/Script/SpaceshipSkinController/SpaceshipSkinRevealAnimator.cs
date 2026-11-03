@@ -39,12 +39,21 @@ public class SpaceshipSkinRevealAnimator : SfxBehaviourTirgger
 
     [Header("Animator")]
     [SerializeField] private Animator revealAnimator;
+    [SerializeField] private string inTrigger = "In";
     [SerializeField] private string revealTrigger = "Reveal";
+    [SerializeField] private string rejectTrigger = "Reject";
+    [SerializeField] private string releaseTrigger = "Release";
+
+    public event Action ReleaseFinished;
 
     private Material runtimeMat;
     private Sprite pendingFinalSprite;
-
     private Action revealFinished;
+    public event Action CollectReady;
+
+    private Sprite pendingOriginalSprite;
+    private bool applyNewSkinOnFinish;
+
 
     private void Reset()
     {
@@ -171,6 +180,123 @@ public class SpaceshipSkinRevealAnimator : SfxBehaviourTirgger
         }
     }
 
+    public void PlayRelease()
+    {
+        if (revealAnimator == null)
+            return;
+
+        revealAnimator.ResetTrigger(
+            releaseTrigger
+        );
+
+        revealAnimator.SetTrigger(
+            releaseTrigger
+        );
+    }
+
+    public bool PlayRewardIn(
+    Sprite oldSprite,
+    Sprite newSprite)
+    {
+        if (!PrepareReveal(
+                oldSprite,
+                newSprite))
+        {
+            return false;
+        }
+
+        if (revealAnimator == null)
+            return false;
+
+        revealAnimator.ResetTrigger(
+            inTrigger
+        );
+
+        revealAnimator.SetTrigger(
+            inTrigger
+        );
+
+        return true;
+    }
+
+    public void PlayPreparedReveal(
+        Action onComplete = null)
+    {
+        revealFinished = onComplete;
+        applyNewSkinOnFinish = true;
+
+        if (revealAnimator == null)
+        {
+            AE_FinishReveal();
+            return;
+        }
+
+        revealAnimator.ResetTrigger(
+            revealTrigger
+        );
+
+        revealAnimator.SetTrigger(
+            revealTrigger
+        );
+    }
+
+    public void PlayReject(
+        Action onComplete = null)
+    {
+        revealFinished = onComplete;
+        applyNewSkinOnFinish = false;
+
+        // Reject means the new skin should never
+        // become visible during the out animation.
+        if (pendingOriginalSprite != null)
+        {
+            SetTargetSprite(
+                pendingOriginalSprite
+            );
+
+            if (runtimeMat != null)
+            {
+                runtimeMat.SetTexture(
+                    currentTexProperty,
+                    pendingOriginalSprite.texture
+                );
+
+                runtimeMat.SetTexture(
+                    nextTexProperty,
+                    pendingOriginalSprite.texture
+                );
+            }
+
+            blend = 0f;
+
+            Apply();
+        }
+
+        if (revealAnimator == null)
+        {
+            AE_FinishReveal();
+            return;
+        }
+
+        revealAnimator.ResetTrigger(
+            rejectTrigger
+        );
+
+        revealAnimator.SetTrigger(
+            rejectTrigger
+        );
+    }
+
+    public void AE_ReleaseFinished()
+    {
+        ReleaseFinished?.Invoke();
+    }
+
+    public void AE_CollectReady()
+    {
+        CollectReady?.Invoke();
+    }
+
     public void SetBlend(float value)
     {
         blend = Mathf.Clamp01(value);
@@ -198,6 +324,8 @@ public class SpaceshipSkinRevealAnimator : SfxBehaviourTirgger
         // Force the renderer to visually start from the OLD skin.
         SetTargetSprite(oldSprite);
 
+        pendingOriginalSprite = oldSprite;
+
         runtimeMat.SetTexture(currentTexProperty, oldSprite.texture);
         runtimeMat.SetTexture(nextTexProperty, newSprite.texture);
 
@@ -216,22 +344,32 @@ public class SpaceshipSkinRevealAnimator : SfxBehaviourTirgger
         return true;
     }
 
-    public void PlayReveal(Sprite oldSprite, Sprite newSprite, Action onComplete = null)
+    public void PlayReveal(
+        Sprite oldSprite,
+        Sprite newSprite,
+        Action onComplete = null)
     {
-        if (!PrepareReveal(oldSprite, newSprite))
+        if (!PrepareReveal(
+                oldSprite,
+                newSprite))
         {
             onComplete?.Invoke();
             return;
         }
 
         revealFinished = onComplete;
+        applyNewSkinOnFinish = true;
 
-        if (revealAnimator != null && !string.IsNullOrEmpty(revealTrigger))
+        if (revealAnimator != null &&
+            !string.IsNullOrEmpty(revealTrigger))
         {
-            revealAnimator.ResetTrigger(revealTrigger);
-            revealAnimator.SetTrigger(revealTrigger);
+            revealAnimator.ResetTrigger(
+                revealTrigger
+            );
 
-            Debug.Log("[SpaceshipSkinRevealAnimator] Reveal trigger fired.");
+            revealAnimator.SetTrigger(
+                revealTrigger
+            );
         }
         else
         {
@@ -242,27 +380,29 @@ public class SpaceshipSkinRevealAnimator : SfxBehaviourTirgger
     // Call this at the END of the animation via Animation Event
     public void AE_FinishReveal()
     {
-        if (pendingFinalSprite == null)
-        {
-            FinishRevealCallback();
-            return;
-        }
+        Sprite finalSprite =
+            applyNewSkinOnFinish
+                ? pendingFinalSprite
+                : pendingOriginalSprite;
 
-        SetTargetSprite(
-            pendingFinalSprite
-        );
-
-        if (runtimeMat != null)
+        if (finalSprite != null)
         {
-            runtimeMat.SetTexture(
-                currentTexProperty,
-                pendingFinalSprite.texture
+            SetTargetSprite(
+                finalSprite
             );
 
-            runtimeMat.SetTexture(
-                nextTexProperty,
-                pendingFinalSprite.texture
-            );
+            if (runtimeMat != null)
+            {
+                runtimeMat.SetTexture(
+                    currentTexProperty,
+                    finalSprite.texture
+                );
+
+                runtimeMat.SetTexture(
+                    nextTexProperty,
+                    finalSprite.texture
+                );
+            }
         }
 
         blend = 0f;
@@ -271,6 +411,8 @@ public class SpaceshipSkinRevealAnimator : SfxBehaviourTirgger
         Apply();
 
         pendingFinalSprite = null;
+        pendingOriginalSprite = null;
+        applyNewSkinOnFinish = false;
 
         FinishRevealCallback();
     }
@@ -375,12 +517,12 @@ public class SpaceshipSkinRevealAnimator : SfxBehaviourTirgger
     public void AE_PlayRevealSfx()
     {
         PlayUiSfx(SfxCue.Skin_Reveal);
-    } 
+    }
 
     public void AE_PlayWooshInSfx()
     {
         PlayUiSfx(SfxCue.Woosh_In);
-    } 
+    }
 
     public void AE_PlayWooshOutSfx()
     {

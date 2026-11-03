@@ -13,20 +13,52 @@ public class BallUnlockManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance != null &&
+            Instance != this)
         {
             Destroy(gameObject);
             return;
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+
+        DontDestroyOnLoad(
+            gameObject
+        );
+
+        BallUnlockRemoteConfigData remoteConfig =
+            FirebaseInitializer.BallUnlockConfig;
+
+        if (remoteConfig != null &&
+            remoteConfig.definitions != null &&
+            remoteConfig.definitions.Count > 0)
+        {
+            ApplyRemoteConfig(
+                remoteConfig
+            );
+        }
     }
 
     private void OnDestroy()
     {
         if (Instance == this)
             Instance = null;
+    }
+
+    public void ApplyRemoteConfig(BallUnlockRemoteConfigData remoteData)
+    {
+        if (unlockCatalog == null)
+        {
+            Debug.LogError(
+                "[BallUnlockManager] Unlock catalog is missing."
+            );
+
+            return;
+        }
+
+        unlockCatalog.ApplyRemoteConfig(
+            remoteData
+        );
     }
 
     public bool IsUnlocked(BallType type)

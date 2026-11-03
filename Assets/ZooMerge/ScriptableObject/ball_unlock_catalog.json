@@ -1,0 +1,37 @@
+{
+  "definitions": [
+    {
+      "type": "Bug",
+      "coinCost": 0,
+      "mergeRequirements": []
+    },
+    {
+      "type": "Turtle",
+      "coinCost": 0,
+      "mergeRequirements": []
+    },
+    {
+      "type": "Doggy",
+      "coinCost": 0,
+      "mergeRequirements": []
+    },
+    {
+      "type": "Cat",
+      "coinCost": 1000,
+      "mergeRequirements": [
+        {
+          "type": "Bug",
+          "requiredAmount": 1000
+        },
+        {
+          "type": "Turtle",
+          "requiredAmount": 800
+        },
+        {
+          "type": "Doggy",
+          "requiredAmount": 900
+        }
+      ]
+    }
+  ]
+}
