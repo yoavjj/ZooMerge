@@ -937,6 +937,7 @@ GameObject:
   - component: {fileID: 3520643114543545377}
   - component: {fileID: 1906449982474650596}
   - component: {fileID: 5770017234473226161}
+  - component: {fileID: 9086448420361804314}
   m_Layer: 0
   m_Name: Popup_MainMenu
   m_TagString: Untagged
@@ -987,6 +988,8 @@ MonoBehaviour:
   coinCooldownWidget: {fileID: 7126792566075953781}
   collectFtueDelay: 1.5
   roadmapContainer: {fileID: 3773967966355149297}
+  unlockOfferPrompt: {fileID: 9086448420361804314}
+  ballUnlockFeatureFtueDelay: 1.5
   heartFlyTarget: {fileID: 1427129297723318860}
   heartMenuEntryId: Heart_menu
 --- !u!114 &3520643114543545377
@@ -1047,6 +1050,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &9086448420361804314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4153767231893100836}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90b3057fc974a4b68b30f6f7bec999fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallUnlockOfferPrompt
+  unlockCatalog: {fileID: 11400000, guid: 385c138873f8240e2891ffcb388ec490, type: 2}
+  offerOnlyOnce: 1
 --- !u!1 &4296342150064447914
 GameObject:
   m_ObjectHideFlags: 0
@@ -3659,10 +3676,6 @@ PrefabInstance:
     - target: {fileID: 6027032272824984712, guid: 509a399a130bc478f85d1fe6df7d6f36, type: 3}
       propertyPath: m_IsActive
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7510264439165711036, guid: 509a399a130bc478f85d1fe6df7d6f36, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

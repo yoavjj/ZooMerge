@@ -217,22 +217,6 @@ public class DebugPopup : MonoBehaviour
         Debug.Log("[DebugPopup] Heart feature FTUE reset.");
 
         // --------------------------------
-        // REFRESH MAIN MENU
-        // --------------------------------
-
-        MainMenuUI menu = FindFirstObjectByType<MainMenuUI>(FindObjectsInactive.Include);
-
-        if (menu != null)
-        {
-            // Hide the cooldown widget because
-            // the feature is no longer unlocked.
-            menu.RefreshCoinCooldownFeatureVisibility();
-
-            // Refresh level/progress display.
-            menu.ForceRefreshProgressUIAndCache();
-        }
-
-        // --------------------------------
         // REFRESH SPACESHIP
         // --------------------------------
 
@@ -242,11 +226,49 @@ public class DebugPopup : MonoBehaviour
         }
 
         // --------------------------------
+        // RESET BALL UNLOCK FEATURE
+        // --------------------------------
+
+        BallUnlockFeatureProgress.ResetFeature();
+
+        // --------------------------------
+        // RESET CAT UNLOCK
+        // --------------------------------
+
+        if (BallUnlockManager.Instance != null)
+        {
+            BallUnlockManager.Instance.DebugResetUnlock(BallType.Cat);
+
+            Debug.Log("[DebugPopup] Cat unlock reset.");
+        }
+
+        // --------------------------------
+        // REFRESH MAIN MENU
+        // --------------------------------
+
+        MainMenuUI menu = FindFirstObjectByType<MainMenuUI>(FindObjectsInactive.Include);
+
+        if (menu != null)
+        {
+            menu.RefreshCoinCooldownFeatureVisibility();
+            menu.ForceRefreshProgressUIAndCache();
+        }
+
+        // --------------------------------
+        // REBUILD HERO SELECTION
+        // --------------------------------
+
+        BallChoiceMenu ballChoiceMenu = FindFirstObjectByType<BallChoiceMenu>(FindObjectsInactive.Include);
+
+        if (ballChoiceMenu != null)
+        {
+            ballChoiceMenu.Build();
+        }
+
+        // --------------------------------
         // SAVE RESET STATE
         // --------------------------------
 
-        // Cosmetics are sent to the server
-        // only through SaveSnapshot.
         CloudSaveManager.SaveSnapshot(
             incrementMidLevelCompleted: false
         );

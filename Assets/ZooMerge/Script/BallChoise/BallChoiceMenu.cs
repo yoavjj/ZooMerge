@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class BallChoiceMenu : MonoBehaviour
+public class BallChoiceMenu : SfxBehaviourTirgger
 {
     public event Action<BallType> UnlockPopupRequested;
     private BallUnlockManager subscribedUnlockManager;
@@ -74,14 +74,56 @@ public class BallChoiceMenu : MonoBehaviour
         SubscribeToSelectionManager(manager);
         SubscribeToUnlockManager();
 
-        if (clearSelectionOnBuild)
+        BallUnlockManager unlockManager = BallUnlockManager.Instance;
+
+        bool catUnlocked =
+            unlockManager != null &&
+            unlockManager.IsUnlocked(BallType.Cat);
+
+        // Before Cat is unlocked, always rebuild the automatic
+        // starter selection from scratch.
+        //
+        // After Cat is unlocked, return to the normal behavior.
+        if (!catUnlocked || clearSelectionOnBuild)
             manager.ClearSelection();
 
         foreach (BallType type in Enum.GetValues(typeof(BallType)))
             CreateItem(type);
 
+        // Before Cat is unlocked, automatically choose
+        // the first 3 currently unlocked animals.
+        if (!catUnlocked)
+            AutoSelectStarterHeroes(manager);
+
         RefreshSelectionVisuals();
         RefreshLockedVisuals(immediate: true);
+    }
+
+    private void AutoSelectStarterHeroes(BallSelectionManager manager)
+    {
+        BallUnlockManager unlockManager = BallUnlockManager.Instance;
+
+        if (manager == null || unlockManager == null)
+            return;
+
+        foreach (BallType type in Enum.GetValues(typeof(BallType)))
+        {
+            if (manager.SelectedCount >= manager.RequiredSelectionCount)
+                break;
+
+            if (!unlockManager.IsUnlocked(type))
+                continue;
+
+            if (manager.IsSelected(type))
+                continue;
+
+            manager.TrySelect(type);
+        }
+
+        Debug.Log(
+            $"[BallChoiceMenu] Starter heroes auto-selected: " +
+            $"{manager.SelectedCount}/{manager.RequiredSelectionCount}"
+        );
     }
 
     private void SubscribeToUnlockManager()
@@ -114,22 +156,16 @@ public class BallChoiceMenu : MonoBehaviour
         subscribedUnlockManager = null;
     }
 
-    private void HandleUnlockStateChanged(
-    BallType type)
+    private void HandleUnlockStateChanged(BallType type)
     {
-        BallUnlockManager unlockManager =
-            BallUnlockManager.Instance;
+        BallUnlockManager unlockManager = BallUnlockManager.Instance;
 
         if (unlockManager == null)
             return;
 
-        bool isLocked =
-            !unlockManager.IsUnlocked(type);
+        bool isLocked = !unlockManager.IsUnlocked(type);
 
-        if (itemsByType.TryGetValue(
-                type,
-                out BallChoiceItemUI item) &&
-            item != null)
+        if (itemsByType.TryGetValue(type, out BallChoiceItemUI item) && item != null)
         {
             item.SetLockedState(
                 isLocked,
@@ -137,17 +173,36 @@ public class BallChoiceMenu : MonoBehaviour
             );
         }
 
+        BallSelectionManager selectionManager = SelectionManager;
+
+        if (selectionManager == null)
+            return;
+
         // A locked animal must not remain selected.
         if (isLocked)
         {
-            BallSelectionManager selectionManager =
-                SelectionManager;
-
-            if (selectionManager != null &&
-                selectionManager.IsSelected(type))
-            {
+            if (selectionManager.IsSelected(type))
                 selectionManager.Deselect(type);
-            }
+
+            return;
+        }
+
+        // --------------------------------
+        // CAT UNLOCKED
+        // --------------------------------
+
+        // Cat is the point where manual hero selection begins.
+        // Remove the automatic starter selection so the player
+        // now has to choose their own 3 heroes.
+        if (type == BallType.Cat)
+        {
+            selectionManager.ClearSelection();
+
+            Debug.Log(
+                "[BallChoiceMenu] Cat unlocked. " +
+                "Automatic starter selection ended. " +
+                "Player must now choose 3 heroes."
+            );
         }
     }
 
@@ -218,55 +273,82 @@ public class BallChoiceMenu : MonoBehaviour
         if (item == null)
             return;
 
-        BallSelectionManager selectionManager =
-            SelectionManager;
+        BallSelectionManager selectionManager = SelectionManager;
 
         if (selectionManager == null)
         {
-            Debug.LogError(
-                "[BallChoiceMenu] BallSelectionManager.Instance is null."
-            );
-
+            Debug.LogError("[BallChoiceMenu] BallSelectionManager.Instance is null.");
             return;
         }
 
-        // A selected animal can always be deselected.
+        BallUnlockManager unlockManager = BallUnlockManager.Instance;
+
+        if (unlockManager == null)
+        {
+            Debug.LogError("[BallChoiceMenu] BallUnlockManager.Instance is null.");
+            return;
+        }
+
+        bool itemUnlocked = unlockManager.IsUnlocked(item.Type);
+
+        // --------------------------------
+        // LOCKED ANIMAL
+        // --------------------------------
+
+        if (!itemUnlocked)
+        {
+            // Ball Unlock feature has not been introduced yet.
+            if (!BallUnlockFeatureProgress.IsUnlocked)
+            {
+                int unlockLevel = MergeLevelManager.GetBallUnlockFeatureUnlockLevelNumber();
+
+                if (unlockLevel > 0)
+                    ShowMessage($"Unlocked at Level {unlockLevel}");
+                else
+                    ShowMessage("Animal unlocks are not available yet.");
+
+                PlayUiSfx(SfxCue.ButtonClickNegative);
+
+                return;
+            }
+
+            // Ball Unlock feature is available.
+            Debug.Log($"[BallChoiceMenu] Requesting unlock popup for {item.Type}.");
+
+            UnlockPopupRequested?.Invoke(item.Type);
+            return;
+        }
+
+        // --------------------------------
+        // STARTER AUTO-SELECTION MODE
+        // --------------------------------
+
+        // Until Cat is unlocked, the original 3 heroes stay
+        // automatically selected and cannot be manually changed.
+        if (!unlockManager.IsUnlocked(BallType.Cat))
+        {
+            Debug.Log("[BallChoiceMenu] Manual hero selection unlocks after Cat is unlocked.");
+            return;
+        }
+
+        // --------------------------------
+        // NORMAL MANUAL SELECTION MODE
+        // --------------------------------
+
+        // Cat has been unlocked, so selection now works
+        // exactly like the existing system.
         if (selectionManager.IsSelected(item.Type))
         {
             selectionManager.Deselect(item.Type);
             return;
         }
 
-        BallUnlockManager unlockManager =
-            BallUnlockManager.Instance;
-
-        if (unlockManager == null)
-        {
-            Debug.LogError(
-                "[BallChoiceMenu] BallUnlockManager.Instance is null."
-            );
-
-            return;
-        }
-
-        if (!unlockManager.IsUnlocked(item.Type))
-        {
-            Debug.Log(
-                $"[BallChoiceMenu] Requesting unlock popup for {item.Type}."
-            );
-
-            UnlockPopupRequested?.Invoke(item.Type);
-            return;
-        }
-
-        bool selected =
-            selectionManager.TrySelect(item.Type);
+        bool selected = selectionManager.TrySelect(item.Type);
 
         if (!selected)
         {
             ShowMessage(
-                $"Pick only " +
-                $"{selectionManager.RequiredSelectionCount}!"
+                $"Pick only {selectionManager.RequiredSelectionCount}!"
             );
         }
     }
@@ -286,6 +368,25 @@ public class BallChoiceMenu : MonoBehaviour
         // Animated transition:
         // locked alpha 1 -> unlocked alpha 0.
         RefreshLockedVisuals(immediate: false);
+    }
+
+    public void PlayBallUnlockFeatureReveal()
+    {
+        if (!itemsByType.TryGetValue(
+                BallType.Cat,
+                out BallChoiceItemUI catItem))
+        {
+            return;
+        }
+
+        if (catItem == null)
+            return;
+
+        catItem.PlayBallUnlockFeatureReveal();
+
+        Debug.Log(
+            "[BallChoiceMenu] Ball Unlock feature reveal started on Cat card."
+        );
     }
 
     private void RefreshSelectionVisuals()
@@ -418,5 +519,28 @@ public class BallChoiceMenu : MonoBehaviour
     public void SetClearSelectionOnBuild(bool value)
     {
         clearSelectionOnBuild = value;
+    }
+
+    public bool TryGetFirstLockedBall(out BallType type)
+    {
+        BallUnlockManager unlockManager = BallUnlockManager.Instance;
+
+        if (unlockManager == null)
+        {
+            type = default;
+            return false;
+        }
+
+        foreach (BallType candidate in Enum.GetValues(typeof(BallType)))
+        {
+            if (!unlockManager.IsUnlocked(candidate))
+            {
+                type = candidate;
+                return true;
+            }
+        }
+
+        type = default;
+        return false;
     }
 }

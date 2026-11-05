@@ -60,12 +60,17 @@ public class MainMenuUI : SfxBehaviourTirgger
 
     private const string GALAXY_ROADMAP = "GalaxyRoadmapPopup";
 
-    private BallUnlockPopup ballUnlockPopupInstance;
-    private const string BALL_UNLOCK_POPUP =
-    "BallUnlockPopup";
+    [Header("Ball Unlock Feature FTUE")]
+    [SerializeField] private BallUnlockOfferPrompt unlockOfferPrompt;
+    [SerializeField, Min(0f)] private float ballUnlockFeatureFtueDelay = 1.5f;
 
-    private const string CONNECTION_LOST_POPUP =
-    "ConnectionLostPopup";
+    private Coroutine ballUnlockFeatureFtueRoutine;
+    private bool ballUnlockFeatureFtueBlocking;
+
+    private BallUnlockPopup ballUnlockPopupInstance;
+    private const string BALL_UNLOCK_POPUP = "BallUnlockPopup";
+
+    private const string CONNECTION_LOST_POPUP = "ConnectionLostPopup";
 
     private GameObject connectionLostInstance;
     private Coroutine internetCheckRoutine;
@@ -192,6 +197,12 @@ public class MainMenuUI : SfxBehaviourTirgger
 
             collectFtueDelayRoutine = null;
         }
+
+        if (ballUnlockFeatureFtueRoutine != null)
+        {
+            StopCoroutine(ballUnlockFeatureFtueRoutine);
+            ballUnlockFeatureFtueRoutine = null;
+        }
     }
 
     public void RefreshCoinCooldownFeatureVisibility()
@@ -266,11 +277,14 @@ public class MainMenuUI : SfxBehaviourTirgger
 
         bool canPlay =
             !playLocked &&
+            !ballUnlockFeatureFtueBlocking &&
             manager != null &&
             manager.HasRequiredSelection;
 
         // Keep clickable so an invalid press can show the message.
-        playButton.interactable = !playLocked;
+            playButton.interactable =
+            !playLocked &&
+            !ballUnlockFeatureFtueBlocking;
 
         if (playButtonVisual != null)
             playButtonVisual.SetSelected(canPlay);
@@ -298,6 +312,7 @@ public class MainMenuUI : SfxBehaviourTirgger
         // Only create this feature after the player
         // has earned it.
         InitializeCoinCooldownFeature();
+        InitializeBallUnlockFeatureFtue();
 
         // Do the first expensive ball creation while the player
         // is still looking at the Main Menu.
@@ -313,6 +328,99 @@ public class MainMenuUI : SfxBehaviourTirgger
 
         if (CooldownRewardProgress.ShouldShowFtue && collectFtueDelayRoutine == null)
             collectFtueDelayRoutine = StartCoroutine(ShowCoinCooldownFtueAfterDelay());
+    }
+
+    private void InitializeBallUnlockFeatureFtue()
+    {
+        if (!BallUnlockFeatureProgress.ShouldShowFtue)
+            return;
+
+        if (ballUnlockFeatureFtueRoutine != null)
+            return;
+
+        // Block Play immediately.
+        // Do not wait until the popup actually appears.
+        ballUnlockFeatureFtueBlocking = true;
+
+        RefreshPlayButtonState();
+
+        ballUnlockFeatureFtueRoutine = StartCoroutine(
+            ShowBallUnlockFeatureFtueAfterDelay()
+        );
+    }
+
+    private IEnumerator ShowBallUnlockFeatureFtueAfterDelay()
+    {
+        // If the Coin Cooldown FTUE is currently being prepared,
+        // let that flow finish first so the popups never overlap.
+        while (collectFtueDelayRoutine != null)
+            yield return null;
+
+        // If the Coin Cooldown popup is actually open,
+        // wait until it has been destroyed.
+        while (collectFtuePopupInstance != null)
+            yield return null;
+
+        if (ballUnlockFeatureFtueDelay > 0f)
+            yield return new WaitForSecondsRealtime(ballUnlockFeatureFtueDelay);
+
+        ballUnlockFeatureFtueRoutine = null;
+
+        if (!BallUnlockFeatureProgress.ShouldShowFtue)
+        {
+            ballUnlockFeatureFtueBlocking = false;
+            RefreshPlayButtonState();
+            yield break;
+        }
+
+        if (unlockOfferPrompt == null)
+        {
+            Debug.LogWarning("[MainMenuUI] BallUnlockOfferPrompt is missing.");
+
+            ballUnlockFeatureFtueBlocking = false;
+            RefreshPlayButtonState();
+            yield break;
+        }
+
+        if (!unlockOfferPrompt.TryGetAvailableUnlock(out BallType availableType))
+        {
+            Debug.LogWarning("[MainMenuUI] No available animal found for Ball Unlock feature FTUE.");
+
+            ballUnlockFeatureFtueBlocking = false;
+            RefreshPlayButtonState();
+            yield break;
+        }
+
+        bool opened = ShowBallUnlockPopup(availableType);
+
+        if (!opened)
+        {
+            ballUnlockFeatureFtueBlocking = false;
+            RefreshPlayButtonState();
+            yield break;
+        }
+
+        // The feature popup has actually appeared.
+        // Reveal the Cat card now.
+        ballChoiceMenu?.PlayBallUnlockFeatureReveal();
+
+        // The FTUE has now been presented.
+        BallUnlockFeatureProgress.MarkFtueShown();
+
+        // Prevent the normal automatic-offer system from immediately
+        // offering the same animal again.
+        unlockOfferPrompt.MarkAsOffered(availableType);
+
+        Debug.Log(
+            "[MainMenuUI] Ball Unlock feature FTUE shown. " +
+            "Cat feature cover fading out."
+        );
+
+        // Prevent the automatic-offer system from immediately
+        // offering the same animal again.
+        unlockOfferPrompt.MarkAsOffered(availableType);
+
+        Debug.Log("[MainMenuUI] Ball Unlock feature FTUE shown.");
     }
 
     private IEnumerator ShowCoinCooldownFtueAfterDelay()
@@ -392,7 +500,7 @@ public class MainMenuUI : SfxBehaviourTirgger
 
     private void OnPlayPressed()
     {
-        if (playLocked)
+        if (playLocked || ballUnlockFeatureFtueBlocking)
             return;
 
         if (internetCheckRoutine != null)
@@ -836,52 +944,42 @@ public class MainMenuUI : SfxBehaviourTirgger
         ShowBallUnlockPopup(type);
     }
 
-    private void ShowBallUnlockPopup(BallType type)
+    private bool ShowBallUnlockPopup(BallType type)
     {
         if (prefabLibrary == null)
         {
-            Debug.LogWarning(
-                "[MainMenuUI] PrefabLibrary is not assigned."
-            );
-
-            return;
+            Debug.LogWarning("[MainMenuUI] PrefabLibrary is not assigned.");
+            return false;
         }
 
         if (mainMenuOverlayContainer == null)
         {
-            Debug.LogWarning(
-                "[MainMenuUI] Popup container is not assigned."
-            );
-
-            return;
+            Debug.LogWarning("[MainMenuUI] Popup container is not assigned.");
+            return false;
         }
 
         if (ballUnlockPopupInstance != null)
         {
             ballUnlockPopupInstance.Open(type);
-            return;
+            return true;
         }
 
-        BallUnlockPopup popupPrefab =
-            prefabLibrary.GetBallUnlockPopup(
-                BALL_UNLOCK_POPUP
-            );
+        BallUnlockPopup popupPrefab = prefabLibrary.GetBallUnlockPopup(BALL_UNLOCK_POPUP);
 
         if (popupPrefab == null)
-            return;
+            return false;
 
         ballUnlockPopupInstance = Instantiate(
             popupPrefab,
             mainMenuOverlayContainer
         );
 
-        ballUnlockPopupInstance.Closed +=
-            HandleBallUnlockPopupClosed;
-
-        ballUnlockPopupInstance.AnimalUnlocked +=
-            HandleAnimalUnlocked;
+        ballUnlockPopupInstance.Closed += HandleBallUnlockPopupClosed;
+        ballUnlockPopupInstance.AnimalUnlocked += HandleAnimalUnlocked;
 
         ballUnlockPopupInstance.Open(type);
+
+        return true;
     }
 
     private void HandleAnimalUnlocked(BallType type)
@@ -893,14 +991,19 @@ public class MainMenuUI : SfxBehaviourTirgger
     {
         if (ballUnlockPopupInstance != null)
         {
-            ballUnlockPopupInstance.Closed -=
-                HandleBallUnlockPopupClosed;
-
-            ballUnlockPopupInstance.AnimalUnlocked -=
-                HandleAnimalUnlocked;
+            ballUnlockPopupInstance.Closed -= HandleBallUnlockPopupClosed;
+            ballUnlockPopupInstance.AnimalUnlocked -= HandleAnimalUnlocked;
         }
 
         ballUnlockPopupInstance = null;
+
+        // If this popup was being used as the feature FTUE,
+        // the player may continue only now.
+        if (ballUnlockFeatureFtueBlocking)
+        {
+            ballUnlockFeatureFtueBlocking = false;
+            RefreshPlayButtonState();
+        }
     }
 
     public void AE_MainMenuOutFinished()

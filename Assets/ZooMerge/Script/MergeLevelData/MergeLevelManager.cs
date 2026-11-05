@@ -48,6 +48,37 @@ public static class MergeLevelManager
         RaiseLevelChanged();
     }
 
+    public static int GetBallUnlockFeatureUnlockLevelNumber()
+    {
+        if (data == null || data.galaxies == null)
+            return -1;
+
+        int globalLevelNumber = 0;
+
+        for (int g = 0; g < data.galaxies.Count; g++)
+        {
+            GalaxyData galaxy = data.galaxies[g];
+
+            if (galaxy.levels == null)
+                continue;
+
+            for (int l = 0; l < galaxy.levels.Count; l++)
+            {
+                globalLevelNumber++;
+
+                MergeLevel level = galaxy.levels[l];
+
+                if (level == null || level.completionReward == null)
+                    continue;
+
+                if ((level.completionReward.rewardType & LevelRewardType.BallUnlockFeature) != 0)
+                    return globalLevelNumber;
+            }
+        }
+
+        return -1;
+    }
+
     public static void SetProgress(int galaxyId, int levelInGalaxy, int enemyIndex)
     {
         // If data not ready yet, store and apply later (extend your pending system)

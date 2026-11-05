@@ -31,6 +31,7 @@ public class WinLosePopup : SfxBehaviourTirgger
     private Coroutine summaryCloudSaveRoutine;
     private bool waitingForSummaryCloudSave;
     private bool coinCooldownFtueBlocking;
+    private bool ballUnlockFeatureFtueBlocking;
 
     private const string OUT_OF_TRIES_POPUP = "OutOfTriesPopup";
     private const string LEVEL_REVEAL = "LevelReveal";
@@ -38,6 +39,7 @@ public class WinLosePopup : SfxBehaviourTirgger
     private const string COLLECT_FTUE_POPUP = "CollectFTUEPopup";
 
     [SerializeField, Min(0f)] private float collectFtueDelay = 0.4f;
+    [SerializeField, Min(0f)] private float ballUnlockFeatureFtueDelay = 0.4f;
 
     private GameObject collectFtuePopupInstance;
 
@@ -548,6 +550,18 @@ public class WinLosePopup : SfxBehaviourTirgger
         Destroy(gameObject, 1f);
     }
 
+    public void OnCollectFtueClosed()
+    {
+        collectFtuePopupInstance = null;
+        coinCooldownFtueBlocking = false;
+
+        Debug.Log(
+            "[WinLosePopup] Coin Cooldown FTUE closed. Normal flow resumed."
+        );
+
+        ContinueAfterSummarySaved();
+    }
+
     private void ApplyProgressBeforeMainMenu()
     {
         // ✅ Full level completed:
@@ -581,7 +595,7 @@ public class WinLosePopup : SfxBehaviourTirgger
 
     public void ShowGalaxyRoadmap(bool fromLevelFlow = false)
     {
-        if (coinCooldownFtueBlocking)
+        if (coinCooldownFtueBlocking || ballUnlockFeatureFtueBlocking)
             return;
 
         PlayUiSfx(SfxCue.ButtonClick);
@@ -689,7 +703,7 @@ public class WinLosePopup : SfxBehaviourTirgger
         if (playPressedLocked)
             return;
 
-        if (coinCooldownFtueBlocking)
+        if (coinCooldownFtueBlocking || ballUnlockFeatureFtueBlocking)
             return;
 
         if (internetCheckRoutine != null)
@@ -1310,6 +1324,72 @@ public class WinLosePopup : SfxBehaviourTirgger
         {
             ContinueAfterSummarySaved();
             yield break;
+        }
+
+        // --------------------------------
+        // BALL UNLOCK FEATURE FTUE
+        // --------------------------------
+
+        bool shouldTryBallUnlockFtue =
+            currentReason == GameOverReason.Won &&
+            levelCompleteContext &&
+            BallUnlockFeatureProgress.ShouldShowFtue;
+
+        if (shouldTryBallUnlockFtue)
+        {
+            // Block Play BEFORE the delay begins.
+            ballUnlockFeatureFtueBlocking = true;
+
+            if (ballUnlockFeatureFtueDelay > 0f)
+                yield return new WaitForSecondsRealtime(ballUnlockFeatureFtueDelay);
+
+            if (BallUnlockFeatureProgress.ShouldShowFtue)
+            {
+                if (ballChoiceMenu != null &&
+                    ballChoiceMenu.TryGetFirstLockedBall(out BallType availableType))
+                {
+                    Debug.Log(
+                        $"[WinLosePopup] Ball Unlock FTUE opening for {availableType}."
+                    );
+
+                    bool popupOpened =
+                        ShowBallUnlockPopup(
+                            availableType
+                        );
+
+                    if (popupOpened)
+                    {
+                        // The Ball Unlock feature is now being introduced.
+                        // Gradually reveal the Cat card.
+                        ballChoiceMenu?.PlayBallUnlockFeatureReveal();
+
+                        BallUnlockFeatureProgress.MarkFtueShown();
+
+                        unlockOfferPrompt?.MarkAsOffered(
+                            availableType
+                        );
+
+                        Debug.Log(
+                            "[WinLosePopup] Ball Unlock feature FTUE shown. " +
+                            "Cat feature cover fading out."
+                        );
+
+                        yield return new WaitUntil(
+                            () => ballUnlockPopupInstance == null
+                        );
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[WinLosePopup] Ball Unlock FTUE popup failed to open.");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("[WinLosePopup] No locked animal found for Ball Unlock FTUE.");
+                }
+            }
+
+            ballUnlockFeatureFtueBlocking = false;
         }
 
         // --------------------------------

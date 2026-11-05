@@ -129,6 +129,7 @@ public class GameHealthManager : MonoBehaviour
                         SavePendingHeartReward();
                         SavePendingSpaceshipSkinReward();
                         UnlockCoinCooldownFeatureReward();
+                        UnlockBallUnlockFeatureReward();
 
                         // ✅ Reset retry refill price ladder on a successful level completion
                         RetryRefillPricingRuntime.ResetPurchaseCount();
@@ -196,6 +197,21 @@ public class GameHealthManager : MonoBehaviour
             BallRegistry.Unregister(ball);
             Destroy(ball.gameObject);
         }
+    }
+
+    private void UnlockBallUnlockFeatureReward()
+    {
+        LevelCompletionReward reward = MergeLevelManager.CurrentLevelCompletionReward;
+
+        if (reward == null)
+            return;
+
+        if ((reward.rewardType & LevelRewardType.BallUnlockFeature) == 0)
+            return;
+
+        BallUnlockFeatureProgress.UnlockFeature();
+
+        Debug.Log("[GameHealthManager] Ball Unlock feature unlocked.");
     }
 
     private void SavePendingHeartReward()

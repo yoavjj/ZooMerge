@@ -9,9 +9,10 @@ public enum LevelRewardType
 {
     None = 0,
     Heart = 1 << 0,
-    BallUnlock = 1 << 1,
+    BallUnlockType = 1 << 1,
     SpaceshipSkin = 1 << 2,
-    CoinCooldownFeature = 1 << 3
+    CoinCooldownFeature = 1 << 3,
+    BallUnlockFeature = 1 << 4
 }
 
 [Serializable]

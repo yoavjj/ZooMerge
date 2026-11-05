@@ -7,6 +7,7 @@ public class CollectFTUEPopup : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private Button goToMainMenuButton;
+    [SerializeField] private Button closeButton;
 
     [Header("Animator")]
     [SerializeField] private Animator animator;
@@ -15,18 +16,33 @@ public class CollectFTUEPopup : MonoBehaviour
     private WinLosePopup winLosePopup;
     private bool isClosing;
 
+    private CloseAction closeAction;
+
+    private enum CloseAction
+    {
+        None,
+        GoToMainMenu,
+        CloseOnly
+    }
+
     private void Awake()
     {
         LastSpawned = this;
 
         if (goToMainMenuButton != null)
-            goToMainMenuButton.onClick.AddListener(OnButtonPressed);
+            goToMainMenuButton.onClick.AddListener(OnGoToMainMenuPressed);
+
+        if (closeButton != null)
+            closeButton.onClick.AddListener(OnClosePressed);
     }
 
     private void OnDestroy()
     {
         if (goToMainMenuButton != null)
-            goToMainMenuButton.onClick.RemoveListener(OnButtonPressed);
+            goToMainMenuButton.onClick.RemoveListener(OnGoToMainMenuPressed);
+
+        if (closeButton != null)
+            closeButton.onClick.RemoveListener(OnClosePressed);
 
         if (LastSpawned == this)
             LastSpawned = null;
@@ -37,15 +53,29 @@ public class CollectFTUEPopup : MonoBehaviour
         winLosePopup = owner;
     }
 
-    private void OnButtonPressed()
+    private void OnGoToMainMenuPressed()
+    {
+        BeginClose(CloseAction.GoToMainMenu);
+    }
+
+    public void OnClosePressed()
+    {
+        BeginClose(CloseAction.CloseOnly);
+    }
+
+    private void BeginClose(CloseAction action)
     {
         if (isClosing)
             return;
 
         isClosing = true;
+        closeAction = action;
 
         if (goToMainMenuButton != null)
             goToMainMenuButton.interactable = false;
+
+        if (closeButton != null)
+            closeButton.interactable = false;
 
         if (animator != null && !string.IsNullOrEmpty(outTrigger))
         {
@@ -62,17 +92,20 @@ public class CollectFTUEPopup : MonoBehaviour
         WinLosePopup owner = winLosePopup;
         winLosePopup = null;
 
-        if (owner != null)
-            owner.OnMainMenuButtonPressed();
+        CloseAction action = closeAction;
+        closeAction = CloseAction.None;
 
-        Destroy(gameObject);
-    } 
+        if (action == CloseAction.GoToMainMenu)
+        {
+            if (owner != null)
+                owner.OnMainMenuButtonPressed();
+        }
+        else if (action == CloseAction.CloseOnly)
+        {
+            if (owner != null)
+                owner.OnCollectFtueClosed();
+        }
 
-    public void ClosePopup()
-    {
-        animator.ResetTrigger(outTrigger);
-        animator.SetTrigger(outTrigger);
-
-        Destroy(gameObject, 1f);
+        Destroy(gameObject, 1.2f);
     }
 }

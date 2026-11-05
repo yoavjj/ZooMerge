@@ -33,6 +33,18 @@ public class BallChoiceItemUI : SfxBehaviourTirgger
     [SerializeField, Min(0f)]
     private float lockedFadeDuration = 0.2f;
 
+    [Header("Cat Unlock Reveal")]
+    [SerializeField] private Image catRevealImage;
+
+    [SerializeField, Min(0f)]
+    private float catRevealFadeDuration = 0.6f;
+
+    [SerializeField]
+    private AnimationCurve catRevealFadeCurve =
+        AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+    private Coroutine catRevealFadeRoutine;
+
     [Header("Unlock Reveal")]
     [SerializeField]
     private BallCardRevealAnimator revealAnimator;
@@ -78,6 +90,12 @@ public class BallChoiceItemUI : SfxBehaviourTirgger
             StopCoroutine(lockedFadeRoutine);
             lockedFadeRoutine = null;
         }
+
+        if (catRevealFadeRoutine != null)
+        {
+            StopCoroutine(catRevealFadeRoutine);
+            catRevealFadeRoutine = null;
+        }
     }
 
     private void OnDestroy()
@@ -102,6 +120,15 @@ public class BallChoiceItemUI : SfxBehaviourTirgger
         Type = type;
         forceFullColor = false;
 
+        bool hideCatFeature =
+            Type == BallType.Cat &&
+            (
+                !BallUnlockFeatureProgress.IsUnlocked ||
+                BallUnlockFeatureProgress.ShouldShowFtue
+            );
+
+        SetCatRevealImmediate(hideCatFeature);
+
         SetProfileSprite(profileSprite);
         Refresh();
 
@@ -122,6 +149,7 @@ public class BallChoiceItemUI : SfxBehaviourTirgger
         bool immediate = false)
     {
         bool stateChanged = isLocked != locked;
+
         isLocked = locked;
 
         float targetAlpha = locked ? 1f : 0f;
@@ -136,6 +164,99 @@ public class BallChoiceItemUI : SfxBehaviourTirgger
         }
 
         RefreshCardVisual(immediate);
+    }
+
+    public void PlayBallUnlockFeatureReveal()
+    {
+        if (Type != BallType.Cat)
+            return;
+
+        PlayCatRevealFade();
+    }
+
+    private void SetCatRevealImmediate(bool visible)
+    {
+        if (catRevealFadeRoutine != null)
+        {
+            StopCoroutine(catRevealFadeRoutine);
+            catRevealFadeRoutine = null;
+        }
+
+        if (catRevealImage == null)
+            return;
+
+        Color color = catRevealImage.color;
+        color.a = visible ? 1f : 0f;
+        catRevealImage.color = color;
+
+        catRevealImage.raycastTarget = false;
+    }
+
+    private void PlayCatRevealFade()
+    {
+        if (catRevealImage == null)
+            return;
+
+        if (catRevealFadeRoutine != null)
+            StopCoroutine(catRevealFadeRoutine);
+
+        catRevealFadeRoutine =
+            StartCoroutine(CatRevealFadeRoutine());
+    }
+
+    private IEnumerator CatRevealFadeRoutine()
+    {
+        if (catRevealImage == null)
+        {
+            catRevealFadeRoutine = null;
+            yield break;
+        }
+
+        Color color = catRevealImage.color;
+
+        float startAlpha = color.a;
+
+        if (catRevealFadeDuration <= 0f)
+        {
+            color.a = 0f;
+            catRevealImage.color = color;
+
+            catRevealFadeRoutine = null;
+            yield break;
+        }
+
+        float elapsed = 0f;
+
+        while (elapsed < catRevealFadeDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+
+            float normalized =
+                Mathf.Clamp01(
+                    elapsed / catRevealFadeDuration
+                );
+
+            float eased =
+                catRevealFadeCurve != null
+                    ? catRevealFadeCurve.Evaluate(normalized)
+                    : normalized;
+
+            color.a =
+                Mathf.Lerp(
+                    startAlpha,
+                    0f,
+                    eased
+                );
+
+            catRevealImage.color = color;
+
+            yield return null;
+        }
+
+        color.a = 0f;
+        catRevealImage.color = color;
+
+        catRevealFadeRoutine = null;
     }
 
     private void SetLockedStateImmediate(bool locked)

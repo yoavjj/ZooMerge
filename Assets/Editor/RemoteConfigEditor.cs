@@ -307,7 +307,7 @@ public class RemoteConfigEditor : EditorWindow
             );
         }
 
-        if ((reward.rewardType & LevelRewardType.BallUnlock) != 0)
+        if ((reward.rewardType & LevelRewardType.BallUnlockType) != 0)
         {
             reward.ballType =
                 (BallType)EditorGUILayout.EnumPopup(
