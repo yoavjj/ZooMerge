@@ -173,8 +173,49 @@ public class CircleDragInput : MonoBehaviour,
 
     #region Public API
 
+    public event System.Action ValidPointerDown;
+
     /// <summary>Re-calc movement bounds (e.g., after resize/orientation change).</summary>
     public void RefreshBounds() => CacheBounds();
+
+    public bool TryGetHorizontalScreenBounds(
+    out float leftScreenX,
+    out float rightScreenX)
+    {
+        leftScreenX = 0f;
+        rightScreenX = Screen.width;
+
+        if (cam == null)
+            cam = Camera.main;
+
+        if (cam == null)
+            return false;
+
+        if (!hasCachedBounds)
+            CacheBounds();
+
+        Vector3 referencePosition =
+            spawnContainer != null
+                ? spawnContainer.position
+                : transform.position;
+
+        Vector3 leftWorld = referencePosition;
+        Vector3 rightWorld = referencePosition;
+
+        leftWorld.x = cachedMinX;
+        rightWorld.x = cachedMaxX;
+
+        float a =
+            cam.WorldToScreenPoint(leftWorld).x;
+
+        float b =
+            cam.WorldToScreenPoint(rightWorld).x;
+
+        leftScreenX = Mathf.Min(a, b);
+        rightScreenX = Mathf.Max(a, b);
+
+        return rightScreenX > leftScreenX;
+    }
 
     /// <summary>
     /// Called when a new draggable ball becomes active.
@@ -243,14 +284,29 @@ public class CircleDragInput : MonoBehaviour,
         // 🔹 Check if pointer is inside buffer zone (optional early return)
         if (hasCachedBufferZone)
         {
-            Vector3 worldPos = cam.ScreenToWorldPoint(eventData.position);
-            Vector2 worldPoint = new Vector2(worldPos.x, worldPos.y);
+            Vector3 worldPos =
+                cam.ScreenToWorldPoint(
+                    eventData.position
+                );
+
+            Vector2 worldPoint =
+                new Vector2(
+                    worldPos.x,
+                    worldPos.y
+                );
+
             if (cachedBufferZone.Contains(worldPoint))
             {
-                Debug.Log("👋 Touch is inside buffer zone. Ignoring.");
+                Debug.Log(
+                    "👋 Touch is inside buffer zone. Ignoring."
+                );
+
                 return;
             }
         }
+
+        // A valid gameplay press happened.
+        ValidPointerDown?.Invoke();
 
         spawnedAfterThisPress = false;
         activePointerId = eventData.pointerId;

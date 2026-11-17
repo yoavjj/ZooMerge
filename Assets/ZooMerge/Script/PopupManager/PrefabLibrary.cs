@@ -175,4 +175,26 @@ public class PrefabLibrary : ScriptableObject
 
         return null;
     }
+
+    public TutorialIntroPopup GetTutorialIntroPopup(
+    string id)
+    {
+        GameObject prefab = GetRaw(id);
+
+        if (prefab == null)
+            return null;
+
+        if (prefab.TryGetComponent(
+                out TutorialIntroPopup popup))
+        {
+            return popup;
+        }
+
+        Debug.LogError(
+            $"[PrefabLibrary] Prefab with id '{id}' " +
+            $"does not have {nameof(TutorialIntroPopup)} on its root."
+        );
+
+        return null;
+    }
 }

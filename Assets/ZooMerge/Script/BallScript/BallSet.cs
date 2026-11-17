@@ -95,6 +95,17 @@ public class BallSet : ScriptableObject
         return entry != null ? entry.prefab : null;
     }
 
+    public EnemyEntry GetEnemyEntryById(int id)
+    {
+        string idString = id.ToString();
+
+        return enemyPrefabs.Find(
+            entry =>
+                entry != null &&
+                entry.id == idString
+        );
+    }
+
     public GameObject GetEnemyIconPrefabById(string id)
     {
         var entry = enemyPrefabs.Find(e => e != null && e.id == id);
@@ -142,6 +153,16 @@ public class BallSet : ScriptableObject
     {
         return animationData.Find(a => a.level == level);
     }
-}
+
+    public Entry GetEntry(BallType type, int level)
+    {
+        return entries.Find(
+            entry =>
+                entry != null &&
+                entry.type == type &&
+                entry.level == level
+        );
+    }
+} 
 
 public enum BallType { Bug, Turtle, Doggy, Cat }

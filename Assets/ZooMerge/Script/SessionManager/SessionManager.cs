@@ -12,7 +12,8 @@ public class SessionManager : MonoBehaviour
     private Coroutine mergeUnblockRoutine;
 
     [Header("UI Animators")]
-    [SerializeField] private Animator topUIAnimator;
+    [SerializeField] private Animator topMergePanleAnimator;
+    [SerializeField] private Animator uiEnemyAnimator;
     [SerializeField] private Animator bottomUIAnimator;
     [SerializeField] private Animator pauseUIAnimator;
 
@@ -42,6 +43,8 @@ public class SessionManager : MonoBehaviour
     private bool isSessionUIActive = false;
     private bool bottomUIStartedEarlyForReward = false;
     private bool dieFxTriggeredThisEnemy = false;
+    private bool tutorialMode;
+    private bool tutorialEnemyUIEnabled;
 
     private void Awake()
     {
@@ -50,7 +53,14 @@ public class SessionManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
+
+        tutorialMode =
+            TutorialController.IsActive;
+
+        tutorialEnemyUIEnabled =
+            TutorialController.TutorialEnemyEnabled;
 
         if (overlayRaycaster != null)
             overlayRaycaster.enabled = false;
@@ -60,14 +70,16 @@ public class SessionManager : MonoBehaviour
     {
         yield return null;
 
-        if (!isSessionUIActive)
-        {
-            PlayBottomSideBarMenuIn();
-        }
-    }
+        if (tutorialMode)
+            yield break;
 
+        if (!isSessionUIActive)
+            PlayBottomSideBarMenuIn();
+    }
     private void OnEnable()
     {
+        TutorialController.TutorialStateChanged += HandleTutorialStateChanged;
+
         OnSessionStarted += TriggerSessionStart;
         OnSessionPaused += TriggerSessionPause;
         OnSessionResumed += TriggerSessionResume;
@@ -88,6 +100,8 @@ public class SessionManager : MonoBehaviour
 
     private void OnDisable()
     {
+        TutorialController.TutorialStateChanged -= HandleTutorialStateChanged;
+
         OnSessionStarted -= TriggerSessionStart;
         OnSessionPaused -= TriggerSessionPause;
         OnSessionResumed -= TriggerSessionResume;
@@ -105,18 +119,45 @@ public class SessionManager : MonoBehaviour
         BallEventManager.OnMainMenuPopupClosed -= HandleMainMenuPopupClosed;
     }
 
+    private void HandleTutorialStateChanged(bool active)
+    {
+        tutorialMode = active;
+
+        if (tutorialMode)
+        {
+            Debug.Log(
+                "[SessionManager] Switched to tutorial UI mode."
+            );
+
+            return;
+        }
+
+        Debug.Log(
+            "[SessionManager] Tutorial finished. Normal UI mode restored."
+        );
+    }
+
     private void HandleMainMenuPopupOpened()
     {
+        if (tutorialMode)
+            return;
+
         PlayBottomSideBarMenuIn();
     }
 
     private void HandleMainMenuPopupClosed()
     {
+        if (tutorialMode)
+            return;
+
         PlayBottomSideBarMenuOut();
     }
 
     private void PlayBottomSideBarMenuIn()
     {
+        if (tutorialMode)
+            return;
+
         if (bottomSideBarAnimator == null)
             return;
 
@@ -126,6 +167,9 @@ public class SessionManager : MonoBehaviour
 
     private void PlayBottomSideBarMenuOut()
     {
+        if (tutorialMode)
+            return;
+            
         if (bottomSideBarAnimator == null)
             return;
 
@@ -225,11 +269,13 @@ public class SessionManager : MonoBehaviour
             enemyDieAnimator.SetTrigger(enemyEndTriggerName);
         }
 
-        topUIAnimator?.ResetTrigger(TR_SessionStart);
+        topMergePanleAnimator?.ResetTrigger(TR_SessionStart);
+        uiEnemyAnimator?.ResetTrigger(TR_SessionStart);
         bottomUIAnimator?.ResetTrigger(TR_SessionStart);
         pauseUIAnimator?.ResetTrigger(TR_SessionStart);
 
-        topUIAnimator?.SetTrigger(TR_SessionEnd);
+        topMergePanleAnimator?.SetTrigger(TR_SessionEnd);
+        uiEnemyAnimator?.SetTrigger(TR_SessionEnd);
         bottomUIAnimator?.SetTrigger(TR_SessionEnd);
         pauseUIAnimator?.SetTrigger(TR_SessionEnd);
 
@@ -239,15 +285,55 @@ public class SessionManager : MonoBehaviour
 
     public void TriggerSessionStart()
     {
-        if (isSessionUIActive) return;
+        if (isSessionUIActive)
+            return;
+
         isSessionUIActive = true;
 
         AudioManager.Instance?.PlaySessionMusic();
 
         dieFxTriggeredThisEnemy = false;
 
-        topUIAnimator?.ResetTrigger(TR_SessionEnd);
-        topUIAnimator?.SetTrigger(TR_SessionStart);
+        // --------------------------------
+        // TUTORIAL
+        // --------------------------------
+
+        if (tutorialMode)
+        {
+            if (tutorialEnemyUIEnabled)
+            {
+                uiEnemyAnimator?.ResetTrigger(
+                    TR_SessionEnd
+                );
+
+                uiEnemyAnimator?.SetTrigger(
+                    TR_SessionStart
+                );
+            }
+
+            bottomUIStartedEarlyForReward = false;
+
+            if (overlayRaycaster != null)
+                overlayRaycaster.enabled = true;
+
+            Debug.Log(
+                tutorialEnemyUIEnabled
+                    ? "[SessionManager] Tutorial started with Enemy UI."
+                    : "[SessionManager] Tutorial started without Enemy UI."
+            );
+
+            return;
+        }
+
+        // --------------------------------
+        // NORMAL GAME
+        // --------------------------------
+
+        topMergePanleAnimator?.ResetTrigger(TR_SessionEnd);
+        topMergePanleAnimator?.SetTrigger(TR_SessionStart);
+
+        uiEnemyAnimator?.ResetTrigger(TR_SessionEnd);
+        uiEnemyAnimator?.SetTrigger(TR_SessionStart);
 
         if (!bottomUIStartedEarlyForReward)
         {
@@ -266,33 +352,60 @@ public class SessionManager : MonoBehaviour
 
     private void TriggerSessionPause()
     {
-        // Only if session UI is currently active
-        if (!isSessionUIActive) return;
+        if (!isSessionUIActive)
+            return;
 
-        // Don’t touch enemyEndTriggerName here. Pause is not an end.
-        topUIAnimator?.ResetTrigger(TR_SessionResume);
-        bottomUIAnimator?.ResetTrigger(TR_SessionResume);
+        if (!tutorialMode || tutorialEnemyUIEnabled)
+        {
+            uiEnemyAnimator?.ResetTrigger(
+                TR_SessionResume
+            );
 
-        topUIAnimator?.SetTrigger(TR_SessionPause);
-        bottomUIAnimator?.SetTrigger(TR_SessionPause);
+            uiEnemyAnimator?.SetTrigger(
+                TR_SessionPause
+            );
+        }
 
-        // Usually keep overlay raycaster OFF while paused
+        // Merge panel is not active during tutorial.
+        if (!tutorialMode)
+        {
+            topMergePanleAnimator?.ResetTrigger(TR_SessionResume);
+            topMergePanleAnimator?.SetTrigger(TR_SessionPause);
+
+            bottomUIAnimator?.ResetTrigger(TR_SessionResume);
+            bottomUIAnimator?.SetTrigger(TR_SessionPause);
+        }
+
         if (overlayRaycaster != null)
             overlayRaycaster.enabled = false;
     }
 
     private void TriggerSessionResume()
     {
-        // Only if session UI is currently active
-        if (!isSessionUIActive) return;
+        if (!isSessionUIActive)
+            return;
 
-        topUIAnimator?.ResetTrigger(TR_SessionPause);
-        bottomUIAnimator?.ResetTrigger(TR_SessionPause);
+        if (!tutorialMode || tutorialEnemyUIEnabled)
+        {
+            uiEnemyAnimator?.ResetTrigger(
+                TR_SessionPause
+            );
 
-        topUIAnimator?.SetTrigger(TR_SessionResume);
-        bottomUIAnimator?.SetTrigger(TR_SessionResume);
+            uiEnemyAnimator?.SetTrigger(
+                TR_SessionResume
+            );
+        }
 
-        // Re-enable interactions
+        // Merge panel is not active during tutorial.
+        if (!tutorialMode)
+        {
+            topMergePanleAnimator?.ResetTrigger(TR_SessionPause);
+            topMergePanleAnimator?.SetTrigger(TR_SessionResume);
+
+            bottomUIAnimator?.ResetTrigger(TR_SessionPause);
+            bottomUIAnimator?.SetTrigger(TR_SessionResume);
+        }
+
         if (overlayRaycaster != null)
             overlayRaycaster.enabled = true;
     }

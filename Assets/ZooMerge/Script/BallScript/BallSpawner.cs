@@ -19,6 +19,9 @@ public class BallSpawner : MonoBehaviour
     private BallSet.Entry queuedEntry;
     private string lastPickWhy;
 
+    private bool useForcedEntry;
+    private BallSet.Entry forcedEntry;
+
     private bool warmedUp = false;
 
     private SpawnedBall standbyBall;
@@ -62,14 +65,14 @@ public class BallSpawner : MonoBehaviour
 
         ClearStandbyPreview();
 
-        if (picker == null ||
+        if ((!useForcedEntry && picker == null) ||
             previewContainer == null ||
             BallFactoryAddressables.Instance == null)
         {
             return;
         }
 
-        if (!picker.TryPickRandomEntry(
+        if (!TryGetNextEntry(
             out BallSet.Entry entry,
             out string why))
         {
@@ -185,8 +188,7 @@ public class BallSpawner : MonoBehaviour
         // or changed their selection. Rebuild it when it is no longer valid.
         if (!previewBall.IsValid ||
             queuedEntry == null ||
-            picker == null ||
-            !picker.IsEntryAllowed(queuedEntry))
+            !IsEntryAllowedForCurrentMode(queuedEntry))
         {
             ClearPreview();
             PrepareNextPreview();
@@ -242,7 +244,7 @@ public class BallSpawner : MonoBehaviour
     {
         ClearPreview();
 
-        if (picker == null)
+        if (!useForcedEntry && picker == null)
         {
             Debug.LogError(
                 "[BallSpawner] Cannot prepare preview: picker is null."
@@ -267,7 +269,7 @@ public class BallSpawner : MonoBehaviour
             return;
         }
 
-        if (!picker.TryPickRandomEntry(
+        if (!TryGetNextEntry(
             out BallSet.Entry entry,
             out lastPickWhy))
         {
@@ -337,11 +339,10 @@ public class BallSpawner : MonoBehaviour
         if (!CanSpawnActiveBall())
             return false;
 
-        if (picker == null ||
-            previewGo == null ||
+        if (previewGo == null ||
             !previewBall.IsValid ||
             queuedEntry == null ||
-            !picker.IsEntryAllowed(queuedEntry))
+            !IsEntryAllowedForCurrentMode(queuedEntry))
         {
             Debug.LogWarning(
                 "[BallSpawner] Invalid or no-longer-selected preview; " +
@@ -447,7 +448,7 @@ public class BallSpawner : MonoBehaviour
             return false;
         }
 
-        if (picker == null)
+        if (!useForcedEntry && picker == null)
         {
             Debug.LogError(
                 "[BallSpawner] No BallPicker assigned."
@@ -470,7 +471,7 @@ public class BallSpawner : MonoBehaviour
         if (overrideX.HasValue)
             pos.x = overrideX.Value;
 
-        if (!picker.TryPickRandomEntry(
+        if (!TryGetNextEntry(
             out BallSet.Entry entry,
             out lastPickWhy))
         {
@@ -534,12 +535,85 @@ public class BallSpawner : MonoBehaviour
     }
 
     private bool IsPrepared(
-    SpawnedBall ball,
-    BallSet.Entry entry)
+        SpawnedBall ball,
+        BallSet.Entry entry)
     {
         return
             ball.IsValid &&
-            entry != null &&
+            IsEntryAllowedForCurrentMode(entry);
+    }
+
+    public void SetForcedEntry(BallSet.Entry entry)
+    {
+        useForcedEntry = entry != null;
+        forcedEntry = entry;
+
+        ClearPreview();
+        ClearStandbyPreview();
+
+        if (forcedEntry != null)
+        {
+            Debug.Log(
+                $"[BallSpawner] Forced spawn entry enabled: " +
+                $"{forcedEntry.type} L{forcedEntry.level}"
+            );
+        }
+    }
+
+    public void ClearForcedEntry()
+    {
+        useForcedEntry = false;
+        forcedEntry = null;
+
+        ClearPreview();
+        ClearStandbyPreview();
+
+        Debug.Log(
+            "[BallSpawner] Forced spawn entry disabled."
+        );
+    }
+
+    private bool TryGetNextEntry(
+    out BallSet.Entry entry,
+    out string why)
+    {
+        if (useForcedEntry)
+        {
+            entry = forcedEntry;
+
+            if (entry == null)
+            {
+                why = "Forced entry is null.";
+                return false;
+            }
+
+            why = "Forced entry.";
+            return true;
+        }
+
+        if (picker == null)
+        {
+            entry = null;
+            why = "BallPicker is null.";
+            return false;
+        }
+
+        return picker.TryPickRandomEntry(
+            out entry,
+            out why
+        );
+    }
+
+    private bool IsEntryAllowedForCurrentMode(
+    BallSet.Entry entry)
+    {
+        if (entry == null)
+            return false;
+
+        if (useForcedEntry)
+            return entry == forcedEntry;
+
+        return
             picker != null &&
             picker.IsEntryAllowed(entry);
     }

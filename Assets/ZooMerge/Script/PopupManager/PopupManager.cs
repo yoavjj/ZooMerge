@@ -51,6 +51,7 @@ public class PopupManager : SfxBehaviourTirgger
     private GameObject gameUIPopupInstance;
 
     private bool isSessionActive;
+    private bool tutorialMode;
 
     private bool endPopupLocked = false;
     private GameOverReason? lockedEndReason = null;
@@ -64,7 +65,10 @@ public class PopupManager : SfxBehaviourTirgger
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
+
+        tutorialMode = TutorialController.IsActive;
     }
 
     private void Start()
@@ -76,20 +80,27 @@ public class PopupManager : SfxBehaviourTirgger
     private void Update()
     {
         // Editor-only hotkey to open pause popup
-#if UNITY_EDITOR
+    #if UNITY_EDITOR
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
         {
-            // Only during active gameplay + not game over
-            if (!isSessionActive) return;
-            if (BallEventManager.IsGameOver) return;
+            if (tutorialMode)
+                return;
+
+            if (!isSessionActive)
+                return;
+
+            if (BallEventManager.IsGameOver)
+                return;
 
             ShowPauseRestartPopup();
         }
-#endif
+    #endif
     }
 
     private void OnEnable()
     {
+        TutorialController.TutorialStateChanged += HandleTutorialStateChanged;
+
         BallEventManager.OnBallTouchedGameOverLine += HandleBallTouchedGameOverLine;
         WinLosePopup.OnWinLoseClosed += UnlockEndPopup;
 
@@ -100,6 +111,8 @@ public class PopupManager : SfxBehaviourTirgger
 
     private void OnDisable()
     {
+        TutorialController.TutorialStateChanged -= HandleTutorialStateChanged;
+
         BallEventManager.OnBallTouchedGameOverLine -= HandleBallTouchedGameOverLine;
         WinLosePopup.OnWinLoseClosed -= UnlockEndPopup;
 
@@ -123,6 +136,11 @@ public class PopupManager : SfxBehaviourTirgger
 
         // optional: if you want the next end popup to re-instantiate cleanly
         gameUIPopupInstance = null;
+    }
+
+    private void HandleTutorialStateChanged(bool active)
+    {
+        tutorialMode = active;
     }
 
     private void HandleBallTouchedGameOverLine(BallInfo info)
@@ -155,6 +173,9 @@ public class PopupManager : SfxBehaviourTirgger
 
     public void ShowPauseRestartPopup()
     {
+        if (tutorialMode)
+            return;
+            
         // Already open -> same pause button acts like Resume.
         if (pauseRestartPopupInstance != null)
         {
@@ -339,6 +360,15 @@ public class PopupManager : SfxBehaviourTirgger
 
     public void ShowMainMenu()
     {
+        if (TutorialController.IsActive)
+        {
+            Debug.Log(
+                "[PopupManager] Main Menu suppressed during tutorial."
+            );
+
+            return;
+        }
+
         RectTransform popup =
             GetOrCreateNavigationPopup(MAIN_MENU);
 
@@ -609,13 +639,22 @@ public class PopupManager : SfxBehaviourTirgger
 
     private void TryShowPausePopupFromSystem()
     {
-        if (pauseRestartPopupInstance != null) return;
-
-        // Optional: Skip if main menu is active
-        if (mainMenuPopupInstance != null && mainMenuPopupInstance.activeInHierarchy)
+        // During tutorial, losing app focus / backgrounding
+        // must not open the Pause popup.
+        if (tutorialMode)
             return;
 
-        if (endPopupLocked) return;
+        if (pauseRestartPopupInstance != null)
+            return;
+
+        if (mainMenuPopupInstance != null &&
+            mainMenuPopupInstance.activeInHierarchy)
+        {
+            return;
+        }
+
+        if (endPopupLocked)
+            return;
 
         ShowPauseRestartPopup();
     }

@@ -27,6 +27,9 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
         public string unavailableMessage = "Coming Soon!";
     }
 
+    [Header("Tutorial")]
+    [SerializeField] private GameObject navigationVisualRoot;
+
     [Header("Moving Selector")]
     [SerializeField] private RectTransform selector;
 
@@ -91,6 +94,9 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
     private int currentIndex = -1;
     private bool isSwitching;
 
+    private bool tutorialMode;
+    private bool navigationInitialized;
+
     private const string MAIN_MENU_POPUP_ID = "MainMenuPopup";
     private const string GALAXY_ROADMAP_POPUP_ID = "GalaxyRoadmapPopup_Menu";
 
@@ -107,18 +113,43 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
         }
 
         Instance = this;
+
+        // Cache the startup state.
+        // This changes only through TutorialStateChanged.
+        tutorialMode = TutorialController.IsActive;
+    }
+
+    private void OnEnable()
+    {
+        TutorialController.TutorialStateChanged +=
+            HandleTutorialStateChanged;
+    }
+
+    private void OnDisable()
+    {
+        TutorialController.TutorialStateChanged -=
+            HandleTutorialStateChanged;
     }
 
     private IEnumerator Start()
     {
         yield return null;
 
-        Canvas.ForceUpdateCanvases();
+        if (tutorialMode)
+        {
+            if (navigationVisualRoot != null)
+                navigationVisualRoot.SetActive(false);
 
-        CacheSlideDistance();
-        CacheSelectedVisualScales();
+            Debug.Log(
+                "[PopupNavigationSlider] Tutorial active. " +
+                "Navigation startup skipped."
+            );
 
-        SelectPopupIndexInstant(2);
+            yield break;
+        }
+
+        InitializeNavigation();
+        OpenMainMenuInstant();
     }
 
     private void OnDestroy()
@@ -131,6 +162,69 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
             currentRoadmap.OnClosedRoadmap -=
                 HandleRoadmapClosed;
         }
+    }
+
+    private void InitializeNavigation()
+    {
+        if (navigationInitialized)
+            return;
+
+        navigationInitialized = true;
+
+        if (navigationVisualRoot != null)
+            navigationVisualRoot.SetActive(true);
+
+        Canvas.ForceUpdateCanvases();
+
+        CacheSlideDistance();
+        CacheSelectedVisualScales();
+    }
+
+    private void HandleTutorialStateChanged(
+    bool active)
+    {
+        tutorialMode = active;
+
+        if (tutorialMode)
+        {
+            if (navigationVisualRoot != null)
+                navigationVisualRoot.SetActive(false);
+
+            return;
+        }
+
+        // Tutorial just ended.
+        // Restore the navigation exactly as if the game
+        // had started normally.
+        InitializeNavigation();
+
+        OpenMainMenuInstant();
+
+        Debug.Log(
+            "[PopupNavigationSlider] Tutorial finished. " +
+            "Navigation and Main Menu restored."
+        );
+    }
+
+    private void OpenMainMenuInstant()
+    {
+        int mainMenuIndex =
+            FindTabIndexByPrefabId(
+                MAIN_MENU_POPUP_ID
+            );
+
+        if (mainMenuIndex < 0)
+        {
+            Debug.LogWarning(
+                "[PopupNavigationSlider] Main Menu tab was not found."
+            );
+
+            return;
+        }
+
+        SelectPopupIndexInstant(
+            mainMenuIndex
+        );
     }
 
     private void CacheSelectedVisualScales()
@@ -284,6 +378,9 @@ public class PopupNavigationSlider : SfxBehaviourTirgger
 
     public void SelectPopupIndex(int index)
     {
+        if (tutorialMode)
+            return;
+
         if (isSwitching)
             return;
 

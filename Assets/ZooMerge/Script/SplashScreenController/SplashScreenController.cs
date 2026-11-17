@@ -283,8 +283,12 @@ public class SplashScreenController : MonoBehaviour
         if (elapsed < minSplashTime)
             yield return new WaitForSeconds(minSplashTime - elapsed);
 
+        FirebaseInitializer.BootComplete = true;
+
         // Load main scene with progress
-        yield return StartCoroutine(LoadMainSceneWithProgress());
+        yield return StartCoroutine(
+            LoadMainSceneWithProgress()
+        );
 
         // Do not enter Main until the future gameplay music
         // has been initialized by Unity/FMOD.
