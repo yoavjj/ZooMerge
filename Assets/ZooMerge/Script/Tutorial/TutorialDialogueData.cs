@@ -8,6 +8,13 @@ using UnityEngine;
 public class TutorialDialogueData : ScriptableObject
 {
     [Serializable]
+    public class TextHighlight
+    {
+        public string text;
+        public Color color = Color.green;
+    }
+
+    [Serializable]
     public class Entry
     {
         [Header("ID")]
@@ -20,10 +27,14 @@ public class TutorialDialogueData : ScriptableObject
         public Color textColor = Color.white;
 
         [Tooltip(
-            "Supports TMP rich text, for example: " +
-            "Pick a <color=#FFD84A>spot</color>."
+            "Allows TMP rich text written directly " +
+            "inside the message."
         )]
         public bool allowRichText = true;
+
+        [Header("Highlights")]
+        public List<TextHighlight> highlights =
+            new();
 
         [Header("Dialogue Position")]
         public bool useDialoguePosition = true;
@@ -35,6 +46,58 @@ public class TutorialDialogueData : ScriptableObject
 
         public Vector2 tipAnchoredPosition;
         public float tipRotation;
+
+        public string GetFormattedMessage()
+        {
+            if (string.IsNullOrEmpty(message))
+                return string.Empty;
+
+            string result =
+                message;
+
+            if (highlights == null)
+                return result;
+
+            foreach (
+                TextHighlight highlight
+                in highlights)
+            {
+                if (highlight == null ||
+                    string.IsNullOrEmpty(
+                        highlight.text))
+                {
+                    continue;
+                }
+
+                string colorHex =
+                    ColorUtility.ToHtmlStringRGBA(
+                        highlight.color
+                    );
+
+                string coloredText =
+                    $"<color=#{colorHex}>" +
+                    $"{highlight.text}" +
+                    "</color>";
+
+                result =
+                    result.Replace(
+                        highlight.text,
+                        coloredText
+                    );
+            }
+
+            return result;
+        }
+
+        public bool UsesRichText()
+        {
+            return
+                allowRichText ||
+                (
+                    highlights != null &&
+                    highlights.Count > 0
+                );
+        }
     }
 
     [Header("Dialogues")]

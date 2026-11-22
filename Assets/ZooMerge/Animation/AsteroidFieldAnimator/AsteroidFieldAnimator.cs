@@ -4,38 +4,126 @@ using UnityEngine;
 
 public class AsteroidFieldAnimator : MonoBehaviour
 {
+    // ============================================================
+    // GROUP
+    // ============================================================
+
     [System.Serializable]
     public class AsteroidGroup
     {
-        public List<Transform> asteroids;
+        [Header("ID")]
+        public string id;
+
+        [Header("Asteroids")]
+        public List<Transform> asteroids =
+            new();
+
+        [Header("Scale In")]
+        public AnimationCurve scaleInCurve =
+            AnimationCurve.EaseInOut(
+                0f,
+                0f,
+                1f,
+                1f
+            );
+
+        [Min(0.01f)]
+        public float scaleInDuration =
+            0.4f;
+
+        [Header("Stagger")]
+        [Min(0f)]
+        public float delayBetweenAsteroids =
+            0.2f;
+
+        [Header("Hover")]
+        [Min(0f)]
+        public float hoverAmplitude =
+            0.05f;
+
+        [Min(0f)]
+        public float hoverFrequency =
+            1.5f;
+
+        public Vector3 hoverAxis =
+            Vector3.up;
+
+        [Header("Rotation")]
+        public bool rotate;
+
+        [Tooltip(
+            "Rotation speed in degrees per second. " +
+            "Use negative values for clockwise."
+        )]
+        public float rotationSpeed =
+            30f;
+
+        [Header("Scale Out")]
+        public AnimationCurve scaleOutCurve =
+            AnimationCurve.EaseInOut(
+                0f,
+                1f,
+                1f,
+                0f
+            );
+
+        [Min(0.01f)]
+        public float scaleOutDuration =
+            0.35f;
+
+        public bool scaleOutUseStagger;
+
+        [Min(0f)]
+        public float scaleOutDelayBetweenAsteroids =
+            0.05f;
     }
 
-    [SerializeField] private List<AsteroidGroup> groups = new();
+    // ============================================================
+    // REFERENCES
+    // ============================================================
 
-    [SerializeField] private Animator animator;
+    [Header("Groups")]
+    [SerializeField]
+    private List<AsteroidGroup> groups =
+        new();
 
-    [Header("Scale In")]
-    [SerializeField] private AnimationCurve scaleInCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-    [SerializeField] private float scaleInDuration = 0.4f;
+    [Header("Animator")]
+    [SerializeField]
+    private Animator animator;
 
-    [Header("Stagger")]
-    [SerializeField] private float delayBetweenAsteroids = 0.2f;
+    // ============================================================
+    // RUNTIME
+    // ============================================================
 
-    [Header("Hover (Loop)")]
-    [SerializeField] private float hoverAmplitude = 0.05f;     // local units
-    [SerializeField] private float hoverFrequency = 1.5f;      // cycles per second
-    [SerializeField] private Vector3 hoverAxis = Vector3.up;   // hover direction
+    private readonly Dictionary<
+        Transform,
+        Vector3
+    > baseLocalPos = new();
 
-    [Header("Scale Out")]
-    [SerializeField] private AnimationCurve scaleOutCurve = AnimationCurve.EaseInOut(0, 1, 1, 0);
-    [SerializeField] private float scaleOutDuration = 0.35f;
-    [SerializeField] private bool scaleOutUseStagger = false;
-    [SerializeField] private float scaleOutDelayBetweenAsteroids = 0.05f;
+    private class HoverState
+    {
+        public AsteroidGroup group;
 
-    // Track original positions + running coroutines so hover doesn't fight animations
-    private readonly Dictionary<Transform, Vector3> baseLocalPos = new();
-    private readonly Dictionary<Transform, Coroutine> hoverRoutines = new();
-    private readonly Dictionary<Transform, Coroutine> scaleRoutines = new();
+        public Vector3 basePosition;
+        public float phase;
+
+        public Vector3 baseEulerAngles;
+        public float currentRotationZ;
+    }
+
+    private readonly Dictionary<
+        Transform,
+        HoverState
+    > activeHovers = new();
+
+    private readonly Dictionary<
+        Transform,
+        Coroutine
+    > scaleRoutines = new();
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
 
     private void Awake()
     {
@@ -47,200 +135,628 @@ public class AsteroidFieldAnimator : MonoBehaviour
     {
         baseLocalPos.Clear();
 
-        foreach (var group in groups)
+        foreach (
+            AsteroidGroup group
+            in groups)
         {
-            if (group?.asteroids == null) continue;
+            if (group?.asteroids == null)
+                continue;
 
-            foreach (var t in group.asteroids)
+            foreach (
+                Transform asteroid
+                in group.asteroids)
             {
-                if (t == null) continue;
-                if (!baseLocalPos.ContainsKey(t))
-                    baseLocalPos.Add(t, t.localPosition);
+                if (asteroid == null)
+                    continue;
+
+                if (!baseLocalPos.ContainsKey(
+                        asteroid))
+                {
+                    baseLocalPos.Add(
+                        asteroid,
+                        asteroid.localPosition
+                    );
+                }
             }
         }
     }
 
     private void InitializeAllAsteroidsHidden()
     {
-        foreach (var group in groups)
+        foreach (
+            AsteroidGroup group
+            in groups)
         {
-            if (group?.asteroids == null) continue;
+            if (group?.asteroids == null)
+                continue;
 
-            foreach (var asteroid in group.asteroids)
+            foreach (
+                Transform asteroid
+                in group.asteroids)
             {
-                if (asteroid == null) continue;
-                asteroid.localScale = Vector3.zero;
+                if (asteroid == null)
+                    continue;
+
+                asteroid.localScale =
+                    Vector3.zero;
             }
         }
     }
 
-    // 🎯 Called from Animator Event
-    public void PlayGroup(int groupIndex)
+    // ============================================================
+    // PLAY GROUP
+    // ============================================================
+
+    // Animation Event
+    public void PlayGroup(
+        int groupIndex)
     {
-        if (groupIndex < 0 || groupIndex >= groups.Count)
+        if (groupIndex < 0 ||
+            groupIndex >= groups.Count)
+        {
+            Debug.LogWarning(
+                $"[AsteroidFieldAnimator] " +
+                $"Group index {groupIndex} does not exist."
+            );
+
+            return;
+        }
+
+        AsteroidGroup group =
+            groups[groupIndex];
+
+        StartCoroutine(
+            PlayGroupRoutine(
+                group
+            )
+        );
+    }
+
+    // Optional alternative for Animation Events / code
+    public void PlayGroupById(
+        string groupId)
+    {
+        AsteroidGroup group =
+            GetGroup(
+                groupId
+            );
+
+        if (group == null)
+        {
+            Debug.LogWarning(
+                $"[AsteroidFieldAnimator] " +
+                $"Group '{groupId}' was not found."
+            );
+
+            return;
+        }
+
+        StartCoroutine(
+            PlayGroupRoutine(
+                group
+            )
+        );
+    }
+
+    private IEnumerator PlayGroupRoutine(
+        AsteroidGroup group)
+    {
+        if (group?.asteroids == null)
+            yield break;
+
+        List<Transform> ordered =
+            GetOrderedAsteroids(
+                group
+            );
+
+        foreach (
+            Transform asteroid
+            in ordered)
+        {
+            StartScaleRoutine(
+                asteroid,
+                AnimateScaleIn(
+                    asteroid,
+                    group
+                )
+            );
+
+            if (group.delayBetweenAsteroids > 0f)
+            {
+                yield return new WaitForSecondsRealtime(
+                    group.delayBetweenAsteroids
+                );
+            }
+        }
+    }
+
+    // ============================================================
+    // SCALE IN
+    // ============================================================
+
+    private IEnumerator AnimateScaleIn(
+        Transform asteroid,
+        AsteroidGroup group)
+    {
+        if (asteroid == null)
+            yield break;
+
+        StopHover(
+            asteroid
+        );
+
+        asteroid.localScale =
+            Vector3.zero;
+
+        float elapsed =
+            0f;
+
+        while (
+            elapsed <
+            group.scaleInDuration)
+        {
+            elapsed +=
+                Time.unscaledDeltaTime;
+
+            float normalized =
+                Mathf.Clamp01(
+                    elapsed /
+                    group.scaleInDuration
+                );
+
+            float scale =
+                group.scaleInCurve.Evaluate(
+                    normalized
+                );
+
+            asteroid.localScale =
+                Vector3.one *
+                scale;
+
+            yield return null;
+        }
+
+        asteroid.localScale =
+            Vector3.one;
+
+        // Let the Animator / UI finish this frame first.
+        yield return new WaitForEndOfFrame();
+
+        StartHover(
+            asteroid,
+            group
+        );
+    }
+
+    // ============================================================
+    // HOVER
+    // ============================================================
+
+    private void StartHover(
+        Transform asteroid,
+        AsteroidGroup group)
+    {
+        if (asteroid == null ||
+            group == null)
+        {
+            return;
+        }
+
+        Vector3 currentPosition =
+            asteroid.localPosition;
+
+        Vector3 currentEulerAngles =
+            asteroid.localEulerAngles;
+
+        baseLocalPos[
+            asteroid
+        ] =
+            currentPosition;
+
+        activeHovers[
+            asteroid
+        ] =
+            new HoverState
+            {
+                group =
+                    group,
+
+                basePosition =
+                    currentPosition,
+
+                phase =
+                    Random.value *
+                    Mathf.PI *
+                    2f,
+
+                baseEulerAngles =
+                    currentEulerAngles,
+
+                currentRotationZ =
+                    currentEulerAngles.z
+            };
+    }
+
+    private void StopHover(
+        Transform asteroid)
+    {
+        if (asteroid == null)
             return;
 
-        StartCoroutine(PlayGroupRoutine(groups[groupIndex]));
-    }
-
-    private IEnumerator PlayGroupRoutine(AsteroidGroup group)
-    {
-        if (group?.asteroids == null) yield break;
-
-        // deterministic order (hierarchy order)
-        var ordered = new List<Transform>(group.asteroids);
-        ordered.RemoveAll(a => a == null);
-        ordered.Sort((a, b) => a.GetSiblingIndex().CompareTo(b.GetSiblingIndex()));
-
-        foreach (var asteroid in ordered)
+        if (activeHovers.TryGetValue(
+                asteroid,
+                out HoverState state))
         {
-            StartScaleRoutine(asteroid, AnimateScaleIn(asteroid));
-            yield return new WaitForSeconds(delayBetweenAsteroids); // delay between STARTS
+            asteroid.localPosition =
+                state.basePosition;
+
+            activeHovers.Remove(
+                asteroid
+            );
+
+            return;
+        }
+
+        if (baseLocalPos.TryGetValue(
+                asteroid,
+                out Vector3 basePosition))
+        {
+            asteroid.localPosition =
+                basePosition;
         }
     }
 
-    // ---- SCALE IN ----
-    private IEnumerator AnimateScaleIn(Transform t)
+    private void LateUpdate()
     {
-        if (t == null) yield break;
+        if (activeHovers.Count == 0)
+            return;
 
-        StopHover(t); // avoid fighting while scaling
-
-        float time = 0f;
-        t.localScale = Vector3.zero;
-
-        while (time < scaleInDuration)
+        foreach (
+            KeyValuePair<
+                Transform,
+                HoverState
+            > pair
+            in activeHovers)
         {
-            time += Time.deltaTime;
-            float normalized = Mathf.Clamp01(time / scaleInDuration);
+            Transform asteroid =
+                pair.Key;
 
-            float scale = scaleInCurve.Evaluate(normalized);
-            t.localScale = Vector3.one * scale;
+            HoverState state =
+                pair.Value;
 
-            yield return null;
+            if (asteroid == null ||
+                state == null ||
+                state.group == null)
+            {
+                continue;
+            }
+
+            AsteroidGroup group =
+                state.group;
+
+            // ========================================================
+            // HOVER
+            // ========================================================
+
+            Vector3 axis =
+                group.hoverAxis.sqrMagnitude > 0f
+                    ? group.hoverAxis.normalized
+                    : Vector3.up;
+
+            float offset =
+                Mathf.Sin(
+                    (
+                        Time.unscaledTime *
+                        group.hoverFrequency *
+                        Mathf.PI *
+                        2f
+                    ) +
+                    state.phase
+                ) *
+                group.hoverAmplitude;
+
+            asteroid.localPosition =
+                state.basePosition +
+                axis *
+                offset;
+
+            // ========================================================
+            // Z ROTATION
+            // ========================================================
+
+            if (group.rotate)
+            {
+                state.currentRotationZ +=
+                    group.rotationSpeed *
+                    Time.unscaledDeltaTime;
+
+                asteroid.localRotation =
+                    Quaternion.Euler(
+                        state.baseEulerAngles.x,
+                        state.baseEulerAngles.y,
+                        state.currentRotationZ
+                    );
+            }
+        }
+    }
+
+    // ============================================================
+    // SCALE OUT GROUP
+    // ============================================================
+
+    public void ScaleOutGroup(
+        int groupIndex)
+    {
+        if (groupIndex < 0 ||
+            groupIndex >= groups.Count)
+        {
+            return;
         }
 
-        t.localScale = Vector3.one;
-
-        StartHover(t); // start loop after it appears
+        StartCoroutine(
+            ScaleOutGroupRoutine(
+                groups[groupIndex]
+            )
+        );
     }
 
-    // ---- HOVER LOOP ----
-    private void StartHover(Transform t)
+    public void ScaleOutGroupById(
+        string groupId)
     {
-        if (t == null) return;
+        AsteroidGroup group =
+            GetGroup(
+                groupId
+            );
 
-        if (!baseLocalPos.ContainsKey(t))
-            baseLocalPos[t] = t.localPosition;
+        if (group == null)
+            return;
 
-        // restart cleanly
-        StopHover(t);
-        hoverRoutines[t] = StartCoroutine(HoverRoutine(t));
+        StartCoroutine(
+            ScaleOutGroupRoutine(
+                group
+            )
+        );
     }
 
-    private void StopHover(Transform t)
+    private IEnumerator ScaleOutGroupRoutine(
+        AsteroidGroup group)
     {
-        if (t == null) return;
+        if (group?.asteroids == null)
+            yield break;
 
-        if (hoverRoutines.TryGetValue(t, out var c) && c != null)
-            StopCoroutine(c);
+        List<Transform> ordered =
+            GetOrderedAsteroids(
+                group
+            );
 
-        hoverRoutines.Remove(t);
-
-        // snap back to base position
-        if (baseLocalPos.TryGetValue(t, out var basePos))
-            t.localPosition = basePos;
-    }
-
-    private IEnumerator HoverRoutine(Transform t)
-    {
-        Vector3 basePos = baseLocalPos[t];
-
-        // slight phase offset so they don't move perfectly in sync
-        float phase = Random.value * Mathf.PI * 2f;
-
-        while (t != null)
+        foreach (
+            Transform asteroid
+            in ordered)
         {
-            float offset = Mathf.Sin((Time.time * hoverFrequency * Mathf.PI * 2f) + phase) * hoverAmplitude;
-            t.localPosition = basePos + hoverAxis.normalized * offset;
-            yield return null;
+            StartScaleRoutine(
+                asteroid,
+                AnimateScaleOut(
+                    asteroid,
+                    group
+                )
+            );
+
+            if (
+                group.scaleOutUseStagger &&
+                group.scaleOutDelayBetweenAsteroids > 0f)
+            {
+                yield return
+                    new WaitForSeconds(
+                        group
+                            .scaleOutDelayBetweenAsteroids
+                    );
+            }
         }
     }
 
-    // ---- SCALE OUT (ALL GROUPS) ----
-    // 🎯 Call from Animator Event
+    // ============================================================
+    // SCALE OUT ALL
+    // ============================================================
+
     public void ScaleOutAll()
     {
-        StartCoroutine(ScaleOutAllRoutine());
+        StartCoroutine(
+            ScaleOutAllRoutine()
+        );
     }
 
     private IEnumerator ScaleOutAllRoutine()
     {
-        // collect all asteroids (unique, non-null)
-        var all = new List<Transform>();
-        var seen = new HashSet<Transform>();
+        HashSet<Transform> processed =
+            new();
 
-        foreach (var group in groups)
+        foreach (
+            AsteroidGroup group
+            in groups)
         {
-            if (group?.asteroids == null) continue;
+            if (group?.asteroids == null)
+                continue;
 
-            foreach (var t in group.asteroids)
+            List<Transform> ordered =
+                GetOrderedAsteroids(
+                    group
+                );
+
+            foreach (
+                Transform asteroid
+                in ordered)
             {
-                if (t == null) continue;
-                if (seen.Add(t)) all.Add(t);
+                if (asteroid == null ||
+                    !processed.Add(
+                        asteroid))
+                {
+                    continue;
+                }
+
+                StartScaleRoutine(
+                    asteroid,
+                    AnimateScaleOut(
+                        asteroid,
+                        group
+                    )
+                );
+
+                if (
+                    group.scaleOutUseStagger &&
+                    group
+                        .scaleOutDelayBetweenAsteroids > 0f)
+                {
+                    yield return
+                        new WaitForSeconds(
+                            group
+                                .scaleOutDelayBetweenAsteroids
+                        );
+                }
             }
-        }
-
-        // deterministic order (hierarchy order)
-        all.Sort((a, b) => a.GetSiblingIndex().CompareTo(b.GetSiblingIndex()));
-
-        foreach (var t in all)
-        {
-            StartScaleRoutine(t, AnimateScaleOut(t));
-
-            if (scaleOutUseStagger)
-                yield return new WaitForSeconds(scaleOutDelayBetweenAsteroids); // delay between STARTS
         }
     }
 
-    private IEnumerator AnimateScaleOut(Transform t)
+    private IEnumerator AnimateScaleOut(
+        Transform asteroid,
+        AsteroidGroup group)
     {
-        if (t == null) yield break;
+        if (asteroid == null)
+            yield break;
 
-        StopHover(t);
+        StopHover(
+            asteroid
+        );
 
-        float time = 0f;
-        Vector3 startScale = t.localScale; // usually Vector3.one, but safe
+        float elapsed =
+            0f;
 
-        while (time < scaleOutDuration)
+        Vector3 startScale =
+            asteroid.localScale;
+
+        while (
+            elapsed <
+            group.scaleOutDuration)
         {
-            time += Time.deltaTime;
-            float normalized = Mathf.Clamp01(time / scaleOutDuration);
+            elapsed +=
+                Time.unscaledDeltaTime;
 
-            float curve = scaleOutCurve.Evaluate(normalized); // typically 1 -> 0
-            t.localScale = startScale * curve;
+            float normalized =
+                Mathf.Clamp01(
+                    elapsed /
+                    group.scaleOutDuration
+                );
+
+            float scale =
+                group.scaleOutCurve.Evaluate(
+                    normalized
+                );
+
+            asteroid.localScale =
+                startScale *
+                scale;
 
             yield return null;
         }
 
-        t.localScale = Vector3.zero;
+        asteroid.localScale =
+            Vector3.zero;
     }
 
-    private void StartScaleRoutine(Transform t, IEnumerator routine)
+    // ============================================================
+    // ROUTINES
+    // ============================================================
+
+    private void StartScaleRoutine(
+        Transform asteroid,
+        IEnumerator routine)
     {
-        if (t == null) return;
+        if (asteroid == null)
+            return;
 
-        // Stop any existing scale animation on this asteroid to avoid stacking
-        if (scaleRoutines.TryGetValue(t, out var c) && c != null)
-            StopCoroutine(c);
+        if (scaleRoutines.TryGetValue(
+                asteroid,
+                out Coroutine current) &&
+            current != null)
+        {
+            StopCoroutine(
+                current
+            );
+        }
 
-        scaleRoutines[t] = StartCoroutine(routine);
+        scaleRoutines[
+            asteroid
+        ] =
+            StartCoroutine(
+                routine
+            );
     }
 
-    // UI Button
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    private static List<Transform>
+        GetOrderedAsteroids(
+            AsteroidGroup group)
+    {
+        List<Transform> ordered =
+            new(
+                group.asteroids
+            );
+
+        ordered.RemoveAll(
+            asteroid =>
+                asteroid == null
+        );
+
+        ordered.Sort(
+            (
+                a,
+                b
+            ) =>
+                a.GetSiblingIndex()
+                    .CompareTo(
+                        b.GetSiblingIndex()
+                    )
+        );
+
+        return ordered;
+    }
+
+    private AsteroidGroup GetGroup(
+        string groupId)
+    {
+        if (groups == null ||
+            string.IsNullOrEmpty(
+                groupId))
+        {
+            return null;
+        }
+
+        return groups.Find(
+            group =>
+                group != null &&
+                group.id ==
+                groupId
+        );
+    }
+
+    // ============================================================
+    // CLOSE
+    // ============================================================
+
     public void ClosePopup()
     {
-        animator.SetTrigger("Close");
-        Destroy(gameObject, 2f); // safety destroy after animation (adjust if needed)
+        if (animator != null)
+        {
+            animator.SetTrigger(
+                "Close"
+            );
+        }
+
+        Destroy(
+            gameObject,
+            2f
+        );
     }
 }

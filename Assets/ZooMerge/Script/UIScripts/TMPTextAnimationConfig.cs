@@ -62,4 +62,9 @@ public class TMPTextAnimationConfig
             1f,
             1f
         );
+
+    [Header("Layout")]
+    public bool refreshLayoutBeforePlay = true;
+
+    public RectTransform layoutRoot;
 }

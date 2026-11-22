@@ -836,68 +836,6 @@ MonoBehaviour:
   ballSet: {fileID: 11400000, guid: b8da19f47f5e74b9d81a2e2d9019beff, type: 2}
   counterPrefab: {fileID: 5854514345030862937, guid: 65f9e52b021354934936e531b2cc7516, type: 3}
   counterContainer: {fileID: 600827663}
---- !u!21 &91749731
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_UI_HologramGlitchReveal (Runtime)
-  m_Shader: {fileID: 4800000, guid: 97d5ca9cd3cae40999b2291927cbf29d, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _Brightness: 1
-    - _ColorMask: 15
-    - _FlickerSpeed: 15
-    - _FlickerStrength: 0.08
-    - _GhostOffset: 0.015
-    - _GhostStrength: 0.2
-    - _GlitchDuration: 0.12
-    - _GlitchFrequency: 6
-    - _GlitchSlices: 35
-    - _GlitchStrength: 0.025
-    - _HologramStrength: 0.25
-    - _LoopSpeed: 0.5
-    - _Phase: 0
-    - _PhaseOffset: 0
-    - _RGBSplit: 0.008
-    - _RGBSplitStrength: 0.75
-    - _Reveal: 0
-    - _RevealSoftness: 0.1216
-    - _ScanlineAmount: 0.2
-    - _ScanlineDensity: 100
-    - _ScanlineSpeed: 2
-    - _Stencil: 0
-    - _StencilComp: 8
-    - _StencilOp: 0
-    - _StencilReadMask: 255
-    - _StencilWriteMask: 255
-    - _UseManualPhase: 0
-    - _UseUIAlphaClip: 0
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _HologramColor: {r: 0, g: 1, b: 1, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &92067626
 GameObject:
   m_ObjectHideFlags: 0
@@ -2159,85 +2097,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 295468016}
   m_CullTransparentMesh: 1
---- !u!21 &314541997
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_Particles_Signal_Opacity (Runtime)
-  m_Shader: {fileID: 4800000, guid: fe22fe6d1fd5a448db3be3b362574faf, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 2800000, guid: efdd172ac115c40969b3f79ce7916df9, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _Opacity: 1
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
---- !u!21 &326592989
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_HeartLightSweep(Clone)
-  m_Shader: {fileID: 4800000, guid: f1307ee747de34225987b2c63e3cf97c, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _Angle: 23
-    - _EdgeGlowIntensity: 1.21
-    - _EdgeInnerBoost: 1.56
-    - _EdgeThickness: 1.95
-    - _GlowIntensity: 0.67
-    - _OuterEdgeAmount: 0.573
-    - _Sweep: 0
-    - _Sweep01: 0
-    - _SweepIntensity: 0.07
-    - _SweepWidth: 0.431
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EdgeGlowColor: {r: 1, g: 1, b: 1, a: 1}
-    - _SweepColor: {r: 0.8584906, g: 0.8081169, b: 0.5547793, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &334569177
 GameObject:
   m_ObjectHideFlags: 0
@@ -2938,6 +2797,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Popup_Debug
       objectReference: {fileID: 0}
+    - target: {fileID: 598301474402807984, guid: aa06d722dbb4147efb4aff57306b1c2c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 943539916783928451, guid: aa06d722dbb4147efb4aff57306b1c2c, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -3466,6 +3329,57 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5245013004715052771, guid: 124939752bd6c43eaad0d18d14cb23c4, type: 3}
   m_PrefabInstance: {fileID: 7573402540565851701}
   m_PrefabAsset: {fileID: 0}
+--- !u!21 &484177850
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Custom_SpaceshipSkinReveal (Runtime)
+  m_Shader: {fileID: 4800000, guid: 5e291bf0d7a7e4e24a31ecb0d628375a, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NextTex:
+        m_Texture: {fileID: 2800000, guid: 547c418003ba74e40a061552cae4bdf7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Blend: 0
+    - _EdgeGlow: 0.21
+    - _EdgeWidth: 0.115
+    - _NoiseScale: 10
+    - _NoiseStrength: 0.222
+    - _RevealGlowStrength: 2.01
+    - _RevealWidth: 0.134
+    - _SpriteEdgeStrength: 0.95
+    - _SpriteEdgeWidth: 0.5
+    - _StarDensity: 25.7
+    - _StarIntensity: 1.27
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _GlowColorA: {r: 0.7075472, g: 0.6655204, b: 0.13683695, a: 1}
+    - _GlowColorB: {r: 0.14655013, g: 0.49056602, b: 0.039337847, a: 1}
+    - _SpriteEdgeColor: {r: 0.1, g: 0.85, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &501931154
 GameObject:
   m_ObjectHideFlags: 0
@@ -4063,6 +3977,102 @@ Transform:
   m_Children: []
   m_Father: {fileID: 43711706}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!21 &572051775
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Custom_UI_HologramGlitchReveal (Runtime)
+  m_Shader: {fileID: 4800000, guid: 97d5ca9cd3cae40999b2291927cbf29d, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Brightness: 1
+    - _ColorMask: 15
+    - _FlickerSpeed: 15
+    - _FlickerStrength: 0.08
+    - _GhostOffset: 0.015
+    - _GhostStrength: 0.2
+    - _GlitchDuration: 0.12
+    - _GlitchFrequency: 6
+    - _GlitchSlices: 35
+    - _GlitchStrength: 0.025
+    - _HologramStrength: 0.25
+    - _LoopSpeed: 0.5
+    - _Phase: 0
+    - _PhaseOffset: 0
+    - _RGBSplit: 0.008
+    - _RGBSplitStrength: 0.75
+    - _Reveal: 0
+    - _RevealSoftness: 0.1216
+    - _ScanlineAmount: 0.2
+    - _ScanlineDensity: 100
+    - _ScanlineSpeed: 2
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
+    - _StencilWriteMask: 255
+    - _UseManualPhase: 0
+    - _UseUIAlphaClip: 0
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _HologramColor: {r: 0, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!21 &577824601
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Custom_Particles_Zzz_Opacity (Runtime)
+  m_Shader: {fileID: 4800000, guid: fe22fe6d1fd5a448db3be3b362574faf, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 9aaf1a3b0d94a4e65b81c957f6dd1b63, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Opacity: 1
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &600827662
 GameObject:
   m_ObjectHideFlags: 0
@@ -8969,15 +8979,15 @@ Transform:
   m_Children: []
   m_Father: {fileID: 609905845}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!21 &681176188
+--- !u!21 &674126196
 Material:
   serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_UI_SpaceBackgroundReveal (Runtime)
-  m_Shader: {fileID: 4800000, guid: 4c541123a9631488c98912071c1d7ac7, type: 3}
+  m_Name: VFX_LightBeam_Volumetric2D (Beam Runtime)
+  m_Shader: {fileID: 4800000, guid: dffa2b9984ad84b928e073fba83f37c5, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -8998,28 +9008,23 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _ColorMask: 15
-    - _EndGlowFadeStart: 0.82
-    - _GlowStrength: 1.7
-    - _GlowWidth: 0.1132
-    - _NoiseScale: 7
-    - _NoiseSpeed: 0.15
-    - _NoiseStrength: 0.0615
+    - _BandFrequency: 17.9
+    - _BandStrength: 0.15
+    - _BottomFade: 0.791
+    - _CoreIntensity: 3.8
+    - _CoreWidth: 0.371
+    - _EdgeWidth: 0.081
+    - _FlickerAmount: 0
+    - _FlickerSpeed: 37
+    - _GlowIntensity: 1.58
+    - _Opacity: 0.433
     - _Reveal: 1
-    - _RevealSoftness: 0.1054
-    - _StarDensity: 46.2
-    - _StarStrength: 2.65
-    - _Stencil: 0
-    - _StencilComp: 8
-    - _StencilOp: 0
-    - _StencilReadMask: 255
-    - _StencilWriteMask: 255
-    - _UseUIAlphaClip: 0
+    - _RevealSoftness: 0.195
+    - _ScrollSpeed: -5
+    - _TopFade: 0.217
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _GlowColorA: {r: 0.05, g: 0.85, b: 1, a: 1}
-    - _GlowColorB: {r: 0.75, g: 0.2, b: 1, a: 1}
-    - _RevealCenter: {r: 0.49, g: 1.16, b: 0, a: 0}
+    - _BeamColor: {r: 0.35, g: 0.8, b: 1, a: 1}
+    - _GlowColor: {r: 0.81687105, g: 0.9150943, b: 0.11654504, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!224 &684697304 stripped
@@ -10662,6 +10667,40 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!21 &996843790
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Custom_Particles_Signal_Opacity (Runtime)
+  m_Shader: {fileID: 4800000, guid: fe22fe6d1fd5a448db3be3b362574faf, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: efdd172ac115c40969b3f79ce7916df9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Opacity: 1
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1017484769
 GameObject:
   m_ObjectHideFlags: 0
@@ -10903,7 +10942,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 4
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 1868489296}
+  - {fileID: 674126196}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -11331,40 +11370,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1268349367}
   m_CullTransparentMesh: 1
---- !u!21 &1279192423
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_Particles_Zzz_Opacity (Runtime)
-  m_Shader: {fileID: 4800000, guid: fe22fe6d1fd5a448db3be3b362574faf, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 9aaf1a3b0d94a4e65b81c957f6dd1b63, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _Opacity: 1
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &1284921842
 GameObject:
   m_ObjectHideFlags: 0
@@ -12178,55 +12183,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!21 &1416284882
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: star_generic (Runtime)
-  m_Shader: {fileID: 4800000, guid: fe22fe6d1fd5a448db3be3b362574faf, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _AlphaTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MainTex:
-        m_Texture: {fileID: 2800000, guid: ae82a58d3a28b4848b508219177a643a, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MaskTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: ae82a58d3a28b4848b508219177a643a, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _EnableExternalAlpha: 0
-    - _Opacity: 0
-    - _ZWrite: 0
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &1461579410
 GameObject:
   m_ObjectHideFlags: 0
@@ -13217,6 +13173,59 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!21 &1604263541
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Custom_UI_SpaceBackgroundReveal (Runtime)
+  m_Shader: {fileID: 4800000, guid: 4c541123a9631488c98912071c1d7ac7, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _ColorMask: 15
+    - _EndGlowFadeStart: 0.82
+    - _GlowStrength: 1.7
+    - _GlowWidth: 0.1132
+    - _NoiseScale: 7
+    - _NoiseSpeed: 0.15
+    - _NoiseStrength: 0.0615
+    - _Reveal: 1
+    - _RevealSoftness: 0.1054
+    - _StarDensity: 46.2
+    - _StarStrength: 2.65
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
+    - _StencilWriteMask: 255
+    - _UseUIAlphaClip: 0
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _GlowColorA: {r: 0.05, g: 0.85, b: 1, a: 1}
+    - _GlowColorB: {r: 0.75, g: 0.2, b: 1, a: 1}
+    - _RevealCenter: {r: 0.49, g: 1.16, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1638238183
 GameObject:
   m_ObjectHideFlags: 0
@@ -13365,7 +13374,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 1966498982}
+  - {fileID: 484177850}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -14434,54 +14443,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d96878e2164134ace969fcd75464fd87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DebugSaveWiper
---- !u!21 &1868489296
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: VFX_LightBeam_Volumetric2D (Beam Runtime)
-  m_Shader: {fileID: 4800000, guid: dffa2b9984ad84b928e073fba83f37c5, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _BandFrequency: 17.9
-    - _BandStrength: 0.15
-    - _BottomFade: 0.791
-    - _CoreIntensity: 3.8
-    - _CoreWidth: 0.371
-    - _EdgeWidth: 0.081
-    - _FlickerAmount: 0
-    - _FlickerSpeed: 37
-    - _GlowIntensity: 1.58
-    - _Opacity: 0.433
-    - _Reveal: 1
-    - _RevealSoftness: 0.195
-    - _ScrollSpeed: -5
-    - _TopFade: 0.217
-    m_Colors:
-    - _BeamColor: {r: 0.35, g: 0.8, b: 1, a: 1}
-    - _GlowColor: {r: 0.81687105, g: 0.9150943, b: 0.11654504, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!114 &1868599675 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2530840424513077759, guid: 09309b358a6cd4dcaa32893e4704d9e5, type: 3}
@@ -15290,57 +15251,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!21 &1966498982
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_SpaceshipSkinReveal (Runtime)
-  m_Shader: {fileID: 4800000, guid: 5e291bf0d7a7e4e24a31ecb0d628375a, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _NextTex:
-        m_Texture: {fileID: 2800000, guid: 547c418003ba74e40a061552cae4bdf7, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _Blend: 0
-    - _EdgeGlow: 0.21
-    - _EdgeWidth: 0.115
-    - _NoiseScale: 10
-    - _NoiseStrength: 0.222
-    - _RevealGlowStrength: 2.01
-    - _RevealWidth: 0.134
-    - _SpriteEdgeStrength: 0.95
-    - _SpriteEdgeWidth: 0.5
-    - _StarDensity: 25.7
-    - _StarIntensity: 1.27
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _GlowColorA: {r: 0.7075472, g: 0.6655204, b: 0.13683695, a: 1}
-    - _GlowColorB: {r: 0.14655013, g: 0.49056602, b: 0.039337847, a: 1}
-    - _SpriteEdgeColor: {r: 0.1, g: 0.85, b: 1, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &1967584787
 GameObject:
   m_ObjectHideFlags: 0
@@ -15968,6 +15878,55 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 8725884607401309684, guid: 09309b358a6cd4dcaa32893e4704d9e5, type: 3}
   m_PrefabInstance: {fileID: 5022171856691435383}
   m_PrefabAsset: {fileID: 0}
+--- !u!21 &2018504602
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: star_generic (Runtime)
+  m_Shader: {fileID: 4800000, guid: fe22fe6d1fd5a448db3be3b362574faf, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AlphaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: ae82a58d3a28b4848b508219177a643a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 2800000, guid: ae82a58d3a28b4848b508219177a643a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _EnableExternalAlpha: 0
+    - _Opacity: 0
+    - _ZWrite: 0
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &2033431658
 GameObject:
   m_ObjectHideFlags: 0
@@ -16190,6 +16149,51 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!21 &2062577904
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Custom_HeartLightSweep(Clone)
+  m_Shader: {fileID: 4800000, guid: f1307ee747de34225987b2c63e3cf97c, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Angle: 23
+    - _EdgeGlowIntensity: 1.21
+    - _EdgeInnerBoost: 1.56
+    - _EdgeThickness: 1.95
+    - _GlowIntensity: 0.67
+    - _OuterEdgeAmount: 0.573
+    - _Sweep: 0
+    - _Sweep01: 0
+    - _SweepIntensity: 0.07
+    - _SweepWidth: 0.431
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _EdgeGlowColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SweepColor: {r: 0.8584906, g: 0.8081169, b: 0.5547793, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &2077322616
 GameObject:
   m_ObjectHideFlags: 0
@@ -17328,9 +17332,33 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1835436448}
     m_Modifications:
+    - target: {fileID: 141187445553567548, guid: 7e1f28c2091eb4ebe9d67603a6d4c2bf, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 320
+      objectReference: {fileID: 0}
+    - target: {fileID: 141187445553567548, guid: 7e1f28c2091eb4ebe9d67603a6d4c2bf, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 320
+      objectReference: {fileID: 0}
     - target: {fileID: 267403286643574925, guid: 7e1f28c2091eb4ebe9d67603a6d4c2bf, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 1133275567529045675, guid: 7e1f28c2091eb4ebe9d67603a6d4c2bf, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1133275567529045675, guid: 7e1f28c2091eb4ebe9d67603a6d4c2bf, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1133275567529045675, guid: 7e1f28c2091eb4ebe9d67603a6d4c2bf, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 160
+      objectReference: {fileID: 0}
+    - target: {fileID: 1133275567529045675, guid: 7e1f28c2091eb4ebe9d67603a6d4c2bf, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -160
       objectReference: {fileID: 0}
     - target: {fileID: 1441128231440092801, guid: 7e1f28c2091eb4ebe9d67603a6d4c2bf, type: 3}
       propertyPath: m_Pivot.x
@@ -17420,13 +17448,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: Popup_Tutorial_Intro
       objectReference: {fileID: 0}
+    - target: {fileID: 2958063712080676706, guid: 7e1f28c2091eb4ebe9d67603a6d4c2bf, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3625908904371004287, guid: 7e1f28c2091eb4ebe9d67603a6d4c2bf, type: 3}
       propertyPath: m_Material
       value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 3670966183130018762, guid: 7e1f28c2091eb4ebe9d67603a6d4c2bf, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 146.04
       objectReference: {fileID: 0}
     - target: {fileID: 4494102733618131088, guid: 7e1f28c2091eb4ebe9d67603a6d4c2bf, type: 3}
       propertyPath: m_Material

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TMPWordScaleAnimator : MonoBehaviour
 {
@@ -22,13 +23,6 @@ public class TMPWordScaleAnimator : MonoBehaviour
     // ============================================================
     // PUBLIC API
     // ============================================================
-
-    public void Play()
-    {
-        PlayIndex(
-            defaultAnimationIndex
-        );
-    }
 
     public void PlayIndex(int index)
     {
@@ -80,26 +74,6 @@ public class TMPWordScaleAnimator : MonoBehaviour
     }
 
     public void Play(
-        TutorialDialogueData.Entry entry)
-    {
-        if (!TryGetAnimation(
-                defaultAnimationIndex,
-                out TMPTextAnimationConfig config))
-        {
-            return;
-        }
-
-        ApplyDialogueEntry(
-            config,
-            entry
-        );
-
-        StartAnimation(
-            config
-        );
-    }
-
-    public void Play(
         string animationId,
         TutorialDialogueData.Entry entry)
     {
@@ -108,18 +82,178 @@ public class TMPWordScaleAnimator : MonoBehaviour
                 animationId
             );
 
-        if (config == null ||
-            entry == null)
+        if (config == null)
         {
+            Debug.LogWarning(
+                $"[TMPWordScaleAnimator] " +
+                $"Animation ID '{animationId}' was not found."
+            );
+
             return;
         }
+
+        if (entry == null)
+        {
+            Debug.LogWarning(
+                $"[TMPWordScaleAnimator] " +
+                $"Dialogue entry '{animationId}' is null."
+            );
+
+            return;
+        }
+
+        StopAnimation(
+            config
+        );
+
+        Coroutine routine =
+            StartCoroutine(
+                PlayDialogueRoutine(
+                    config,
+                    entry
+                )
+            );
+
+        runningAnimations[
+            config
+        ] = routine;
+    }
+
+    private IEnumerator PlayDialogueRoutine(
+        TMPTextAnimationConfig config,
+        TutorialDialogueData.Entry entry)
+    {
+        TextMeshProUGUI text =
+            config.text;
+
+        if (text == null)
+            yield break;
+
+        // --------------------------------
+        // CLEAR OLD TEXT
+        // --------------------------------
+
+        text.text =
+            string.Empty;
+
+        text.ForceMeshUpdate(
+            true,
+            true
+        );
+
+        // --------------------------------
+        // LOAD NEW DATABASE TEXT
+        // --------------------------------
 
         ApplyDialogueEntry(
             config,
             entry
         );
 
-        StartAnimation(
+        // --------------------------------
+        // BUILD FINAL LAYOUT
+        // --------------------------------
+
+        RefreshLayout(
+            config
+        );
+
+        text.ForceMeshUpdate(
+            true,
+            true
+        );
+
+        TMP_TextInfo textInfo =
+            text.textInfo;
+
+        Vector3[][] originalVertices =
+            TMPTextMeshUtility.CopyVertices(
+                textInfo
+            );
+
+        Color32[][] originalColors =
+            TMPTextMeshUtility.CopyColors(
+                textInfo
+            );
+
+        int elementCount =
+            TMPTextMeshUtility.GetElementCount(
+                config.revealMode,
+                textInfo
+            );
+
+        if (elementCount <= 0)
+        {
+            FinishAnimation(
+                config
+            );
+
+            yield break;
+        }
+
+        // ============================================================
+        // IMPORTANT:
+        // HIDE EVERY WORD BEFORE THE FIRST FRAME CAN RENDER
+        // ============================================================
+
+        HideElements(
+            config,
+            textInfo,
+            originalVertices,
+            originalColors,
+            elementCount
+        );
+
+        // Nothing has yielded yet.
+        //
+        // At this exact point:
+        // Word 0 = Start Scale / Start Opacity
+        // Word 1 = Start Scale / Start Opacity
+        // Word 2 = Start Scale / Start Opacity
+        // ...
+        //
+        // So the full sentence must NOT be visible.
+
+        // --------------------------------
+        // START DELAY
+        // --------------------------------
+
+        if (config.startDelay > 0f)
+        {
+            yield return
+                new WaitForSecondsRealtime(
+                    config.startDelay
+                );
+        }
+
+        // --------------------------------
+        // REVEAL ONE WORD AT A TIME
+        // --------------------------------
+
+        for (int i = 0;
+             i < elementCount;
+             i++)
+        {
+            yield return
+                AnimateElement(
+                    config,
+                    textInfo,
+                    originalVertices,
+                    originalColors,
+                    i
+                );
+
+            if (config.delayBetweenElements > 0f &&
+                i < elementCount - 1)
+            {
+                yield return
+                    new WaitForSecondsRealtime(
+                        config.delayBetweenElements
+                    );
+            }
+        }
+
+        FinishAnimation(
             config
         );
     }
@@ -157,6 +291,10 @@ public class TMPWordScaleAnimator : MonoBehaviour
             return;
 
         StopAnimation(
+            config
+        );
+
+        RefreshLayout(
             config
         );
 
@@ -423,13 +561,47 @@ public class TMPWordScaleAnimator : MonoBehaviour
             return;
         }
 
-        config.text.text =
-            entry.message;
-
         config.text.color =
             entry.textColor;
 
         config.text.richText =
-            entry.allowRichText;
+            entry.UsesRichText();
+
+        config.text.text =
+            entry.GetFormattedMessage();
+    }
+
+    private static void RefreshLayout(
+    TMPTextAnimationConfig config)
+    {
+        if (config == null ||
+            config.text == null ||
+            !config.refreshLayoutBeforePlay)
+        {
+            return;
+        }
+
+        // Update TMP using the newly assigned text.
+        config.text.ForceMeshUpdate();
+
+        // Let Unity process pending UI layout changes.
+        Canvas.ForceUpdateCanvases();
+
+        RectTransform layoutRoot =
+            config.layoutRoot != null
+                ? config.layoutRoot
+                : config.text.rectTransform;
+
+        LayoutRebuilder
+            .ForceRebuildLayoutImmediate(
+                layoutRoot
+            );
+
+        Canvas.ForceUpdateCanvases();
+
+        // Important:
+        // rebuild TMP again AFTER the layout changed,
+        // because the text geometry may now wrap differently.
+        config.text.ForceMeshUpdate();
     }
 }
