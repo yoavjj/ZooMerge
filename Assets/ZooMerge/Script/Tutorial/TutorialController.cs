@@ -1,9 +1,26 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 [DefaultExecutionOrder(-1000)]
 public class TutorialController : MonoBehaviour
 {
+    [Serializable]
+    private class TutorialDialogueStep
+    {
+        [Tooltip(
+            "ID inside TutorialDialogueData."
+        )]
+        public string dialogueId;
+
+        [Min(0f)]
+        [Tooltip(
+            "Delay before showing this dialogue."
+        )]
+        public float delayBefore;
+    }
+
     public static bool IsActive { get; private set; }
     public static bool TutorialEnemyEnabled { get; private set; }
     public static event System.Action<bool> TutorialStateChanged;   
@@ -24,6 +41,10 @@ public class TutorialController : MonoBehaviour
 
     private TutorialIntroPopup tutorialIntroInstance;
 
+    private bool waitingForFirstDropPress;
+
+    private Coroutine dialogueSequenceRoutine;
+
     [Header("Tutorial Dialogue")]
     [SerializeField]
     private TutorialDialogueView dialogueView;
@@ -31,9 +52,10 @@ public class TutorialController : MonoBehaviour
     [SerializeField]
     private TutorialDialogueData dialogueDatabase;
 
+    [Header("Tutorial Dialogue Sequence")]
     [SerializeField]
-    private string firstDropDialogueId =
-        "First_Drop";
+    private List<TutorialDialogueStep>
+        dialogueSequence = new();
 
     [Header("Tutorial Hints")]
     [SerializeField]
@@ -183,9 +205,10 @@ public class TutorialController : MonoBehaviour
         // FIRST TUTORIAL INSTRUCTION
         // --------------------------------
 
-        StartCoroutine(
-            PlayFirstDropInstruction()
-        );
+        dialogueSequenceRoutine =
+            StartCoroutine(
+                PlayTutorialDialogueSequence()
+            );
 
         // --------------------------------
         // SPAWN TUTORIAL ENEMY
@@ -287,31 +310,144 @@ public class TutorialController : MonoBehaviour
         );
     }
 
-    private IEnumerator PlayFirstDropInstruction()
+    private IEnumerator PlayTutorialDialogueSequence()
     {
-        // --------------------------------
-        // DIALOGUE
-        // --------------------------------
-
-        if (dialogueView != null &&
-            dialogueDatabase != null)
+        if (dialogueSequence == null ||
+            dialogueSequence.Count == 0)
         {
-            yield return StartCoroutine(
-                dialogueView.Show(
-                    dialogueDatabase,
-                    firstDropDialogueId
-                )
-            );
+            dialogueSequenceRoutine = null;
+            yield break;
         }
 
-        // --------------------------------
-        // FINGER
-        // --------------------------------
+        for (int i = 0;
+             i < dialogueSequence.Count;
+             i++)
+        {
+            TutorialDialogueStep step =
+                dialogueSequence[i];
 
-        firstDropFingerHint?.Play(
-            CircleDragInput.Instance,
-            firstDropFingerArtIndex
-        );
+            if (step == null ||
+                string.IsNullOrEmpty(
+                    step.dialogueId))
+            {
+                continue;
+            }
+
+            // ========================================================
+            // DELAY BEFORE THIS DIALOGUE
+            // ========================================================
+
+            if (step.delayBefore > 0f)
+            {
+                yield return
+                    new WaitForSecondsRealtime(
+                        step.delayBefore
+                    );
+            }
+
+            // ========================================================
+            // SHOW DIALOGUE
+            // ========================================================
+
+            PlayTutorialDialogue(
+                step.dialogueId
+            );
+
+            // Give DialogueView one frame to activate
+            // and prepare its UI.
+            yield return null;
+
+            // ========================================================
+            // FIRST DIALOGUE SPECIAL BEHAVIOUR
+            // ========================================================
+
+            if (i == 0)
+            {
+                firstDropFingerHint?.Play(
+                    CircleDragInput.Instance,
+                    firstDropFingerArtIndex
+                );
+
+                StartWaitingForFirstDropPress();
+            }
+
+            // ========================================================
+            // WAIT UNTIL DIALOGUE IS FULLY GONE
+            // ========================================================
+
+            if (dialogueView != null)
+            {
+                yield return
+                    new WaitUntil(
+                        () =>
+                            !dialogueView.IsVisible
+                    );
+            }
+
+            // ========================================================
+            // FIRST STEP ALSO WAITS FOR FINGER
+            // ========================================================
+
+            if (i == 0 &&
+                firstDropFingerHint != null)
+            {
+                yield return
+                    new WaitUntil(
+                        () =>
+                            !firstDropFingerHint.IsVisible
+                    );
+            }
+        }
+
+        dialogueSequenceRoutine = null;
+    }
+
+    private void StartWaitingForFirstDropPress()
+    {
+        if (waitingForFirstDropPress)
+            return;
+
+        if (CircleDragInput.Instance == null)
+            return;
+
+        waitingForFirstDropPress =
+            true;
+
+        CircleDragInput.Instance.ValidPointerDown +=
+            HandleFirstDropPointerDown;
+    }
+
+    private void StopWaitingForFirstDropPress()
+    {
+        if (!waitingForFirstDropPress)
+            return;
+
+        waitingForFirstDropPress =
+            false;
+
+        if (CircleDragInput.Instance != null)
+        {
+            CircleDragInput.Instance.ValidPointerDown -=
+                HandleFirstDropPointerDown;
+        }
+    }
+
+    private void HandleFirstDropPointerDown()
+    {
+        if (!waitingForFirstDropPress)
+            return;
+
+        // Only react once.
+        StopWaitingForFirstDropPress();
+
+        // Dialogue plays its Out animation.
+        dialogueView?.Hide();
+
+        // Do NOT hide the finger here.
+        //
+        // TutorialFingerHint is already subscribed
+        // to CircleDragInput.ValidPointerDown and
+        // automatically runs HideRoutine().
     }
 
     private IEnumerator EnableInputNextFrame()
@@ -325,6 +461,17 @@ public class TutorialController : MonoBehaviour
     {
         if (!IsActive)
             return;
+
+        StopWaitingForFirstDropPress();
+
+        if (dialogueSequenceRoutine != null)
+        {
+            StopCoroutine(
+                dialogueSequenceRoutine
+            );
+
+            dialogueSequenceRoutine = null;
+        }
 
         if (tutorialIntroInstance != null)
         {
@@ -358,5 +505,69 @@ public class TutorialController : MonoBehaviour
         TutorialStateChanged?.Invoke(
             active
         );
-    }   
+    }
+
+    // ============================================================
+    // TUTORIAL DIALOGUE
+    // ============================================================
+
+    public void PlayTutorialDialogue(
+        string dialogueId)
+    {
+        PlayTutorialDialogue(
+            dialogueId,
+            0f
+        );
+    }
+
+    private void PlayTutorialDialogue(
+        string dialogueId,
+        float delay)
+    {
+        if (dialogueView == null)
+        {
+            Debug.LogWarning(
+                "[TutorialController] " +
+                "TutorialDialogueView is missing."
+            );
+
+            return;
+        }
+
+        if (dialogueDatabase == null)
+        {
+            Debug.LogWarning(
+                "[TutorialController] " +
+                "TutorialDialogueData is missing."
+            );
+
+            return;
+        }
+
+        if (string.IsNullOrEmpty(
+                dialogueId))
+        {
+            return;
+        }
+
+        dialogueView.Play(
+            dialogueDatabase,
+            dialogueId,
+            delay
+        );
+    }
+
+    private void OnDisable()
+    {
+        StopWaitingForFirstDropPress();
+
+        if (dialogueSequenceRoutine != null)
+        {
+            StopCoroutine(
+                dialogueSequenceRoutine
+            );
+
+            dialogueSequenceRoutine = null;
+        }
+    }
 }

@@ -60,6 +60,10 @@ public class TutorialFingerHint : MonoBehaviour
 
     private bool isShowing;
 
+    public bool IsVisible =>
+    fingerRoot != null &&
+    fingerRoot.gameObject.activeSelf;
+
     private void Awake()
     {
         if (fingerRoot == null)

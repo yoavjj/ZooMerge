@@ -253,8 +253,7 @@ public class TutorialIntroPopup : MonoBehaviour
         Finished?.Invoke();
 
         Destroy(
-            gameObject
-        );
+            gameObject, 0.25f);
     }
 
     public void AE_PlayDialogue(

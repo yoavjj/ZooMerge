@@ -18,21 +18,35 @@ MonoBehaviour:
     textColor: {r: 0.7411765, g: 0.90588236, b: 0.99607843, a: 1}
     allowRichText: 0
     highlights: []
+    useAnimatedText: 0
+    autoHide: 0
+    autoHideDelay: 1.5
     useDialoguePosition: 0
     dialogueAnchoredPosition: {x: 233, y: 285}
+    useCrownPosition: 1
+    crownAnchoredPosition: {x: 0, y: 0}
     useTip: 0
+    tipUp: 0
     tipAnchoredPosition: {x: -70.5, y: 31}
     tipRotation: 0
+    tipScaleX: 1
   - id: OpeningTutorial_Text_2
     message: DONT WORRY THIS TUTORIAL IS VERY SHORT...
     textColor: {r: 0.7411765, g: 0.90588236, b: 0.99607843, a: 1}
     allowRichText: 0
     highlights: []
+    useAnimatedText: 0
+    autoHide: 0
+    autoHideDelay: 1.5
     useDialoguePosition: 0
     dialogueAnchoredPosition: {x: 233, y: 285}
+    useCrownPosition: 1
+    crownAnchoredPosition: {x: 0, y: 0}
     useTip: 0
+    tipUp: 0
     tipAnchoredPosition: {x: -70.5, y: 31}
     tipRotation: 0
+    tipScaleX: 1
   - id: OpeningTutorial_Text_3
     message: "Hey, a faint green glow up ahead\u2026\nLet\u2019s take a closer look!"
     textColor: {r: 0.05490196, g: 0.20392157, b: 0.52156866, a: 1}
@@ -40,11 +54,18 @@ MonoBehaviour:
     highlights:
     - text: green glow
       color: {r: 0.22745098, g: 0.7058824, b: 0.14117648, a: 1}
+    useAnimatedText: 0
+    autoHide: 0
+    autoHideDelay: 1.5
     useDialoguePosition: 0
     dialogueAnchoredPosition: {x: 233, y: 285}
+    useCrownPosition: 1
+    crownAnchoredPosition: {x: 0, y: 0}
     useTip: 0
+    tipUp: 0
     tipAnchoredPosition: {x: -70.5, y: 31}
     tipRotation: 0
+    tipScaleX: 1
   - id: OpeningTutorial_Text_4
     message: "Wait\u2026 an olive signal? \nSomeone\u2019s still out there!"
     textColor: {r: 0.05490196, g: 0.20392157, b: 0.52156866, a: 1}
@@ -52,8 +73,51 @@ MonoBehaviour:
     highlights:
     - text: olive signal
       color: {r: 0.22745098, g: 0.7058824, b: 0.14117648, a: 1}
+    useAnimatedText: 0
+    autoHide: 0
+    autoHideDelay: 1.5
     useDialoguePosition: 0
     dialogueAnchoredPosition: {x: 233, y: 285}
+    useCrownPosition: 1
+    crownAnchoredPosition: {x: 0, y: 0}
     useTip: 0
+    tipUp: 0
     tipAnchoredPosition: {x: -70.5, y: 31}
     tipRotation: 0
+    tipScaleX: 1
+  - id: Tutorial_Text_5
+    message: "Pick a spot. \nTap where you want \nthe egg to land."
+    textColor: {r: 0.05490196, g: 0.20392157, b: 0.52156866, a: 1}
+    allowRichText: 1
+    highlights: []
+    useAnimatedText: 0
+    autoHide: 0
+    autoHideDelay: 3
+    useDialoguePosition: 1
+    dialogueAnchoredPosition: {x: -190, y: -465}
+    useCrownPosition: 1
+    crownAnchoredPosition: {x: -265, y: -750}
+    useTip: 1
+    tipUp: 0
+    tipAnchoredPosition: {x: -70, y: 30}
+    tipRotation: 0
+    tipScaleX: 1
+  - id: Tutorial_Text_6
+    message: "Nice shot! \nNow Match the two eggs.\nMake a stronger ally"
+    textColor: {r: 0.05490196, g: 0.20392157, b: 0.52156866, a: 1}
+    allowRichText: 1
+    highlights:
+    - text: two eggs
+      color: {r: 0.8784314, g: 0.5921569, b: 0.12156863, a: 1}
+    useAnimatedText: 0
+    autoHide: 0
+    autoHideDelay: 3
+    useDialoguePosition: 1
+    dialogueAnchoredPosition: {x: -354, y: -465}
+    useCrownPosition: 1
+    crownAnchoredPosition: {x: -304, y: -48}
+    useTip: 1
+    tipUp: 1
+    tipAnchoredPosition: {x: 31, y: 398.6}
+    tipRotation: 0
+    tipScaleX: -1

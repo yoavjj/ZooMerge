@@ -4,25 +4,19 @@ using UnityEngine.UI;
 [ExecuteAlways]
 public class SpaceBackgroundRevealAnimator : MonoBehaviour
 {
-    [Header("Target")]
-    [SerializeField] private Image targetImage;
+    // ============================================================
+    // SPACE BACKGROUND
+    // ============================================================
 
-    [Header("Material")]
-    [SerializeField] private Material sourceMaterial;
-
-    [Header("Star Particles")]
-    [SerializeField] private ParticleSystemRenderer starParticleRenderer;
-    [SerializeField] private Material starParticleSourceMaterial;
-
+    [Header("Space Background Target")]
     [SerializeField]
-    private string starOpacityProperty =
-        "_Opacity";
+    private Image targetImage;
 
-    [Header("Star Opacity - Keyframe This")]
-    [Range(0f, 1f)]
-    [SerializeField] private float starOpacity;
+    [Header("Space Background Material")]
+    [SerializeField]
+    private Material sourceMaterial;
 
-    [Header("Shader")]
+    [Header("Space Background Shader")]
     [SerializeField]
     private string revealProperty =
         "_Reveal";
@@ -31,11 +25,12 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
     private string centerProperty =
         "_RevealCenter";
 
-    [Header("Animated Value - Keyframe This")]
+    [Header("Space Reveal - Keyframe This")]
     [Range(0f, 1f)]
-    [SerializeField] private float reveal;
+    [SerializeField]
+    private float reveal;
 
-    [Header("Reveal Origin")]
+    [Header("Space Reveal Origin")]
     [SerializeField]
     private Vector2 revealCenter =
         new Vector2(
@@ -43,11 +38,72 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
             0.5f
         );
 
+    // ============================================================
+    // TRANSITION REVEAL
+    // ============================================================
+
+    [Header("Transition Target")]
+    [SerializeField]
+    private Image transitionImage;
+
+    [Header("Transition Material")]
+    [SerializeField]
+    private Material transitionSourceMaterial;
+
+    [Header("Transition Shader")]
+    [SerializeField]
+    private string transitionRevealInProperty =
+        "_Reveal";
+
+    [SerializeField]
+    private string transitionRevealOutProperty =
+        "_OutReveal";
+
+    [Header("Transition Reveal In - Keyframe This")]
+    [Range(0f, 1f)]
+    [SerializeField]
+    private float transitionRevealIn;
+
+    [Header("Transition Reveal Out - Keyframe This")]
+    [Range(0f, 1f)]
+    [SerializeField]
+    private float transitionRevealOut;
+
+    // ============================================================
+    // STAR PARTICLES
+    // ============================================================
+
+    [Header("Star Particles")]
+    [SerializeField]
+    private ParticleSystemRenderer starParticleRenderer;
+
+    [SerializeField]
+    private Material starParticleSourceMaterial;
+
+    [SerializeField]
+    private string starOpacityProperty =
+        "_Opacity";
+
+    [Header("Star Opacity - Keyframe This")]
+    [Range(0f, 1f)]
+    [SerializeField]
+    private float starOpacity;
+
+    // ============================================================
+    // ANIMATOR
+    // ============================================================
+
     [Header("Animator")]
-    [SerializeField] private Animator animator;
+    [SerializeField]
+    private Animator animator;
+
     [SerializeField]
     private string revealTrigger =
         "Reveal";
+
+    // ============================================================
+    // TUTORIAL TEXT
+    // ============================================================
 
     [Header("Tutorial Opening Text")]
     [SerializeField]
@@ -56,14 +112,22 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
     [SerializeField]
     private TMPWordScaleAnimator wordScaleAnimator;
 
+    // ============================================================
+    // RUNTIME MATERIALS
+    // ============================================================
 
     private Material runtimeMaterial;
-
+    private Material runtimeTransitionMaterial;
     private Material runtimeStarMaterial;
+
+    // ============================================================
+    // UNITY
+    // ============================================================
 
     private void OnEnable()
     {
         EnsureMaterialInstance();
+        EnsureTransitionMaterialInstance();
         EnsureStarMaterialInstance();
 
         Apply();
@@ -72,6 +136,7 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
     private void OnValidate()
     {
         EnsureMaterialInstance();
+        EnsureTransitionMaterialInstance();
         EnsureStarMaterialInstance();
 
         Apply();
@@ -80,7 +145,9 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
     private void Update()
     {
         if (!Application.isPlaying)
+        {
             Apply();
+        }
     }
 
     private void OnDidApplyAnimationProperties()
@@ -91,8 +158,133 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
     private void OnDisable()
     {
         DisposeRuntimeMaterial();
+        DisposeRuntimeTransitionMaterial();
         DisposeRuntimeStarMaterial();
     }
+
+    // ============================================================
+    // SPACE BACKGROUND MATERIAL
+    // ============================================================
+
+    private void EnsureMaterialInstance()
+    {
+        if (targetImage == null)
+            return;
+
+        Material baseMaterial =
+            sourceMaterial != null
+                ? sourceMaterial
+                : targetImage.material;
+
+        if (baseMaterial == null)
+            return;
+
+        if (runtimeMaterial != null &&
+            targetImage.material ==
+            runtimeMaterial)
+        {
+            return;
+        }
+
+        DisposeRuntimeMaterial();
+
+        runtimeMaterial =
+            Instantiate(
+                baseMaterial
+            );
+
+        runtimeMaterial.name =
+            baseMaterial.name +
+            " (Runtime)";
+
+        targetImage.material =
+            runtimeMaterial;
+    }
+
+    private void DisposeRuntimeMaterial()
+    {
+        if (runtimeMaterial == null)
+            return;
+
+        if (Application.isPlaying)
+        {
+            Destroy(
+                runtimeMaterial
+            );
+        }
+        else
+        {
+            DestroyImmediate(
+                runtimeMaterial
+            );
+        }
+
+        runtimeMaterial = null;
+    }
+
+    // ============================================================
+    // TRANSITION MATERIAL
+    // ============================================================
+
+    private void EnsureTransitionMaterialInstance()
+    {
+        if (transitionImage == null)
+            return;
+
+        Material baseMaterial =
+            transitionSourceMaterial != null
+                ? transitionSourceMaterial
+                : transitionImage.material;
+
+        if (baseMaterial == null)
+            return;
+
+        if (runtimeTransitionMaterial != null &&
+            transitionImage.material ==
+            runtimeTransitionMaterial)
+        {
+            return;
+        }
+
+        DisposeRuntimeTransitionMaterial();
+
+        runtimeTransitionMaterial =
+            Instantiate(
+                baseMaterial
+            );
+
+        runtimeTransitionMaterial.name =
+            baseMaterial.name +
+            " (Runtime)";
+
+        transitionImage.material =
+            runtimeTransitionMaterial;
+    }
+
+    private void DisposeRuntimeTransitionMaterial()
+    {
+        if (runtimeTransitionMaterial == null)
+            return;
+
+        if (Application.isPlaying)
+        {
+            Destroy(
+                runtimeTransitionMaterial
+            );
+        }
+        else
+        {
+            DestroyImmediate(
+                runtimeTransitionMaterial
+            );
+        }
+
+        runtimeTransitionMaterial = null;
+    }
+
+    // ============================================================
+    // STAR MATERIAL
+    // ============================================================
 
     private void EnsureStarMaterialInstance()
     {
@@ -150,43 +342,16 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
         runtimeStarMaterial = null;
     }
 
-    private void EnsureMaterialInstance()
-    {
-        if (targetImage == null)
-            return;
-
-        Material baseMaterial =
-            sourceMaterial != null
-                ? sourceMaterial
-                : targetImage.material;
-
-        if (baseMaterial == null)
-            return;
-
-        if (runtimeMaterial != null &&
-            targetImage.material ==
-            runtimeMaterial)
-        {
-            return;
-        }
-
-        DisposeRuntimeMaterial();
-
-        runtimeMaterial =
-            Instantiate(
-                baseMaterial
-            );
-
-        runtimeMaterial.name =
-            baseMaterial.name +
-            " (Runtime)";
-
-        targetImage.material =
-            runtimeMaterial;
-    }
+    // ============================================================
+    // APPLY
+    // ============================================================
 
     private void Apply()
     {
+        // --------------------------------
+        // SPACE BACKGROUND
+        // --------------------------------
+
         if (runtimeMaterial != null)
         {
             if (runtimeMaterial.HasProperty(
@@ -213,6 +378,35 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
             }
         }
 
+        // --------------------------------
+        // TRANSITION
+        // --------------------------------
+
+        if (runtimeTransitionMaterial != null)
+        {
+            if (runtimeTransitionMaterial.HasProperty(
+                    transitionRevealInProperty))
+            {
+                runtimeTransitionMaterial.SetFloat(
+                    transitionRevealInProperty,
+                    transitionRevealIn
+                );
+            }
+
+            if (runtimeTransitionMaterial.HasProperty(
+                    transitionRevealOutProperty))
+            {
+                runtimeTransitionMaterial.SetFloat(
+                    transitionRevealOutProperty,
+                    transitionRevealOut
+                );
+            }
+        }
+
+        // --------------------------------
+        // STARS
+        // --------------------------------
+
         if (runtimeStarMaterial != null &&
             runtimeStarMaterial.HasProperty(
                 starOpacityProperty))
@@ -224,7 +418,12 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
         }
     }
 
-    public void SetReveal(float value)
+    // ============================================================
+    // SPACE BACKGROUND API
+    // ============================================================
+
+    public void SetReveal(
+        float value)
     {
         reveal =
             Mathf.Clamp01(
@@ -235,7 +434,49 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
         Apply();
     }
 
-    public void SetStarOpacity(float value)
+    // ============================================================
+    // TRANSITION API
+    // ============================================================
+
+    public void SetTransitionRevealIn(
+        float value)
+    {
+        transitionRevealIn =
+            Mathf.Clamp01(
+                value
+            );
+
+        EnsureTransitionMaterialInstance();
+        Apply();
+    }
+
+    public void SetTransitionRevealOut(
+        float value)
+    {
+        transitionRevealOut =
+            Mathf.Clamp01(
+                value
+            );
+
+        EnsureTransitionMaterialInstance();
+        Apply();
+    }
+
+    public void ResetTransition()
+    {
+        transitionRevealIn = 0f;
+        transitionRevealOut = 0f;
+
+        EnsureTransitionMaterialInstance();
+        Apply();
+    }
+
+    // ============================================================
+    // STARS
+    // ============================================================
+
+    public void SetStarOpacity(
+        float value)
     {
         starOpacity =
             Mathf.Clamp01(
@@ -245,6 +486,10 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
         EnsureStarMaterialInstance();
         Apply();
     }
+
+    // ============================================================
+    // ANIMATOR
+    // ============================================================
 
     public void PlayReveal()
     {
@@ -268,22 +513,9 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
         Apply();
     }
 
-    private void DisposeRuntimeMaterial()
-    {
-        if (runtimeMaterial == null)
-            return;
-
-        if (Application.isPlaying)
-            Destroy(
-                runtimeMaterial
-            );
-        else
-            DestroyImmediate(
-                runtimeMaterial
-            );
-
-        runtimeMaterial = null;
-    }
+    // ============================================================
+    // TUTORIAL TEXT
+    // ============================================================
 
     public void AE_PlayTutorialText(
         string id)
@@ -309,7 +541,9 @@ public class SpaceBackgroundRevealAnimator : MonoBehaviour
         }
 
         TutorialDialogueData.Entry entry =
-            dialogueDatabase.Get(id);
+            dialogueDatabase.Get(
+                id
+            );
 
         if (entry == null)
         {

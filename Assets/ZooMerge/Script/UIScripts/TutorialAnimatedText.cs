@@ -277,6 +277,39 @@ public class TutorialAnimatedText : MonoBehaviour
             );
     }
 
+    public IEnumerator PlayAndWait(
+    string id)
+    {
+        TextAnimationSettings settings =
+            GetSettings(
+                id
+            );
+
+        if (settings == null)
+        {
+            Debug.LogWarning(
+                $"[TutorialAnimatedText] " +
+                $"Animation settings '{id}' were not found."
+            );
+
+            yield break;
+        }
+
+        Play(
+            id
+        );
+
+        RuntimeState state =
+            GetRuntimeState(
+                settings
+            );
+
+        while (state.routine != null)
+        {
+            yield return null;
+        }
+    }
+
     public void Resume(
         string id)
     {
