@@ -38,15 +38,51 @@ public static class BallEventManager
 
 
     // 📌 Merge Events
-    /// <summary>Called when two balls are successfully merged.</summary>
-    public static event System.Action<BallInfo> OnBallMerged;
-    public static void RaiseBallMerged(BallInfo info) => OnBallMerged?.Invoke(info);
 
-    /// <summary>Triggered to show popup and update score when merge occurs.</summary>
-    public static event System.Action<Vector3, int, int> OnMergeScore;
-    public static void RaiseMergeScore(Vector3 position, int score, int level)
-        => OnMergeScore?.Invoke(position, score, level);
+    /// <summary>
+    /// Called when two balls are successfully merged.
+    /// Carries the newly created ball.
+    /// </summary>
+    public static event Action<BallInfo>
+        OnBallMerged;
 
+    public static void RaiseBallMerged(
+        BallInfo info)
+    {
+        OnBallMerged?.Invoke(
+            info
+        );
+    }
+
+    /// <summary>
+    /// Called whenever any merge successfully completes.
+    /// </summary>
+    public static event Action
+        OnMergeSucceeded;
+
+    public static void RaiseMergeSucceeded()
+    {
+        OnMergeSucceeded?.Invoke();
+    }
+
+    /// <summary>
+    /// Triggered to show merge score popup
+    /// and update score.
+    /// </summary>
+    public static event Action<Vector3, int, int>
+        OnMergeScore;
+
+    public static void RaiseMergeScore(
+        Vector3 position,
+        int score,
+        int level)
+    {
+        OnMergeScore?.Invoke(
+            position,
+            score,
+            level
+        );
+    }
 
     // 📌 Enemy Events
     /// <summary>Called when an enemy is hit. Carries GameObject reference.</summary>

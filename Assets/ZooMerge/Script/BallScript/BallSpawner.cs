@@ -322,11 +322,6 @@ public class BallSpawner : MonoBehaviour
         // Move the already-warmed standby into the visible preview slot.
         if (!PromoteStandbyToPreview())
         {
-            Debug.LogWarning(
-                "[BallSpawner] No warmed standby available. " +
-                "Creating fallback preview."
-            );
-
             PrepareNextPreview();
         }
 

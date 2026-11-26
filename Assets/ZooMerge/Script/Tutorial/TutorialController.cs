@@ -19,14 +19,28 @@ public class TutorialController : MonoBehaviour
             "Delay before showing this dialogue."
         )]
         public float delayBefore;
+
+        [Tooltip(
+            "Keep this dialogue visible until " +
+            "the player's first successful merge."
+        )]
+        public bool hideOnFirstMerge;
     }
 
     public static bool IsActive { get; private set; }
     public static bool TutorialEnemyEnabled { get; private set; }
-    public static event System.Action<bool> TutorialStateChanged;   
+    public static event System.Action<bool> TutorialStateChanged;
 
     [Header("Tutorial Debug")]
-    [SerializeField] private bool startTutorialOnBoot;
+    [SerializeField]
+    private bool startTutorialOnBoot;
+
+    [SerializeField]
+    [Tooltip(
+        "Debug only. Skips TutorialIntroPopup and " +
+        "starts directly at the gameplay tutorial."
+    )]
+    private bool skipTutorialIntro;
 
     [Header("Refs")]
     [SerializeField] private BallSpawner ballSpawner;
@@ -42,6 +56,7 @@ public class TutorialController : MonoBehaviour
     private TutorialIntroPopup tutorialIntroInstance;
 
     private bool waitingForFirstDropPress;
+    private bool waitingForFirstMerge;
 
     private Coroutine dialogueSequenceRoutine;
 
@@ -111,9 +126,27 @@ public class TutorialController : MonoBehaviour
 
         CircleDragInput.Instance.DisableInput();
 
-        yield return StartCoroutine(
-            PlayTutorialIntro()
-        );
+        // ============================================================
+        // OPTIONAL INTRO
+        // ============================================================
+
+        if (!skipTutorialIntro)
+        {
+            yield return StartCoroutine(
+                PlayTutorialIntro()
+            );
+        }
+        else
+        {
+            Debug.Log(
+                "[TutorialController] Tutorial intro skipped. " +
+                "Starting gameplay tutorial directly."
+            );
+        }
+
+        // ============================================================
+        // GAMEPLAY TUTORIAL
+        // ============================================================
 
         StartTutorial();
     }
@@ -227,10 +260,6 @@ public class TutorialController : MonoBehaviour
             );
         }
 
-        StartCoroutine(
-            EnableInputNextFrame()
-        );
-
         Debug.Log(
             $"[TutorialController] Tutorial started. " +
             $"Ball: {entry.type} L{entry.level}. " +
@@ -326,10 +355,25 @@ public class TutorialController : MonoBehaviour
             TutorialDialogueStep step =
                 dialogueSequence[i];
 
-            if (step == null ||
-                string.IsNullOrEmpty(
+            if (step == null)
+            {
+                Debug.LogError(
+                    $"[TutorialController] " +
+                    $"Dialogue sequence element {i} is NULL."
+                );
+
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(
                     step.dialogueId))
             {
+                Debug.LogError(
+                    $"[TutorialController] " +
+                    $"Dialogue sequence element {i} " +
+                    $"has an EMPTY dialogue ID."
+                );
+
                 continue;
             }
 
@@ -349,12 +393,39 @@ public class TutorialController : MonoBehaviour
             // SHOW DIALOGUE
             // ========================================================
 
+            // ========================================================
+            // OPTIONAL MERGE WAIT
+            // ========================================================
+
+            bool waitForMerge =
+                step.hideOnFirstMerge ||
+                step.dialogueId == "Tutorial_Text_6";
+
+            if (waitForMerge)
+            {
+                StartWaitingForFirstMerge();
+            }
+
+            // ========================================================
+            // SHOW DIALOGUE
+            // ========================================================
+
             PlayTutorialDialogue(
                 step.dialogueId
             );
 
-            // Give DialogueView one frame to activate
-            // and prepare its UI.
+            // ========================================================
+            // WAIT UNTIL DIALOGUE IS ACTUALLY VISIBLE
+            // ========================================================
+
+            if (dialogueView != null)
+            {
+                yield return new WaitUntil(
+                    () => dialogueView.IsVisible
+                );
+            }
+
+            // Give TMP/UI one extra frame to settle.
             yield return null;
 
             // ========================================================
@@ -369,6 +440,9 @@ public class TutorialController : MonoBehaviour
                 );
 
                 StartWaitingForFirstDropPress();
+
+                // Only now can the player interact.
+                CircleDragInput.Instance?.EnableInput();
             }
 
             // ========================================================
@@ -382,6 +456,11 @@ public class TutorialController : MonoBehaviour
                         () =>
                             !dialogueView.IsVisible
                     );
+            }
+
+            if (waitForMerge)
+            {
+                StopWaitingForFirstMerge();
             }
 
             // ========================================================
@@ -400,6 +479,43 @@ public class TutorialController : MonoBehaviour
         }
 
         dialogueSequenceRoutine = null;
+    }
+
+    private void StartWaitingForFirstMerge()
+    {
+        if (waitingForFirstMerge)
+            return;
+
+        waitingForFirstMerge =
+            true;
+
+        BallEventManager.OnMergeSucceeded +=
+            HandleFirstTutorialMerge;
+    }
+
+    private void StopWaitingForFirstMerge()
+    {
+        if (!waitingForFirstMerge)
+            return;
+
+        waitingForFirstMerge =
+            false;
+
+        BallEventManager.OnMergeSucceeded -=
+            HandleFirstTutorialMerge;
+    }
+
+    private void HandleFirstTutorialMerge()
+    {
+        if (!waitingForFirstMerge)
+            return;
+
+        if (!IsActive)
+            return;
+
+        StopWaitingForFirstMerge();
+
+        dialogueView?.Hide();
     }
 
     private void StartWaitingForFirstDropPress()
@@ -450,19 +566,13 @@ public class TutorialController : MonoBehaviour
         // automatically runs HideRoutine().
     }
 
-    private IEnumerator EnableInputNextFrame()
-    {
-        yield return null;
-
-        CircleDragInput.Instance?.EnableInput();
-    }
-
     public void CompleteTutorial()
     {
         if (!IsActive)
             return;
 
         StopWaitingForFirstDropPress();
+        StopWaitingForFirstMerge();
 
         if (dialogueSequenceRoutine != null)
         {
@@ -560,6 +670,7 @@ public class TutorialController : MonoBehaviour
     private void OnDisable()
     {
         StopWaitingForFirstDropPress();
+        StopWaitingForFirstMerge();
 
         if (dialogueSequenceRoutine != null)
         {

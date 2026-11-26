@@ -133,6 +133,13 @@ public class BallCollisionMerge : SfxBehaviourTirgger
         }
         else
         {
+            // ========================================================
+            // MERGE SUCCESS EVENT
+            // ========================================================
+
+            BallEventManager
+                .RaiseMergeSucceeded();
+
             PlayRandomMergeSfx();
 
             //Debug.Log($"✅ Merge succeeded: {self.name} + {other.name}");

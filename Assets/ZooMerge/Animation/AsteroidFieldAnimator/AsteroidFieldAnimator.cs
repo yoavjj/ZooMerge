@@ -58,6 +58,37 @@ public class AsteroidFieldAnimator : MonoBehaviour
         public float rotationSpeed =
             30f;
 
+        [Header("Drift")]
+        public bool useDrift;
+
+        [Tooltip(
+            "Parent/root that contains the asteroid group."
+        )]
+        public Transform driftRoot;
+
+        [Tooltip(
+            "World-space start point for the drift."
+        )]
+        public Transform driftStartPoint;
+
+        [Tooltip(
+            "World-space end point for the drift."
+        )]
+        public Transform driftEndPoint;
+
+        [Min(0.01f)]
+        [Tooltip(
+            "Movement speed in world units per second."
+        )]
+        public float driftSpeed =
+            1f;
+
+        [Tooltip(
+            "Disable the entire drift root when it reaches the end."
+        )]
+        public bool disableAtDriftEnd =
+            true;
+
         [Header("Scale Out")]
         public AnimationCurve scaleOutCurve =
             AnimationCurve.EaseInOut(
@@ -120,6 +151,11 @@ public class AsteroidFieldAnimator : MonoBehaviour
         Transform,
         Coroutine
     > scaleRoutines = new();
+
+    private readonly Dictionary<
+    Transform,
+    Coroutine
+    > driftRoutines = new();
 
     // ============================================================
     // INITIALIZATION
@@ -689,6 +725,139 @@ public class AsteroidFieldAnimator : MonoBehaviour
             StartCoroutine(
                 routine
             );
+    }
+
+    // ============================================================
+    // DRIFT GROUP
+    // ============================================================
+
+    public void DriftGroup(
+        int groupIndex)
+    {
+        if (groupIndex < 0 ||
+            groupIndex >= groups.Count)
+        {
+            Debug.LogWarning(
+                $"[AsteroidFieldAnimator] " +
+                $"Group index {groupIndex} does not exist."
+            );
+
+            return;
+        }
+
+        StartDrift(
+            groups[groupIndex]
+        );
+    }
+
+    public void DriftGroupById(
+        string groupId)
+    {
+        AsteroidGroup group =
+            GetGroup(
+                groupId
+            );
+
+        if (group == null)
+        {
+            Debug.LogWarning(
+                $"[AsteroidFieldAnimator] " +
+                $"Group '{groupId}' was not found."
+            );
+
+            return;
+        }
+
+        StartDrift(
+            group
+        );
+    }
+
+    private void StartDrift(
+        AsteroidGroup group)
+    {
+        if (group == null ||
+            !group.useDrift ||
+            group.driftRoot == null ||
+            group.driftStartPoint == null ||
+            group.driftEndPoint == null)
+        {
+            return;
+        }
+
+        Transform root =
+            group.driftRoot;
+
+        if (driftRoutines.TryGetValue(
+                root,
+                out Coroutine current) &&
+            current != null)
+        {
+            StopCoroutine(
+                current
+            );
+        }
+
+        root.gameObject.SetActive(
+            true
+        );
+
+        root.position =
+            group.driftStartPoint.position;
+
+        driftRoutines[root] =
+            StartCoroutine(
+                DriftRoutine(
+                    group
+                )
+            );
+    }
+
+    private IEnumerator DriftRoutine(
+        AsteroidGroup group)
+    {
+        Transform root =
+            group.driftRoot;
+
+        Transform target =
+            group.driftEndPoint;
+
+        if (root == null ||
+            target == null)
+        {
+            yield break;
+        }
+
+        while (
+            Vector3.Distance(
+                root.position,
+                target.position
+            ) > 0.001f)
+        {
+            root.position =
+                Vector3.MoveTowards(
+                    root.position,
+                    target.position,
+                    group.driftSpeed *
+                    Time.unscaledDeltaTime
+                );
+
+            yield return null;
+        }
+
+        root.position =
+            target.position;
+
+        driftRoutines.Remove(
+            root
+        );
+
+        if (group.disableAtDriftEnd)
+        {
+            root.gameObject.SetActive(
+                false
+            );
+        }
     }
 
     // ============================================================

@@ -120,6 +120,12 @@ public class MergeCore
             }
         }
 
+        // ============================================================
+        // MERGE SUCCESS
+        // ============================================================
+
+        BallEventManager.RaiseMergeSucceeded();
+
         return true;
     }
 
